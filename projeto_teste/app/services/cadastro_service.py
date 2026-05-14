@@ -69,6 +69,7 @@ class CadastroService:
         dados = {}
         for form_name, db_name in colunas_map.items():
             dados[db_name] = cls._normalizar_valor(db_name, form.get(form_name, ''), form_name)
+        dados['atualizado'] = date.today().isoformat()
         return dados
 
     @classmethod

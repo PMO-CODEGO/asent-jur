@@ -36,7 +36,7 @@ LABELS = {
     'irregularidades': 'Irregularidades',
     'ultima_vistoria': 'Última Vistoria',
     'observacoes_2': 'Observações 2',
-    'atualizado': 'Atualizado',
+    'atualizado': 'Última atualização',
     'observacoes_3': 'Observações 3',
     'processo_judicial': 'Processo Judicial',
     'status': 'Status',

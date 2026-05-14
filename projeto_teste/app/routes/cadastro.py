@@ -204,6 +204,7 @@ def cadastro():
 
                 file = request.files.get('IMAGEM_EMPRESA')
                 descricao = request.form.get('DESCRICAO_EMPRESA', '') or ' '
+                caminho_imagem = None
 
                 if file and file.filename.strip():
                     nome_original = file.filename
@@ -219,15 +220,17 @@ def cadastro():
 
                     caminho_imagem = f"/static/imagens_empresas/{nome_arquivo}".replace('\\', '/')
 
-                    with db.cursor() as cursor:
-                        cursor.execute("""
-                            INSERT INTO empresa_infos (empresa_id, descricao, caminho_imagem)
-                            VALUES (%s, %s, %s)
-                            ON DUPLICATE KEY UPDATE
-                                descricao = VALUES(descricao),
-                                caminho_imagem = VALUES(caminho_imagem)
-                        """, (empresa_id, descricao, caminho_imagem))
-                        db.commit()
+                with db.cursor() as cursor:
+                    cursor.execute("""
+                        INSERT INTO empresa_infos (empresa_id, descricao, caminho_imagem)
+                        VALUES (%s, %s, %s)
+                        ON DUPLICATE KEY UPDATE
+                            descricao = VALUES(descricao),
+                            caminho_imagem = COALESCE(VALUES(caminho_imagem), caminho_imagem)
+                    """, (empresa_id, descricao, caminho_imagem))
+                    db.commit()
+
+                    if caminho_imagem:
                         gravar_log(
                             acao=f"UPLOAD_IMAGEM_EMPRESA (empresa{empresa_id})",
                             usuario_username=session.get('username'),

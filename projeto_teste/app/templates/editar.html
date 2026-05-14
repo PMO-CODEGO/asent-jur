@@ -26,6 +26,15 @@
             </div>
 
             <form id="formEditar" action="{{ url_for('edicao.editar', empresa_id=empresa_id) }}" method="POST" class="p-5 md:p-8">
+                {% if atualizacao_vencida %}
+                <div class="mb-6 p-4 rounded-xl bg-amber-50 text-amber-800 border border-amber-200 flex items-start gap-3">
+                    <i data-lucide="bell-ring" class="w-6 h-6 mt-0.5"></i>
+                    <div>
+                        <p class="font-bold">Atualizacao pendente</p>
+                        <p class="text-sm">A ultima atualizacao desta empresa esta vazia ou tem mais de um ano. Ao salvar uma alteracao, a data sera atualizada automaticamente.</p>
+                    </div>
+                </div>
+                {% endif %}
 
                 <div class="mb-6">
                     <h3 class="text-[#002b5c] font-bold border-b pb-2 mb-6 flex items-center gap-2">
@@ -82,10 +91,16 @@
                                 maxlength="18" inputmode="numeric" pattern="(?:\d{14}|\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2})" title="Use 14 dígitos ou o formato 00.000.000/0000-00"
                                 class="cnpj-mask w-full p-3 border-2 border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all shadow-sm bg-gray-50/50">
 
-                            {% elif col in ['municipio', 'distrito', 'empresa', 'modulo_s', 'data_escrituracao', 'data_contrato_de_compra_e_venda', 'ultima_vistoria', 'atualizado'] %}
-                            <input type="{% if col in ['data_escrituracao', 'data_contrato_de_compra_e_venda', 'ultima_vistoria', 'atualizado'] %}date{% else %}text{% endif %}"
+                            {% elif col == 'atualizado' %}
+                            <input type="date" name="{{ col }}" value="{{ '' if dados[col] in ['-', None] else dados[col] }}"
+                                readonly
+                                class="w-full p-3 border-2 border-gray-100 rounded-xl bg-gray-100 text-gray-500 cursor-not-allowed">
+                            <p class="text-[11px] text-gray-500 ml-1">Preenchido automaticamente quando os dados da empresa sao modificados.</p>
+
+                            {% elif col in ['municipio', 'distrito', 'empresa', 'modulo_s', 'data_escrituracao', 'data_contrato_de_compra_e_venda', 'ultima_vistoria'] %}
+                            <input type="{% if col in ['data_escrituracao', 'data_contrato_de_compra_e_venda', 'ultima_vistoria'] %}date{% else %}text{% endif %}"
                                 name="{{ col }}" value="{{ '' if dados[col] in ['-', None] else dados[col] }}"
-                                maxlength="{% if col in ['municipio', 'distrito', 'empresa', 'modulo_s', 'data_escrituracao', 'data_contrato_de_compra_e_venda', 'ultima_vistoria', 'atualizado'] %}50{% endif %}"
+                                maxlength="{% if col in ['municipio', 'distrito', 'empresa', 'modulo_s', 'data_escrituracao', 'data_contrato_de_compra_e_venda', 'ultima_vistoria'] %}50{% endif %}"
                                 class="w-full p-3 border-2 border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all shadow-sm bg-gray-50/50">
 
                             {% elif col in ['processo_sei', 'empregos_gerados', 'quadra', 'qtd_modulos', 'matricula_s'] %}

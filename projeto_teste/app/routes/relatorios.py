@@ -1,5 +1,6 @@
 from datetime import datetime
 from io import BytesIO
+from pathlib import Path
 import os
 
 from flask import Blueprint, current_app, flash, make_response, redirect, render_template, request, session, url_for
@@ -15,6 +16,8 @@ from app.services.pdf_service import add_watermark
 from app.utils.decorators import role_required
 
 relatorio_bp = Blueprint("relatorio", __name__)
+
+EMPRESA_INFOS_SEED_CACHE = None
 
 RELATORIO_EMPRESA_ORDEM = [
     'municipio',
@@ -70,6 +73,122 @@ def valor_pdf(valor):
     if isinstance(valor, int) and valor in (0, 1):
         return 'SIM' if valor else 'NAO'
     return str(valor)
+
+
+def caminho_imagem_empresa(empresa_id):
+    static_dir = Path(current_app.root_path) / 'static'
+    padroes = [
+        static_dir / 'imagens_empresas',
+        static_dir,
+    ]
+
+    for pasta in padroes:
+        if not pasta.exists():
+            continue
+        arquivos = sorted(pasta.glob(f'empresa{empresa_id}*'))
+        for arquivo in arquivos:
+            if arquivo.is_file():
+                return '/static/' + arquivo.relative_to(static_dir).as_posix()
+
+    return ''
+
+
+def dividir_tuplas_sql(valores_sql):
+    tuplas = []
+    profundidade = 0
+    inicio = None
+    em_texto = False
+
+    indice = 0
+    while indice < len(valores_sql):
+        char = valores_sql[indice]
+
+        if em_texto:
+            if char == "'":
+                if indice + 1 < len(valores_sql) and valores_sql[indice + 1] == "'":
+                    indice += 1
+                else:
+                    em_texto = False
+        elif char == "'":
+            em_texto = True
+        elif char == '(':
+            if profundidade == 0:
+                inicio = indice
+            profundidade += 1
+        elif char == ')':
+            profundidade -= 1
+            if profundidade == 0 and inicio is not None:
+                tuplas.append(valores_sql[inicio + 1:indice])
+                inicio = None
+
+        indice += 1
+
+    return tuplas
+
+
+def dividir_campos_sql(tupla_sql):
+    campos = []
+    atual = []
+    em_texto = False
+
+    indice = 0
+    while indice < len(tupla_sql):
+        char = tupla_sql[indice]
+
+        if em_texto:
+            if char == "'":
+                if indice + 1 < len(tupla_sql) and tupla_sql[indice + 1] == "'":
+                    atual.append("'")
+                    indice += 1
+                else:
+                    em_texto = False
+            else:
+                atual.append(char)
+        elif char == "'":
+            em_texto = True
+        elif char == ',':
+            campos.append(''.join(atual).strip())
+            atual = []
+        else:
+            atual.append(char)
+
+        indice += 1
+
+    campos.append(''.join(atual).strip())
+    return [None if campo.upper() == 'NULL' else campo for campo in campos]
+
+
+def carregar_empresa_infos_seed():
+    global EMPRESA_INFOS_SEED_CACHE
+    if EMPRESA_INFOS_SEED_CACHE is not None:
+        return EMPRESA_INFOS_SEED_CACHE
+
+    infos = {}
+    seed_path = Path(current_app.root_path).parent / 'docker' / 'mysql' / 'init' / '06_empresa_infos_descricoes.sql'
+    if not seed_path.exists():
+        EMPRESA_INFOS_SEED_CACHE = infos
+        return infos
+
+    conteudo = seed_path.read_text(encoding='utf-8', errors='replace')
+    if 'VALUES' not in conteudo or 'ON DUPLICATE KEY UPDATE' not in conteudo:
+        EMPRESA_INFOS_SEED_CACHE = infos
+        return infos
+
+    valores_sql = conteudo.split('VALUES', 1)[1].split('ON DUPLICATE KEY UPDATE', 1)[0]
+    for tupla_sql in dividir_tuplas_sql(valores_sql):
+        campos = dividir_campos_sql(tupla_sql)
+        if len(campos) < 3:
+            continue
+        empresa_id, descricao, caminho_imagem = campos[:3]
+        if not str(empresa_id).isdigit():
+            continue
+        infos[str(empresa_id)] = {
+            'descricao': descricao or '',
+            'foto': caminho_imagem or '',
+        }
+
+    EMPRESA_INFOS_SEED_CACHE = infos
+    return infos
 
 
 def adicionar_tabela_chave_valor(story, dados, labels, cell_style, header_color='#1a233a'):
@@ -595,10 +714,27 @@ def relatorios():
                 cursor.execute("SELECT empresa_id, descricao, caminho_imagem FROM empresa_infos")
                 infos = cursor.fetchall()
 
+        seed_infos = carregar_empresa_infos_seed()
+
         for row in infos:
-            empresas_info[str(row['empresa_id'])] = {
-                "descricao": row.get('descricao') or 'Sem descrição cadastrada.',
-                "foto": row.get('caminho_imagem') or 'static/empresa-default.png',
+            empresa_id = str(row['empresa_id'])
+            seed_info = seed_infos.get(empresa_id, {})
+            empresas_info[empresa_id] = {
+                "descricao": row.get('descricao') or seed_info.get('descricao') or 'Sem descrição cadastrada.',
+                "foto": row.get('caminho_imagem') or seed_info.get('foto') or caminho_imagem_empresa(empresa_id),
+            }
+
+        for empresa in empresas:
+            empresa_id = str(empresa.get('id'))
+            if empresa_id in empresas_info:
+                if not empresas_info[empresa_id].get('foto'):
+                    empresas_info[empresa_id]['foto'] = caminho_imagem_empresa(empresa_id)
+                continue
+
+            seed_info = seed_infos.get(empresa_id, {})
+            empresas_info[empresa_id] = {
+                "descricao": seed_info.get('descricao') or 'Sem descrição cadastrada.',
+                "foto": seed_info.get('foto') or caminho_imagem_empresa(empresa_id),
             }
     except Exception as err:
         print("Erro ao carregar dados:", err)

@@ -60,6 +60,16 @@
     </div>
 
     <div class="bg-white rounded-b-2xl shadow-2xl overflow-hidden border border-white/20">
+        {% if modo != 'jur' and total_atualizacoes_vencidas %}
+        <div class="m-5 p-4 rounded-xl bg-amber-50 text-amber-800 border border-amber-200 flex items-start gap-3">
+            <i data-lucide="bell-ring" class="w-6 h-6 mt-0.5"></i>
+            <div>
+                <p class="font-bold">Atualizacoes pendentes</p>
+                <p class="text-sm">{{ total_atualizacoes_vencidas }} empresa(s) estao sem data de ultima atualizacao ou com ultima atualizacao ha mais de um ano.</p>
+            </div>
+        </div>
+        {% endif %}
+
         <div class="overflow-x-auto custom-scrollbar">
             <table id="tabelaRegistros" class="w-full text-left">
                 <thead class="bg-gray-50 text-gray-600 border-b">
@@ -75,6 +85,7 @@
                             <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider">Municipio</th>
                             <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider">Empresa</th>
                             <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider">CNPJ</th>
+                            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider">Ultima atualizacao</th>
                         {% endif %}
                         <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-center">Acao</th>
                     </tr>
@@ -96,6 +107,20 @@
                             <td class="px-6 py-4 text-sm text-gray-600">{{ item['municipio'] }}</td>
                             <td class="px-6 py-4 text-sm font-bold text-[#002b5c]">{{ item['empresa'] }}</td>
                             <td class="px-6 py-4 text-sm text-gray-500 font-mono">{{ item['cnpj'] }}</td>
+                            <td class="px-6 py-4 text-sm">
+                                <div class="flex flex-col gap-1">
+                                    <span class="text-gray-600 font-mono">{{ item['ultima_atualizacao_data'] or '-' }}</span>
+                                    {% if item['atualizacao_vencida'] %}
+                                    <span class="inline-flex w-fit items-center gap-1 rounded-full bg-amber-100 px-2 py-1 text-[11px] font-bold text-amber-800">
+                                        <i data-lucide="bell-ring" class="w-3 h-3"></i> Mais de 1 ano
+                                    </span>
+                                    {% elif item['atualizacao_pendente'] %}
+                                    <span class="inline-flex w-fit items-center gap-1 rounded-full bg-red-100 px-2 py-1 text-[11px] font-bold text-red-700">
+                                        <i data-lucide="alert-triangle" class="w-3 h-3"></i> Sem data
+                                    </span>
+                                    {% endif %}
+                                </div>
+                            </td>
                         {% endif %}
 
                         <td class="px-6 py-4 text-center">

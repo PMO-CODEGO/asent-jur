@@ -1,4 +1,5 @@
 import os
+from datetime import date, datetime, timedelta
 
 from flask import Blueprint, render_template, session, redirect, url_for, flash, request, abort, send_file
 
@@ -29,6 +30,35 @@ from app.utils.decorators import role_required
 
 
 edicao_bp = Blueprint("edicao", __name__)
+
+
+def parse_data_atualizacao(valor):
+    if valor in (None, '', '-'):
+        return None
+
+    texto = str(valor).strip()
+    for formato in ('%Y-%m-%d', '%Y-%m-%d %H:%M:%S', '%d/%m/%Y'):
+        try:
+            return datetime.strptime(texto[:19], formato).date()
+        except ValueError:
+            continue
+    return None
+
+
+def aplicar_status_atualizacao(empresas):
+    limite = date.today() - timedelta(days=365)
+    vencidas = 0
+
+    for empresa in empresas:
+        data_atualizacao = parse_data_atualizacao(empresa.get('atualizado'))
+        empresa['ultima_atualizacao_data'] = data_atualizacao.isoformat() if data_atualizacao else ''
+        empresa['atualizacao_vencida'] = bool(data_atualizacao and data_atualizacao < limite)
+        empresa['atualizacao_pendente'] = data_atualizacao is None
+
+        if empresa['atualizacao_vencida'] or empresa['atualizacao_pendente']:
+            vencidas += 1
+
+    return vencidas
 
 
 def salvar_vinculos_processo(cursor, processo_id, partes, eventos):
@@ -109,12 +139,13 @@ def selecionar_edicao(modo):
                     }
                 else:
                     cursor.execute("""
-                        SELECT id, municipio, empresa, cnpj
+                        SELECT id, municipio, empresa, cnpj, atualizado, processo_judicial, processo_sei
                         FROM municipal_lots
                         WHERE empresa != '-'
                         ORDER BY empresa
                     """)
                     dados = cursor.fetchall()
+                    total_atualizacoes_vencidas = aplicar_status_atualizacao(dados)
     except Exception as err:
         dados = []
         print(f"Erro ao buscar dados: {err}")
@@ -125,6 +156,7 @@ def selecionar_edicao(modo):
         modo=modo,
         termo_busca=termo_busca,
         paginacao=paginacao,
+        total_atualizacoes_vencidas=locals().get('total_atualizacoes_vencidas', 0),
     )
 
 
@@ -142,10 +174,7 @@ def editar(empresa_id):
                     return redirect(url_for('edicao.selecionar_edicao', modo='assent'))
 
                 if request.method == 'POST':
-                    campos = COLUNAS[:-4]
-                    set_clause = ', '.join([f"`{col}` = %s" for col in campos])
-                    query = f"UPDATE municipal_lots SET {set_clause} WHERE id = %s"
-                    valores = []
+                    campos = [col for col in COLUNAS[:-4] if col != 'atualizado']
                     alteracoes = []
                     dados_normalizados = CadastroService.normalizar_dados_edicao(request.form, campos)
 
@@ -169,8 +198,18 @@ def editar(empresa_id):
                         if valor_final != valor_velho:
                             alteracoes.append(f"{LABELS[col]}: '{valor_velho}' -> '{valor_final}'")
 
-                        valores.append(valor_final)
+                    campos_update = list(campos)
+                    if alteracoes:
+                        hoje = date.today().isoformat()
+                        dados_normalizados['atualizado'] = hoje
+                        campos_update.append('atualizado')
+                        alteracoes.append(
+                            f"{LABELS['atualizado']}: '{empresa.get('atualizado') or '-'}' -> '{hoje}'"
+                        )
 
+                    set_clause = ', '.join([f"`{col}` = %s" for col in campos_update])
+                    query = f"UPDATE municipal_lots SET {set_clause} WHERE id = %s"
+                    valores = [dados_normalizados[col] for col in campos_update]
                     valores.append(empresa_id)
                     cursor.execute(query, valores)
                     db.commit()
@@ -197,6 +236,7 @@ def editar(empresa_id):
                     colunas=chaves_fixas,
                     labels=labels_fixas,
                     empresa_id=empresa_id,
+                    atualizacao_vencida=bool(aplicar_status_atualizacao([empresa])),
                     ramo_de_atividade_opcoes=ramo_de_atividade_opcoes,
                     status_de_assentamento_opcoes=status_de_assentamento_opcoes,
                     imovel_opcoes=imovel_opcoes,
