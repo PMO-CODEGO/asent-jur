@@ -303,8 +303,10 @@
             </div>
 
             <div class="nav-menu">
+                {% if session.get('role') in ['admin', 'assent_gestor'] %}
                 <a href="{{ url_for('cadastro.cadastro') }}" class="nav-button">Cadastrar Nova Empresa</a>
                 <a href="{{ url_for('edicao.selecionar_edicao', modo='assent') }}" class="nav-button">Editar Cadastro</a>
+                {% endif %}
                 <a href="{{ url_for('relatorio.relatorios', modo='assent') }}" class="nav-button active">Gerar Relatório</a>
             </div>
 

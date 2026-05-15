@@ -94,7 +94,7 @@ def salvar_vinculos_processo(cursor, processo_id, partes, eventos):
 
 
 @edicao_bp.route('/selecionar_edicao/<modo>')
-@role_required('assent', 'admin', 'jur', 'assent_gestor', 'jur_gestor')
+@role_required('admin', 'jur', 'assent_gestor', 'jur_gestor')
 def selecionar_edicao(modo):
     role = session.get('role')
     termo_busca = request.args.get('q', '').strip()
@@ -104,7 +104,7 @@ def selecionar_edicao(modo):
         pagina = 1
     paginacao = None
 
-    if modo == 'assent' and role not in ['assent', 'admin', 'assent_gestor']:
+    if modo == 'assent' and role not in ['admin', 'assent_gestor']:
         abort(403)
 
     if modo == 'jur' and role not in ['jur', 'admin', 'jur_gestor']:
@@ -161,7 +161,7 @@ def selecionar_edicao(modo):
 
 
 @edicao_bp.route('/editar/<int:empresa_id>', methods=['GET', 'POST'])
-@role_required('assent', 'admin', 'assent_gestor')
+@role_required('admin', 'assent_gestor')
 def editar(empresa_id):
     try:
         with get_db() as db:

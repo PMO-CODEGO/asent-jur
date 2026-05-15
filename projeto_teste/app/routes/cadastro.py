@@ -176,7 +176,7 @@ def inserir_processo_juridico(cursor, processo, partes, eventos, historico):
 
 
 @cadastro_bp.route('/cadastro', methods=['GET', 'POST'])
-@role_required('assent', 'admin', 'assent_gestor')
+@role_required('admin', 'assent_gestor')
 def cadastro():
     if request.method == 'POST':
         dados = CadastroService.normalizar_dados(request.form)
