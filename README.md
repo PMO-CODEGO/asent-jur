@@ -1,4 +1,4 @@
-# ASENT JUR
+# ASSENT JUR
 
 Sistema web desenvolvido para gerenciamento jurídico e administrativo de processos.
 
