@@ -1,475 +1,116 @@
-# README — Pasta `routes`
+# app/routes/ — Rotas da Aplicação (Controllers)
 
-## Visão Geral
+Esta pasta contém os **Blueprints** do Flask — módulos que agrupam as rotas HTTP por área funcional. Cada arquivo define as URLs que a aplicação responde e delega a lógica de negócio para os serviços em `app/services/`.
 
-A pasta `routes` é responsável por definir todas as rotas HTTP da aplicação Flask. Cada arquivo representa um conjunto específico de funcionalidades do sistema, organizadas por contexto de negócio.
-
-As rotas funcionam como a camada de comunicação entre:
-
-* Frontend (templates HTML/forms)
-* Serviços (`services`)
-* Banco de dados
-* Controle de autenticação/autorização
-
-A estrutura utiliza `Blueprints` do Flask para modularizar o sistema e facilitar manutenção, escalabilidade e separação de responsabilidades.
+> **Nota:** Já existe um README técnico gerado automaticamente nesta pasta. Este arquivo complementa e expande aquela documentação.
 
 ---
 
-# Estrutura da Pasta
+## Arquivos
 
-```bash
-routes/
-│
-├── auth_login.py
-├── auth_password.py
-├── auth_user.py
-├── cadastro.py
-├── dashboard.py
-├── edicao.py
-├── juridico.py
-├── logs.py
-└── relatorios.py
-```
+### `auth_login.py` — Autenticação
+Gerencia o acesso ao sistema.
+
+| Rota | Método | Descrição |
+|---|---|---|
+| `/` | GET | Redireciona para a tela de login |
+| `/login` | GET/POST | Autentica o usuário. Em caso de sucesso, cria a sessão e redireciona conforme o perfil (role). Em caso de falha, exibe mensagem de erro. |
+| `/logout` | GET | Encerra a sessão e redireciona para o login |
 
 ---
 
-# Arquivos da Pasta `routes`
+### `auth_password.py` — Recuperação de Senha
+Permite ao usuário redefinir sua senha sem saber a atual.
 
-## 1. `auth_login.py`
+| Rota | Método | Descrição |
+|---|---|---|
+| `/recuperar-senha` | GET/POST | Formulário onde o usuário informa o e-mail. Dispara um e-mail com link de redefinição válido por 15 minutos. |
+| `/redefinir_senha/<token>` | GET/POST | Página de redefinição de senha. Valida o token antes de permitir a alteração. |
 
-### Responsabilidade
+---
 
-Responsável pelo fluxo de autenticação dos usuários do sistema.
+### `auth_user.py` — Cadastro de Usuários
+Controla o registro de novos usuários no sistema.
 
-### Principais Funcionalidades
+| Rota | Método | Acesso | Descrição |
+|---|---|---|---|
+| `/registrar-usuario` | GET/POST | Público | Formulário de auto-cadastro de novos usuários |
+| `/registrar-colaborador` | GET | `assent_gestor`, `jur_gestor`, `admin` | Tela para gestores cadastrarem colaboradores. O departamento é pré-definido com base na role do gestor logado. |
 
-* Exibição da tela de login
-* Validação de credenciais
-* Criação de sessão do usuário
-* Redirecionamento por nível de acesso
-* Logout
+---
 
-### Blueprint
+### `dashboard.py` — Menu Principal
+Exibe o menu de navegação após o login.
 
+| Rota | Método | Acesso | Descrição |
+|---|---|---|---|
+| `/menu/<modo>` | GET | Todos os usuários logados | Renderiza `menu_jur.html` para o módulo jurídico ou `menu.html` para o módulo de assentamento, conforme o parâmetro `modo`. |
+
+---
+
+### `cadastro.py` — Cadastro de Registros
+O maior controller da aplicação. Gerencia o cadastro de empresas/lotes (módulo Assentamento) e de processos jurídicos (módulo Jurídico), incluindo importação em lote por planilha.
+
+Principais funcionalidades:
+- Cadastro de novos lotes/empresas na tabela `municipal_lots`.
+- Cadastro de novos processos jurídicos na tabela `processos`, com partes e eventos vinculados.
+- Importação de processos em lote via arquivo `.csv` ou `.xlsx`, com etapa de mapeamento de colunas.
+- Upload e anexo de documentos aos processos.
+- Gravação de log a cada operação.
+
+---
+
+### `edicao.py` — Edição de Dados
+Controla a visualização e edição dos registros existentes.
+
+Principais funcionalidades:
+- Listagem de empresas do módulo Assentamento com indicadores visuais de atualização vencida (> 1 ano sem atualização).
+- Edição dos campos de assentamento (setor Assentamento) e dos campos jurídicos (setor Jurídico) de cada empresa.
+- Listagem, busca e paginação de processos jurídicos.
+- Edição completa de processos, com registro automático de histórico de alterações.
+- Anexo de documentos a processos existentes e download desses documentos.
+- Exibição de detalhes de um processo jurídico, incluindo histórico, partes, prazos, movimentações e documentos.
+
+---
+
+### `juridico.py` — Módulo Jurídico (Consultas)
+Fornece visões de leitura e monitoramento para o setor Jurídico.
+
+| Rota | Acesso | Descrição |
+|---|---|---|
+| `/assentamento` ou `/jur/assentamento` | Todos os logados | Lista todos os lotes/empresas cadastrados para consulta pelo Jurídico. |
+| `/assentamento/<id>` ou `/jur/assentamento/<id>` | Todos os logados | Detalhes de um lote específico, exibindo apenas os campos de assentamento (fixos). |
+| `/jur/prazos` | `jur`, `jur_gestor`, `admin` | Painel de monitoramento de prazos processuais, com filtros por situação (vencido, hoje, próximo, futuro) e configuração de janela de alerta em dias. |
+
+---
+
+### `logs.py` — Auditoria
+Exibe o histórico de ações registradas no sistema.
+
+| Rota | Acesso | Descrição |
+|---|---|---|
+| `/logs` | `admin` | Tabela com os últimos 1.000 registros de auditoria. Permite filtrar por usuário e por período (data inicial / data final). |
+
+---
+
+### `relatorios.py` — Relatórios em PDF
+Gera relatórios em formato PDF com dados de empresas e processos usando a biblioteca ReportLab.
+
+Principais funcionalidades:
+- Geração de relatório completo de uma empresa, incluindo dados de assentamento, processos jurídicos vinculados e foto da empresa.
+- Relatório geral de todos os processos jurídicos cadastrados.
+- Todos os PDFs gerados incluem marca d'água com o logo da CODEGO.
+
+---
+
+## Controle de Acesso
+
+O controle de acesso é feito pelo decorator `@role_required(...)` definido em `app/utils/decorators.py`. Rotas sem esse decorator são públicas (como o login).
+
+Exemplo de uso:
 ```python
-Blueprint("auth_login", __name__)
+@logs_bp.route('/logs')
+@role_required('admin')
+def logs():
+    ...
 ```
-
-### Rotas Principais
-
-| Rota      | Método   | Descrição                  |
-| --------- | -------- | -------------------------- |
-| `/`       | GET      | Exibe tela de login        |
-| `/login`  | GET/POST | Realiza autenticação       |
-| `/logout` | GET      | Finaliza sessão do usuário |
-
-### Dependências
-
-* `AuthService`
-* `session`
-* `flash`
-* `redirect`
-* `render_template`
-
-### Objetivo Técnico
-
-Centralizar toda a lógica inicial de autenticação e controle de sessão.
-
----
-
-## 2. `auth_password.py`
-
-### Responsabilidade
-
-Gerencia funcionalidades relacionadas à recuperação e redefinição de senha.
-
-### Principais Funcionalidades
-
-* Solicitação de recuperação de senha
-* Geração de token de recuperação
-* Validação de token
-* Definição de nova senha
-
-### Blueprint
-
-```python
-Blueprint("auth_password", __name__)
-```
-
-### Rotas Principais
-
-| Rota                       | Método   | Descrição                       |
-| -------------------------- | -------- | ------------------------------- |
-| `/recuperar-senha`         | GET/POST | Solicita recuperação de senha   |
-| `/redefinir-senha/<token>` | GET/POST | Redefine senha utilizando token |
-
-### Dependências
-
-* `AuthService`
-* `TokenService`
-* `flash`
-* `render_template`
-
-### Objetivo Técnico
-
-Permitir recuperação segura de acesso ao sistema.
-
----
-
-## 3. `auth_user.py`
-
-### Responsabilidade
-
-Responsável pelo gerenciamento de usuários e colaboradores.
-
-### Principais Funcionalidades
-
-* Registro de usuários
-* Cadastro de colaboradores
-* Controle de permissões
-* Restrição por perfil de acesso
-
-### Blueprint
-
-```python
-Blueprint("auth_user", __name__)
-```
-
-### Rotas Principais
-
-| Rota                     | Método   | Descrição                 |
-| ------------------------ | -------- | ------------------------- |
-| `/registrar-usuario`     | GET/POST | Cria novos usuários       |
-| `/registrar-colaborador` | GET/POST | Cadastro de colaboradores |
-
-### Dependências
-
-* `AuthService`
-* `role_required`
-* `session`
-
-### Objetivo Técnico
-
-Controlar criação e gerenciamento de usuários do sistema.
-
----
-
-## 4. `cadastro.py`
-
-### Responsabilidade
-
-Arquivo central do sistema responsável pelo cadastro de assentamentos, empresas e processos.
-
-### Principais Funcionalidades
-
-* Cadastro de processos
-* Upload de arquivos
-* Importação de planilhas
-* Registro de histórico
-* Integração com serviços jurídicos
-* Controle de documentos
-* Gravação de logs
-
-### Blueprint
-
-```python
-Blueprint("cadastro", __name__)
-```
-
-### Funcionalidades Técnicas
-
-* Upload seguro com `secure_filename`
-* Geração de UUID para arquivos
-* Integração com banco de dados
-* Importação CSV/planilhas
-* Registro de auditoria
-* Histórico de alterações
-
-### Dependências Importantes
-
-* `CadastroService`
-* `processo_documento_service`
-* `processo_historico_service`
-* `importacao_processos_service`
-* `log_service`
-
-### Objetivo Técnico
-
-Centralizar o fluxo principal de cadastro e gerenciamento de processos do sistema.
-
----
-
-## 5. `dashboard.py`
-
-### Responsabilidade
-
-Responsável pelo menu principal e navegação inicial do sistema.
-
-### Principais Funcionalidades
-
-* Exibição de menus por perfil
-* Direcionamento entre módulos
-* Controle de acesso por papel
-
-### Blueprint
-
-```python
-Blueprint("dashboard", __name__)
-```
-
-### Rotas Principais
-
-| Rota           | Método | Descrição                  |
-| -------------- | ------ | -------------------------- |
-| `/menu/<modo>` | GET    | Exibe menu conforme perfil |
-
-### Dependências
-
-* `role_required`
-* `render_template`
-
-### Objetivo Técnico
-
-Fornecer interface inicial adequada para cada tipo de usuário.
-
----
-
-## 6. `edicao.py`
-
-### Responsabilidade
-
-Gerencia edição de processos, documentos e informações cadastradas.
-
-### Principais Funcionalidades
-
-* Edição de processos
-* Atualização de documentos
-* Histórico de alterações
-* Controle de mudanças
-* Busca de processos
-* Registro de auditoria
-
-### Blueprint
-
-```python
-Blueprint("edicao", __name__)
-```
-
-### Funcionalidades Técnicas
-
-* Comparação de alterações
-* Controle de histórico
-* Upload de documentos
-* Busca paginada
-* Manipulação de datas
-
-### Dependências Importantes
-
-* `CadastroService`
-* `processo_historico_service`
-* `processo_busca_service`
-* `log_service`
-
-### Objetivo Técnico
-
-Permitir manutenção e atualização segura dos registros do sistema.
-
----
-
-## 7. `juridico.py`
-
-### Responsabilidade
-
-Responsável pelo módulo jurídico da aplicação.
-
-### Principais Funcionalidades
-
-* Consulta de assentamentos
-* Controle de prazos jurídicos
-* Filtros jurídicos
-* Integração com schema jurídico
-* Visualização de processos
-
-### Blueprint
-
-```python
-Blueprint("juridico", __name__)
-```
-
-### Rotas Principais
-
-| Rota                | Método | Descrição                        |
-| ------------------- | ------ | -------------------------------- |
-| `/jur/assentamento` | GET    | Consulta assentamentos jurídicos |
-
-### Dependências
-
-* `prazo_service`
-* `juridico_schema_service`
-* `get_db`
-
-### Objetivo Técnico
-
-Isolar funcionalidades relacionadas ao departamento jurídico.
-
----
-
-## 8. `logs.py`
-
-### Responsabilidade
-
-Gerencia visualização e filtragem de logs do sistema.
-
-### Principais Funcionalidades
-
-* Consulta de logs
-* Filtro por usuário
-* Filtro por período
-* Auditoria de ações
-* Monitoramento administrativo
-
-### Blueprint
-
-```python
-Blueprint("logs", __name__)
-```
-
-### Rotas Principais
-
-| Rota    | Método | Descrição                 |
-| ------- | ------ | ------------------------- |
-| `/logs` | GET    | Visualiza logs do sistema |
-
-### Dependências
-
-* `get_db`
-* `role_required`
-
-### Objetivo Técnico
-
-Garantir rastreabilidade e auditoria das ações executadas no sistema.
-
----
-
-## 9. `relatorios.py`
-
-### Responsabilidade
-
-Responsável pela geração de relatórios e exportações do sistema.
-
-### Principais Funcionalidades
-
-* Geração de PDF
-* Exportação de relatórios
-* Construção dinâmica de tabelas
-* Inserção de marca d’água
-* Relatórios jurídicos
-* Relatórios empresariais
-
-### Blueprint
-
-```python
-Blueprint("relatorio", __name__)
-```
-
-### Funcionalidades Técnicas
-
-* Uso da biblioteca `ReportLab`
-* Geração dinâmica de PDF
-* Manipulação de memória com `BytesIO`
-* Customização visual de tabelas
-
-### Dependências Importantes
-
-* `pdf_service`
-* `ReportLab`
-* `juridico_schema_service`
-* `get_db`
-
-### Objetivo Técnico
-
-Centralizar toda a geração documental do sistema.
-
----
-
-# Arquitetura Utilizada
-
-A pasta `routes` segue uma arquitetura baseada em:
-
-* Flask Blueprints
-* Separação por domínio
-* Services Layer
-* Controle de acesso via decorators
-* Integração com banco de dados
-* Templates HTML
-
-Fluxo simplificado:
-
-```text
-Usuário → Route → Service → Banco de Dados → Template/Resposta
-```
-
----
-
-# Controle de Permissões
-
-Grande parte das rotas utiliza o decorator:
-
-```python
-@role_required(...)
-```
-
-Esse mecanismo restringe acesso conforme perfil do usuário.
-
-Perfis encontrados no sistema:
-
-* `admin`
-* `jur`
-* `jur_gestor`
-* `assent`
-* `assent_gestor`
-
----
-
-# Observações Técnicas
-
-## Uso de Blueprints
-
-Todos os módulos utilizam `Blueprints`, permitindo:
-
-* Modularização
-* Facilidade de manutenção
-* Separação de responsabilidades
-* Escalabilidade
-
-## Uso de Services
-
-As regras de negócio ficam concentradas na pasta `services`, enquanto as rotas apenas:
-
-* Recebem requisições
-* Validam entradas
-* Chamam serviços
-* Retornam respostas
-
-## Auditoria
-
-O sistema possui rastreamento de ações através:
-
-* Logs
-* Histórico de processos
-* Controle de alterações
-
----
-
-# Conclusão
-
-A pasta `routes` representa a camada principal de comunicação da aplicação Flask, organizando funcionalidades por domínio e mantendo separação clara entre autenticação, cadastro, jurídico, relatórios, edição e auditoria.
-
-Essa estrutura facilita:
-
-* Escalabilidade
-* Organização do código
-* Segurança
-* Reutilização
-* Manutenção futura
-* Controle de acesso
