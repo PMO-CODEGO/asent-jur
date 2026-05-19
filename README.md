@@ -24,7 +24,7 @@ O projeto foi desenvolvido utilizando Flask, MySQL, Docker e Nginx, oferecendo f
 # Estrutura do Projeto
 
 ```bash
-projeto_teste/
+projeto/
 ├── app/
 │   ├── routes/          # Rotas da aplicação
 │   ├── services/        # Regras de negócio e serviços
@@ -98,7 +98,7 @@ SMTP_PASS=sua_senha_email
 
 ```bash
 git clone https://github.com/PMO-CODEGO/asent-jur.git
-cd asent-jur/projeto_teste
+cd asent-jur/projeto
 ```
 
 ## 2. Subir os containers
