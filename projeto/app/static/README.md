@@ -4,14 +4,12 @@ Esta pasta contém os arquivos estáticos da aplicação — imagens, logos e ou
 
 ---
 
-## Logos e Imagens do Sistema
+## Logos do Sistema
 
 | Arquivo | Descrição |
 |---|---|
 | `logo_codego.png` | Logo oficial da CODEGO em cores, utilizado nas telas do sistema |
 | `logo_codego_grey.png` | Logo da CODEGO em cinza, utilizado como marca d'água nos relatórios PDF gerados pela aplicação (8% de opacidade, rotacionado 45°) |
-| `dashboard_estatico.jpg` | Imagem de prévia do dashboard do módulo de Assentamento, exibida no menu principal |
-| `dashboard_jur.jpg` | Imagem de prévia do dashboard do módulo Jurídico, exibida no menu principal |
 
 ---
 
