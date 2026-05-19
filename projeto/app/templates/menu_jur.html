@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Jurídico - CODEGO</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='imagens_empresas/asentjur.png') }}" type="image/png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        :root {
+            --sidebar-bg: #ffffff;
+            --accent-blue: #002b5c; /* Azul Cobalto */
+            --button-red: #e57373; /* Tom avermelhado jurídico */
+            --button-red-hover: #d32f2f;
+            --text-white: #ffffff;
+            --logout-red: #ef4444;
+            --logout-red-hover: #dc2626;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+        }
+
+        .wrapper {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* --- SIDEBAR --- */
+        .sidebar {
+            width: 280px;
+            min-width: 280px;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid #ddd;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.05);
+            z-index: 10;
+        }
+
+        .logo-link {
+            display: inline-block;
+            cursor: pointer;
+        }
+
+        .logo-container img {
+            width: 200px;
+            margin-bottom: 30px;
+            display: block;
+        }
+
+        .nav-menu {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .nav-button {
+            background-color: var(--button-red);
+            color: white;
+            text-decoration: none;
+            padding: 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: bold;
+            text-align: center;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            border: none;
+            cursor: pointer;
+        }
+
+        .nav-button:hover {
+            background-color: var(--button-red-hover);
+            transform: translateX(5px);
+        }
+
+        /* --- CONTEÚDO PRINCIPAL --- */
+        .main-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: #ffffff;
+        }
+
+        /* --- TOPBAR INVERTIDA (AZUL COBALTO COM LETRA BRANCA) --- */
+        .topbar {
+            background-color: var(--accent-blue);
+            color: var(--text-white);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 70px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 5;
+        }
+
+        .welcome-text {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--text-white);
+            letter-spacing: -0.025em;
+        }
+
+        .welcome-text span {
+            font-weight: 300;
+            opacity: 0.8;
+            font-size: 1.6rem;
+            margin-right: 5px;
+        }
+
+        .topbar-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .btn-topbar {
+            color: white;
+            text-decoration: none;
+            padding: 10px 22px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Botão de Logout Sólido */
+        .btn-logout {
+            background-color: var(--logout-red);
+        }
+
+        .btn-logout:hover {
+            background-color: var(--logout-red-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-switch-menu {
+            background: linear-gradient(135deg, #f7cf63, #e7a73a);
+            color: #1a202c;
+            border: none;
+        }
+
+        .btn-switch-menu:hover {
+            background: linear-gradient(135deg, #efbe49, #d78f1d);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.25);
+        }
+
+        /* CONTAINER DO DASHBOARD */
+        .dashboard-container {
+            flex-grow: 1;
+            width: 100%;
+            height: calc(100vh - 70px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .dashboard-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .dashboard-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+        }
+
+        @media (max-width: 900px) {
+            body, html {
+                height: auto;
+                min-height: 100%;
+                overflow: auto;
+            }
+
+            .wrapper {
+                width: 100%;
+                min-height: 100vh;
+                height: auto;
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                min-width: 0;
+                box-sizing: border-box;
+                border-right: none;
+                border-bottom: 1px solid #ddd;
+                padding: 14px;
+            }
+
+            .logo-container img {
+                width: min(170px, 70vw);
+                margin-bottom: 14px;
+            }
+
+            .nav-menu {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 8px;
+            }
+
+            .nav-button {
+                padding: 11px 10px;
+                font-size: 11px;
+                line-height: 1.25;
+            }
+
+            .nav-button:hover {
+                transform: none;
+            }
+
+            .main-content {
+                min-height: 0;
+            }
+
+            .topbar {
+                height: auto;
+                min-height: 64px;
+                padding: 12px 14px;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+            }
+
+            .welcome-text,
+            .welcome-text span {
+                font-size: 1.1rem;
+                overflow-wrap: anywhere;
+            }
+
+            .topbar-actions {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 8px;
+            }
+
+            .btn-topbar {
+                justify-content: center;
+                padding: 10px 12px;
+                font-size: 0.8rem;
+            }
+
+            .dashboard-container {
+                height: 65vh;
+                min-height: 420px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <div class="sidebar">
+            <div class="logo-container">
+                <a href="{{ url_for('dashboard.menu', modo='jur') }}" class="logo-link" aria-label="Voltar ao menu jurídico">
+                    <img src="{{ url_for('static', filename='logo_codego.png') }}" alt="Logo CodeGO">
+                </a>
+            </div>
+            <div class="nav-menu">
+                <a href="{{ url_for('cadastro.cadastro_jur') }}" class="nav-button">Adicionar Processos</a>
+                <a href="{{ url_for('edicao.selecionar_edicao', modo='jur') }}" class="nav-button">Editar Processos</a>
+                <a href="{{ url_for('juridico.prazos_juridicos') }}" class="nav-button">Alertas de Prazos</a>
+                <a href="{{ url_for('juridico.consultar_assentamento') }}" class="nav-button">Consultar Assentamento</a>
+                <a href="{{ url_for('relatorio.relatorios', modo='jur') }}" class="nav-button">Gerar Relatorio</a>
+
+                {% if session.get('role') == 'jur_gestor' %}
+    <a href="{{ url_for('auth_user.registrar_colaborador') }}" class="nav-button" style="background-color: var(--button-red); margin-top: 10px;">
+        <i data-lucide="user-plus" class="w-4 h-4 inline-block mr-2"></i>
+        Registrar Usuario
+    </a>
+    {% endif %}
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="topbar">
+                <div class="welcome-text">
+                    <span> Bem-vindo,</span>{{ session['username'] }}
+                </div>
+
+                <div class="topbar-actions">
+                    {% if session.get('role') == 'admin' %}
+                        <a href="{{ url_for('dashboard.menu', modo='assent') }}" class="btn-topbar btn-switch-menu">
+                            <i data-lucide="arrow-left-right" class="w-4 h-4"></i>
+                            Alternar Menu
+                        </a>
+                    {% endif %}
+
+                    <a href="{{ url_for('auth_login.logout') }}" class="btn-topbar btn-logout">
+                        <i data-lucide="log-out" class="w-4 h-4"></i>
+                        Sair do Sistema
+                    </a>
+                </div>
+            </div>
+            
+            <div class="dashboard-container">
+                <iframe 
+                    title="Projeto PBI AssentJur" 
+                    src="https://app.powerbi.com/view?r=eyJrIjoiZTEwNjAxMGEtNDI3MC00ZTIyLWE3MTAtYjQ0NzM2ZTIzZDg5IiwidCI6ImZmY2UxNmU0LTFmZTUtNDlhMS1iOWUxLTEwNzQ4YzFlZWRjNSJ9&navContentPaneEnabled=false&filterPaneEnabled=false" 
+                    allowFullScreen>
+                </iframe>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

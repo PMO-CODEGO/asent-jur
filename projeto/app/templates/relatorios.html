@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel CodeGO - Gerar Relatórios</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='imagens_empresas/asentjur.png') }}" type="image/png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+    <style>
+        :root {
+            --sidebar-bg: #ffffff;
+            --accent-blue: #002b5c;
+            --button-blue: #7a97bb;
+            --text-white: #ffffff;
+            --logout-red: #ef4444;
+            --logout-red-hover: #dc2626;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+        }
+
+        .wrapper {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        .sidebar {
+            width: 280px;
+            min-width: 280px;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid #ddd;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.05);
+            z-index: 10;
+        }
+
+        .logo-container {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .logo-link {
+            display: inline-block;
+            cursor: pointer;
+        }
+
+        .logo-container img {
+            width: 200px;
+            display: block;
+        }
+
+        .nav-menu {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .nav-button {
+            background-color: var(--button-blue);
+            color: white;
+            text-decoration: none;
+            padding: 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: bold;
+            text-align: center;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            border: none;
+            cursor: pointer;
+        }
+
+        .nav-button:hover {
+            background-color: var(--accent-blue);
+            transform: translateX(5px);
+        }
+
+        .nav-button.active {
+            background-color: var(--accent-blue);
+        }
+
+        .main-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: #f3f4f6;
+        }
+
+        .topbar {
+            background-color: var(--accent-blue);
+            color: var(--text-white);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 70px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 5;
+        }
+
+        .welcome-text {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--text-white);
+            letter-spacing: -0.025em;
+        }
+
+        .welcome-text span {
+            font-weight: 400;
+            opacity: 0.9;
+        }
+
+        .btn-logout {
+            background-color: var(--logout-red);
+            color: white;
+            text-decoration: none;
+            padding: 10px 22px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-logout:hover {
+            background-color: var(--logout-red-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .report-container {
+            padding: 40px;
+            overflow-y: auto;
+        }
+
+        .report-card {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            max-width: 700px;
+        }
+
+        .report-card h2 {
+            margin-top: 0;
+            color: var(--accent-blue);
+            font-size: 1.25rem;
+            margin-bottom: 20px;
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        .btn-submit {
+            background-color: var(--accent-blue);
+            color: white;
+            border: none;
+            padding: 14px 24px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            font-family: 'Inter', sans-serif;
+            text-transform: uppercase;
+            transition: background 0.3s;
+        }
+
+        .btn-submit:hover {
+            opacity: 0.9;
+        }
+
+        .ts-dropdown .meta-line {
+            display: block;
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 4px;
+        }
+
+        .ts-control .item {
+            font-weight: 600;
+        }
+
+        @media (max-width: 900px) {
+            body, html {
+                height: auto;
+                min-height: 100%;
+                overflow: auto;
+            }
+
+            .wrapper {
+                width: 100%;
+                min-height: 100vh;
+                height: auto;
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                min-width: 0;
+                box-sizing: border-box;
+                border-right: none;
+                border-bottom: 1px solid #ddd;
+                padding: 14px;
+            }
+
+            .logo-container {
+                margin-bottom: 14px;
+            }
+
+            .logo-container img {
+                width: min(170px, 70vw);
+            }
+
+            .nav-menu {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 8px;
+            }
+
+            .nav-button {
+                padding: 11px 10px;
+                font-size: 11px;
+                line-height: 1.25;
+            }
+
+            .nav-button:hover {
+                transform: none;
+            }
+
+            #empresa-info {
+                margin-top: 14px !important;
+            }
+
+            #empresa-foto {
+                max-height: 160px;
+            }
+
+            .topbar {
+                height: auto;
+                min-height: 64px;
+                padding: 12px 14px;
+                align-items: stretch;
+                gap: 10px;
+                flex-direction: column;
+            }
+
+            .welcome-text {
+                font-size: 1.1rem;
+                overflow-wrap: anywhere;
+            }
+
+            .btn-logout {
+                justify-content: center;
+                padding: 10px 12px;
+                font-size: 0.8rem;
+            }
+
+            .report-container {
+                padding: 16px;
+            }
+
+            .report-card {
+                max-width: none;
+                padding: 20px;
+                border-radius: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <div class="sidebar">
+            <div class="logo-container">
+                <a href="{{ url_for('dashboard.menu', modo='assent') }}" class="logo-link" aria-label="Voltar ao menu principal">
+                    <img src="{{ url_for('static', filename='logo_codego.png') }}" alt="Logo CodeGO">
+                </a>
+            </div>
+
+            <div class="nav-menu">
+                {% if session.get('role') in ['admin', 'assent_gestor'] %}
+                <a href="{{ url_for('cadastro.cadastro') }}" class="nav-button">Cadastrar Nova Empresa</a>
+                <a href="{{ url_for('edicao.selecionar_edicao', modo='assent') }}" class="nav-button">Editar Cadastro</a>
+                {% endif %}
+                <a href="{{ url_for('juridico.consultar_assentamento') }}" class="nav-button">Consultar Assentamento</a>
+                <a href="{{ url_for('relatorio.relatorios', modo='assent') }}" class="nav-button active">Gerar Relatório</a>
+            </div>
+
+            <div id="empresa-info" style="margin-top: 30px; width: 100%; display: none;">
+                <div style="text-align: center; margin-bottom: 10px;">
+                    <img id="empresa-foto"
+                        src=""
+                        alt="Foto da empresa"
+                        style="width: 100%; border-radius: 8px; border: 1px solid #ddd; object-fit: cover;">
+                </div>
+                <div>
+                    <h3 id="empresa-nome"
+                        style="font-size: 14px; font-weight: 700; color: #002b5c; margin: 0 0 6px 0;"></h3>
+                    <p id="empresa-descricao"
+                    style="font-size: 12px; color: #555; margin: 0;"></p>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="topbar">
+                <div class="welcome-text">
+                    <span>Bem-vindo,</span> {{ session['username'] }}
+                </div>
+
+                <a href="{{ url_for('auth_login.logout') }}" class="btn-logout">
+                    <i data-lucide="log-out" class="w-4 h-4"></i>
+                    Sair do Sistema
+                </a>
+            </div>
+
+            <div class="report-container">
+                <div class="report-card">
+                    <h2>Emissão de Relatório Oficial</h2>
+                    <p style="color: #666; font-size: 14px; margin-bottom: 25px;">Selecione uma empresa da base de dados para gerar o documento PDF consolidado.</p>
+
+                    <form method="post" action="{{ url_for('relatorio.relatorios', modo='assent') }}">
+                        <label style="font-weight: 600; font-size: 13px; color: #444; display: block; margin-bottom: 8px;">EMPRESA REGISTRADA</label>
+                        <select id="select-empresa" name="empresa" class="form-select" required></select>
+
+                        <button type="submit" class="btn-submit">
+                            <i class="fas fa-file-pdf" style="margin-right: 8px;"></i> Gerar Relatório Agora
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="application/json" id="empresas-data">
+        {{ empresas | tojson | safe }}
+    </script>
+    <script type="application/json" id="empresas-info-data">
+        {{ empresas_info | tojson | safe }}
+    </script>
+    <script>
+        lucide.createIcons();
+
+        const empresas = JSON.parse(document.getElementById('empresas-data').textContent);
+        const empresasInfo = JSON.parse(document.getElementById('empresas-info-data').textContent);
+
+        const select = new TomSelect("#select-empresa", {
+            valueField: "id",
+            labelField: "empresa",
+            searchField: ["empresa", "municipio", "cnpj", "processo_sei", "numeros_processos"],
+            options: empresas,
+            maxOptions: 1000,
+            create: false,
+            placeholder: "Digite empresa, município, CNPJ, processo SEI ou número do processo...",
+            render: {
+                option: function(data, escape) {
+                    const meta = [
+                        data.municipio || "-",
+                        data.cnpj || "-",
+                        data.processo_sei || "-",
+                        data.numeros_processos || "-"
+                    ].join(" | ");
+
+                    return '<div>' +
+                        '<strong>' + escape(data.empresa || "") + '</strong>' +
+                        '<span class="meta-line">' + escape(meta) + '</span>' +
+                    '</div>';
+                },
+                item: function(data, escape) {
+                    return '<div>' + escape(data.empresa || "") + '</div>';
+                }
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const empresaInfoBox = document.getElementById('empresa-info');
+            const empresaFoto = document.getElementById('empresa-foto');
+            const empresaNome = document.getElementById('empresa-nome');
+            const empresaDescricao = document.getElementById('empresa-descricao');
+
+            function atualizarEmpresaInfo(id) {
+                if (!id || !empresasInfo[id]) {
+                    empresaInfoBox.style.display = 'none';
+                    return;
+                }
+
+                const info = empresasInfo[id];
+                const empresaSelecionada = empresas.find(function(item) {
+                    return String(item.id) === String(id);
+                });
+
+                empresaFoto.src = info.foto;
+                empresaFoto.alt = `Foto da empresa ${id}`;
+                empresaNome.textContent = empresaSelecionada ? empresaSelecionada.empresa : '';
+                empresaDescricao.textContent = info.descricao;
+                empresaInfoBox.style.display = 'block';
+            }
+
+            select.on('change', atualizarEmpresaInfo);
+        });
+    </script>
+</body>
+</html>
