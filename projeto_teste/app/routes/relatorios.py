@@ -164,28 +164,30 @@ def carregar_empresa_infos_seed():
         return EMPRESA_INFOS_SEED_CACHE
 
     infos = {}
-    seed_path = Path(current_app.root_path).parent / 'docker' / 'mysql' / 'init' / '06_empresa_infos_descricoes.sql'
-    if not seed_path.exists():
+    seed_dir = Path(current_app.root_path).parent / 'docker' / 'mysql' / 'init'
+    seed_paths = sorted(seed_dir.glob('*empresa_infos_descricoes*.sql'))
+    if not seed_paths:
         EMPRESA_INFOS_SEED_CACHE = infos
         return infos
 
-    conteudo = seed_path.read_text(encoding='utf-8', errors='replace')
-    if 'VALUES' not in conteudo or 'ON DUPLICATE KEY UPDATE' not in conteudo:
-        EMPRESA_INFOS_SEED_CACHE = infos
-        return infos
+    for seed_path in seed_paths:
+        conteudo = seed_path.read_text(encoding='utf-8', errors='replace')
+        if 'VALUES' not in conteudo or 'ON DUPLICATE KEY UPDATE' not in conteudo:
+            continue
 
-    valores_sql = conteudo.split('VALUES', 1)[1].split('ON DUPLICATE KEY UPDATE', 1)[0]
-    for tupla_sql in dividir_tuplas_sql(valores_sql):
-        campos = dividir_campos_sql(tupla_sql)
-        if len(campos) < 3:
-            continue
-        empresa_id, descricao, caminho_imagem = campos[:3]
-        if not str(empresa_id).isdigit():
-            continue
-        infos[str(empresa_id)] = {
-            'descricao': descricao or '',
-            'foto': caminho_imagem or '',
-        }
+        valores_sql = conteudo.split('VALUES', 1)[1].split('ON DUPLICATE KEY UPDATE', 1)[0]
+        for tupla_sql in dividir_tuplas_sql(valores_sql):
+            campos = dividir_campos_sql(tupla_sql)
+            if len(campos) < 3:
+                continue
+            empresa_id, descricao, caminho_imagem = campos[:3]
+            if not str(empresa_id).isdigit():
+                continue
+            info_atual = infos.get(str(empresa_id), {})
+            infos[str(empresa_id)] = {
+                'descricao': descricao or info_atual.get('descricao', ''),
+                'foto': caminho_imagem or info_atual.get('foto', ''),
+            }
 
     EMPRESA_INFOS_SEED_CACHE = infos
     return infos

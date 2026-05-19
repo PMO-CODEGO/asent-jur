@@ -285,6 +285,7 @@
     <a href="{{ url_for('cadastro.cadastro') }}" class="nav-button">Cadastrar Nova Empresa</a>
     <a href="{{ url_for('edicao.selecionar_edicao', modo='assent') }}" class="nav-button">Editar Cadastro</a>
     {% endif %}
+    <a href="{{ url_for('juridico.consultar_assentamento') }}" class="nav-button">Consultar Assentamento</a>
     <a href="{{ url_for('relatorio.relatorios', modo='assent') }}" class="nav-button">Gerar Relatório</a>
 
     {% if session.get('role') == 'admin' %}

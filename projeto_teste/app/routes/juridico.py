@@ -9,8 +9,9 @@ from app.utils.decorators import role_required
 juridico_bp = Blueprint("juridico", __name__)
 
 
+@juridico_bp.route('/assentamento')
 @juridico_bp.route('/jur/assentamento')
-@role_required('jur', 'jur_gestor', 'admin')
+@role_required('assent', 'jur', 'jur_gestor', 'admin', 'assent_gestor')
 def consultar_assentamento():
     try:
         with get_db() as db:
@@ -31,8 +32,9 @@ def consultar_assentamento():
     return render_template('consulta_assentamento_jur.html', dados=dados)
 
 
+@juridico_bp.route('/assentamento/<int:empresa_id>')
 @juridico_bp.route('/jur/assentamento/<int:empresa_id>')
-@role_required('jur', 'jur_gestor', 'admin')
+@role_required('assent', 'jur', 'jur_gestor', 'admin', 'assent_gestor')
 def detalhe_assentamento(empresa_id):
     try:
         with get_db() as db:

@@ -24,7 +24,7 @@
 
             <div>
                 <h1 class="text-xl font-bold text-[#002b5c]">Consulta de Assentamento</h1>
-                <p class="text-xs text-gray-500 font-medium uppercase">Visualizacao para o setor juridico</p>
+                <p class="text-xs text-gray-500 font-medium uppercase">Visualizacao somente leitura</p>
             </div>
         </div>
 
@@ -37,7 +37,7 @@
                     class="w-full pl-9 pr-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-[#002b5c] outline-none">
             </div>
 
-            <a href="{{ url_for('dashboard.menu', modo='jur') }}"
+            <a href="{{ url_for('dashboard.menu', modo='jur' if session.get('role') in ['jur', 'jur_gestor'] else 'assent') }}"
                 class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-bold flex items-center gap-2 transition-all">
                 <i data-lucide="corner-up-left" class="w-4 h-4"></i> VOLTAR AO MENU
             </a>
