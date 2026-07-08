@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel CodeGO - Dashboard</title>
+    <title>Sistema ASSENTJUR</title>
     <link rel="shortcut icon" href="{{ url_for('static', filename='imagens_empresas/asentjur.png') }}" type="image/png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -287,6 +287,7 @@
     {% endif %}
     <a href="{{ url_for('juridico.consultar_assentamento') }}" class="nav-button">Consultar Assentamento</a>
     <a href="{{ url_for('relatorio.relatorios', modo='assent') }}" class="nav-button">Gerar Relatório</a>
+    <a href="{{ url_for('dashboard.mapa_distritos') }}" class="nav-button">Mapa de Distritos</a>
 
     {% if session.get('role') == 'admin' %}
     <a href="{{ url_for('auth_user.registrar_usuario') }}" class="nav-button" style="background-color: var(--admin-amber); color: #1a202c; margin-top: 10px;">

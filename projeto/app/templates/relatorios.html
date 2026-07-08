@@ -195,15 +195,87 @@
             opacity: 0.9;
         }
 
-        .ts-dropdown .meta-line {
-            display: block;
-            font-size: 11px;
-            color: #64748b;
-            margin-top: 4px;
+        /* Tom Select overrides */
+        .ts-wrapper {
+            margin-bottom: 20px;
+        }
+
+        .ts-control {
+            border: 1.5px solid #e2e8f0 !important;
+            border-radius: 12px !important;
+            padding: 10px 14px !important;
+            font-size: 14px !important;
+            font-family: 'Inter', sans-serif !important;
+            background: #f8fafc !important;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04) !important;
+            transition: border-color 0.2s, box-shadow 0.2s, background 0.2s !important;
+            min-height: 46px !important;
+        }
+
+        .ts-control:focus-within,
+        .focus .ts-control {
+            border-color: #002b5c !important;
+            background: #fff !important;
+            box-shadow: 0 0 0 4px rgba(0,43,92,0.09) !important;
+        }
+
+        .ts-control input {
+            font-family: 'Inter', sans-serif !important;
+            font-size: 14px !important;
+            color: #1e293b !important;
+        }
+
+        .ts-control input::placeholder {
+            color: #94a3b8 !important;
         }
 
         .ts-control .item {
             font-weight: 600;
+            color: #002b5c;
+            background: #e8eef6 !important;
+            border-radius: 6px !important;
+            padding: 3px 10px !important;
+            border: none !important;
+        }
+
+        .ts-dropdown {
+            border: 1.5px solid #e2e8f0 !important;
+            border-radius: 12px !important;
+            margin-top: 6px !important;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.10) !important;
+            font-family: 'Inter', sans-serif !important;
+            overflow: hidden;
+        }
+
+        .ts-dropdown .ts-dropdown-content {
+            padding: 6px !important;
+        }
+
+        .ts-dropdown [data-selectable] {
+            padding: 10px 12px !important;
+            border-radius: 8px !important;
+            color: #1e293b !important;
+            font-size: 13px !important;
+            transition: background 0.15s !important;
+        }
+
+        .ts-dropdown [data-selectable]:hover,
+        .ts-dropdown .active {
+            background: #f0f5ff !important;
+            color: #002b5c !important;
+        }
+
+        .ts-dropdown .meta-line {
+            display: block;
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 3px;
+        }
+
+        .ts-dropdown .no-results {
+            padding: 14px 12px !important;
+            color: #94a3b8 !important;
+            font-size: 13px !important;
         }
 
         @media (max-width: 900px) {
@@ -377,6 +449,14 @@
             maxOptions: 1000,
             create: false,
             placeholder: "Digite empresa, município, CNPJ, processo SEI ou número do processo...",
+            onInitialize: function() {
+                const self = this;
+                self.control_input.addEventListener('keydown', function(e) {
+                    if (self.getValue() && e.key.length === 1 && !e.ctrlKey && !e.metaKey) {
+                        self.clear(true);
+                    }
+                }, true);
+            },
             render: {
                 option: function(data, escape) {
                     const meta = [

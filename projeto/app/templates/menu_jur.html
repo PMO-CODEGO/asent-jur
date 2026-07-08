@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel Jurídico - CODEGO</title>
+    <title>Sistema ASSENTJUR</title>
     <link rel="shortcut icon" href="{{ url_for('static', filename='imagens_empresas/asentjur.png') }}" type="image/png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -284,6 +284,7 @@
                 <a href="{{ url_for('juridico.prazos_juridicos') }}" class="nav-button">Alertas de Prazos</a>
                 <a href="{{ url_for('juridico.consultar_assentamento') }}" class="nav-button">Consultar Assentamento</a>
                 <a href="{{ url_for('relatorio.relatorios', modo='jur') }}" class="nav-button">Gerar Relatorio</a>
+                <a href="{{ url_for('dashboard.mapa_distritos') }}" class="nav-button">Mapa de Distritos</a>
 
                 {% if session.get('role') == 'jur_gestor' %}
     <a href="{{ url_for('auth_user.registrar_colaborador') }}" class="nav-button" style="background-color: var(--button-red); margin-top: 10px;">

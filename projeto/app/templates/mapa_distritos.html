@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa de Distritos Industriais - Goiás</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='imagens_empresas/asentjur.png') }}" type="image/png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <style>
+        :root {
+            --sidebar-bg: #ffffff;
+            --accent-blue: #002b5c;
+            --button-blue: #7a97bb;
+            --text-white: #ffffff;
+            --logout-red: #ef4444;
+            --logout-red-hover: #dc2626;
+            --admin-amber: #f59e0b;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+        }
+
+        .wrapper {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        .sidebar {
+            width: 280px;
+            min-width: 280px;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid #ddd;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.05);
+            z-index: 10;
+            overflow-y: auto;
+        }
+
+        .logo-container {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .logo-link { display: inline-block; cursor: pointer; }
+
+        .logo-container img { width: 200px; display: block; }
+
+        .nav-menu {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .nav-button {
+            background-color: var(--button-blue);
+            color: white;
+            text-decoration: none;
+            padding: 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: bold;
+            text-align: center;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            border: none;
+            cursor: pointer;
+        }
+
+        .nav-button:hover {
+            background-color: var(--accent-blue);
+            transform: translateX(5px);
+        }
+
+        .nav-button.active {
+            background-color: var(--accent-blue);
+        }
+
+        .main-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: #f3f4f6;
+        }
+
+        .topbar {
+            background-color: var(--accent-blue);
+            color: var(--text-white);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 70px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 5;
+            flex-shrink: 0;
+        }
+
+        .topbar-actions { display: flex; gap: 12px; align-items: center; }
+
+        .welcome-text {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text-white);
+            letter-spacing: -0.025em;
+        }
+
+        .welcome-text span { font-weight: 400; opacity: 0.9; }
+
+        .btn-topbar {
+            text-decoration: none;
+            padding: 10px 22px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.2);
+            border: 2px solid rgba(255,255,255,0.1);
+            color: white;
+        }
+
+        .btn-logout { background-color: var(--logout-red); }
+        .btn-logout:hover { background-color: var(--logout-red-hover); transform: translateY(-2px); }
+
+        .map-container {
+            flex-grow: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Painel de legenda */
+        .map-legend {
+            position: absolute;
+            bottom: 24px;
+            right: 16px;
+            background: white;
+            border-radius: 10px;
+            padding: 14px 18px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+            z-index: 1000;
+            font-size: 12px;
+            min-width: 180px;
+        }
+
+        .map-legend h4 {
+            margin: 0 0 10px 0;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--accent-blue);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        .legend-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            border: 2px solid rgba(0,0,0,0.15);
+        }
+
+        /* Contador de distritos */
+        .map-counter {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: var(--accent-blue);
+            color: white;
+            border-radius: 10px;
+            padding: 10px 18px;
+            z-index: 1000;
+            font-size: 13px;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .map-counter span {
+            font-size: 22px;
+            font-weight: 700;
+            display: block;
+            text-align: center;
+        }
+
+        /* Popup customizado */
+        .leaflet-popup-content-wrapper {
+            border-radius: 10px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+        }
+
+        .popup-title {
+            font-weight: 700;
+            font-size: 14px;
+            color: var(--accent-blue);
+            margin-bottom: 6px;
+        }
+
+        .popup-tag {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: white;
+        }
+
+        .popup-info {
+            font-size: 12px;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 900px) {
+            body, html { height: auto; min-height: 100%; overflow: auto; }
+            .wrapper { flex-direction: column; min-height: 100vh; height: auto; }
+            .sidebar { width: 100%; min-width: 0; box-sizing: border-box; border-right: none; border-bottom: 1px solid #ddd; padding: 14px; }
+            .logo-container { margin-bottom: 14px; }
+            .logo-container img { width: min(170px, 70vw); }
+            .nav-menu { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+            .nav-button { padding: 11px 10px; font-size: 11px; }
+            .nav-button:hover { transform: none; }
+            .topbar { height: auto; min-height: 64px; padding: 12px 14px; flex-direction: column; align-items: stretch; gap: 10px; }
+            .welcome-text { font-size: 1rem; }
+            .topbar-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+            .btn-topbar { justify-content: center; padding: 10px 12px; font-size: 0.8rem; }
+            .map-container { height: 65vh; min-height: 420px; }
+            .map-legend { bottom: 12px; right: 8px; }
+            .map-counter { top: 8px; right: 8px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="wrapper">
+    <div class="sidebar">
+        <div class="logo-container">
+            <a href="{{ url_for('dashboard.menu', modo='assent') }}" class="logo-link" aria-label="Voltar ao menu principal">
+                <img src="{{ url_for('static', filename='logo_codego.png') }}" alt="Logo CodeGO">
+            </a>
+        </div>
+
+        <div class="nav-menu">
+            {% if session.get('role') in ['admin', 'assent_gestor'] %}
+            <a href="{{ url_for('cadastro.cadastro') }}" class="nav-button">Cadastrar Nova Empresa</a>
+            <a href="{{ url_for('edicao.selecionar_edicao', modo='assent') }}" class="nav-button">Editar Cadastro</a>
+            {% endif %}
+            <a href="{{ url_for('juridico.consultar_assentamento') }}" class="nav-button">Consultar Assentamento</a>
+            <a href="{{ url_for('relatorio.relatorios', modo='assent') }}" class="nav-button">Gerar Relatório</a>
+            <a href="{{ url_for('dashboard.mapa_distritos') }}" class="nav-button active">Mapa de Distritos</a>
+
+            {% if session.get('role') == 'admin' %}
+            <a href="{{ url_for('auth_user.registrar_usuario') }}" class="nav-button" style="background-color: var(--admin-amber); color: #1a202c; margin-top: 10px;">
+                <i data-lucide="user-plus" class="w-4 h-4 inline-block mr-2"></i>
+                Registrar Usuário
+            </a>
+            {% endif %}
+            {% if session.get('role') == 'assent_gestor' %}
+            <a href="{{ url_for('auth_user.registrar_colaborador') }}" class="nav-button" style="background-color: #10b981; margin-top: 10px;">
+                <i data-lucide="user-plus" class="w-4 h-4 inline-block mr-2"></i>
+                Registrar Usuário
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="topbar">
+            <div class="welcome-text">
+                <i data-lucide="map-pin" style="display:inline; vertical-align:middle; margin-right:8px;"></i>
+                Distritos Industriais de <span>Goiás</span>
+            </div>
+            <div class="topbar-actions">
+                {% if session.get('role') == 'admin' %}
+                <a href="{{ url_for('logs.logs') }}" class="btn-topbar" style="background-color: var(--admin-amber); color: #1a202c; border:none;">
+                    <i data-lucide="database-zap" class="w-4 h-4"></i>
+                    Logs do Sistema
+                </a>
+                {% endif %}
+                <a href="{{ url_for('auth_login.logout') }}" class="btn-topbar btn-logout">
+                    <i data-lucide="log-out" class="w-4 h-4"></i>
+                    Sair do Sistema
+                </a>
+            </div>
+        </div>
+
+        <div class="map-container">
+            <div id="map"></div>
+
+            <div class="map-counter">
+                <span id="total-count">—</span>
+                Distritos
+            </div>
+
+            <div class="map-legend">
+                <h4>Tipo de Distrito</h4>
+                <div class="legend-item">
+                    <div class="legend-dot" style="background:#002b5c;"></div>
+                    <span>Distrito Agroindustrial</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot" style="background:#2563eb;"></div>
+                    <span>Distrito Industrial</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot" style="background:#059669;"></div>
+                    <span>Parque Tecnológico</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    lucide.createIcons();
+
+    const map = L.map('map', {
+        center: [-16.35, -49.30],
+        zoom: 7,
+        zoomControl: true,
+    });
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        maxZoom: 18,
+    }).addTo(map);
+
+    const TIPOS = {
+        agroindustrial: { cor: '#002b5c', label: 'Distrito Agroindustrial' },
+        industrial:     { cor: '#2563eb', label: 'Distrito Industrial' },
+        tecnologico:    { cor: '#059669', label: 'Parque Tecnológico' },
+    };
+
+    function criarIcone(tipo) {
+        const cor = TIPOS[tipo].cor;
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="36" viewBox="0 0 28 36">
+            <path d="M14 0C6.27 0 0 6.27 0 14c0 9.63 14 22 14 22S28 23.63 28 14C28 6.27 21.73 0 14 0z" fill="${cor}"/>
+            <circle cx="14" cy="14" r="6" fill="white" opacity="0.9"/>
+        </svg>`;
+        return L.divIcon({
+            html: svg,
+            className: '',
+            iconSize: [28, 36],
+            iconAnchor: [14, 36],
+            popupAnchor: [0, -38],
+        });
+    }
+
+    const distritos = [
+        {
+            slug: "daia-anapolis",
+            nome: "DAIA — Distrito Agroindustrial de Anápolis",
+            tipo: "agroindustrial",
+            lat: -16.3216,
+            lng: -48.9534,
+            municipio: "Anápolis",
+            descricao: "Um dos maiores distritos industriais do Centro-Oeste. Abriga empresas dos setores farmacêutico, automotivo, alimentício e químico.",
+            empresas: "Mais de 200 empresas instaladas",
+        },
+        {
+            slug: "dig-goiania",
+            nome: "DIG — Distrito Industrial de Goiânia",
+            tipo: "industrial",
+            lat: -16.7200,
+            lng: -49.3100,
+            municipio: "Goiânia",
+            descricao: "Localizado na capital do estado, concentra indústrias de médio porte nos setores metal-mecânico, alimentício e de confecções.",
+            empresas: "Diversas indústrias de médio porte",
+        },
+        {
+            slug: "aparecida-de-goiania",
+            nome: "Distrito Industrial de Aparecida de Goiânia",
+            tipo: "industrial",
+            lat: -16.8320,
+            lng: -49.2480,
+            municipio: "Aparecida de Goiânia",
+            descricao: "Importante polo industrial da região metropolitana de Goiânia, com destaque para os setores de construção civil e alimentos.",
+            empresas: "Polo da região metropolitana",
+        },
+        {
+            slug: "rio-verde",
+            nome: "Distrito Industrial de Rio Verde",
+            tipo: "industrial",
+            lat: -17.7982,
+            lng: -50.9290,
+            municipio: "Rio Verde",
+            descricao: "Principal polo agroindustrial do sudoeste goiano. Concentra frigoríficos, esmagadoras de soja e indústrias de insumos agrícolas.",
+            empresas: "Polo do agronegócio do sudoeste",
+        },
+        {
+            slug: "itumbiara",
+            nome: "Distrito Industrial de Itumbiara",
+            tipo: "industrial",
+            lat: -18.4170,
+            lng: -49.2130,
+            municipio: "Itumbiara",
+            descricao: "Localizado no sul do estado, na divisa com Minas Gerais. Atua com indústrias de couros, plásticos e produtos químicos.",
+            empresas: "Polo do sul goiano",
+        },
+        {
+            slug: "catalao",
+            nome: "Distrito Industrial de Catalão",
+            tipo: "industrial",
+            lat: -18.1560,
+            lng: -47.9370,
+            municipio: "Catalão",
+            descricao: "Centro industrial estratégico, com destaque para mineração de nióbio e fósforo, além de montagem de veículos e fertilizantes.",
+            empresas: "Polo mineral e automotivo",
+        },
+        {
+            slug: "daim-morrinhos",
+            nome: "DAIM — Distrito Agroindustrial de Morrinhos",
+            tipo: "agroindustrial",
+            lat: -17.7330,
+            lng: -49.0990,
+            municipio: "Morrinhos",
+            descricao: "Distrito voltado ao processamento de produtos agropecuários da região sul goiana, com forte presença do setor lácteo.",
+            empresas: "Foco em lácteos e agropecuária",
+        },
+        {
+            slug: "senador-canedo",
+            nome: "Distrito Industrial de Senador Canedo",
+            tipo: "industrial",
+            lat: -16.7080,
+            lng: -49.0890,
+            municipio: "Senador Canedo",
+            descricao: "Parte da região metropolitana de Goiânia. Abriga indústrias dos setores alimentício, logística e distribuição.",
+            empresas: "Polo logístico metropolitano",
+        },
+        {
+            slug: "trindade",
+            nome: "Distrito Industrial de Trindade",
+            tipo: "industrial",
+            lat: -16.6510,
+            lng: -49.4870,
+            municipio: "Trindade",
+            descricao: "Cidade da Grande Goiânia com crescimento industrial nos setores de construção civil e materiais de construção.",
+            empresas: "Construção civil e materiais",
+        },
+        {
+            slug: "inhumas",
+            nome: "Distrito Industrial de Inhumas",
+            tipo: "industrial",
+            lat: -16.3580,
+            lng: -49.4990,
+            municipio: "Inhumas",
+            descricao: "Polo do setor agroindustrial a oeste de Goiânia, com indústrias de beneficiamento de grãos e fruticultura.",
+            empresas: "Beneficiamento de grãos",
+        },
+        {
+            slug: "jatai",
+            nome: "Distrito Industrial de Jataí",
+            tipo: "industrial",
+            lat: -17.8820,
+            lng: -51.7150,
+            municipio: "Jataí",
+            descricao: "Importante polo do sudoeste goiano, com vocação para o processamento de grãos, carnes e laticínios.",
+            empresas: "Grãos, carnes e laticínios",
+        },
+        {
+            slug: "luziania",
+            nome: "Distrito Industrial de Luziânia",
+            tipo: "industrial",
+            lat: -16.2520,
+            lng: -47.9510,
+            municipio: "Luziânia",
+            descricao: "Localizado no Entorno do Distrito Federal, atende a demanda das duas regiões com indústrias de alimentos e plásticos.",
+            empresas: "Polo do Entorno do DF",
+        },
+        {
+            slug: "formosa",
+            nome: "Distrito Industrial de Formosa",
+            tipo: "industrial",
+            lat: -15.5360,
+            lng: -47.3360,
+            municipio: "Formosa",
+            descricao: "Polo industrial no nordeste goiano, próximo ao DF, com atividades de mineração e beneficiamento de calcário.",
+            empresas: "Mineração e calcário",
+        },
+        {
+            slug: "caldas-novas",
+            nome: "Distrito Industrial de Caldas Novas",
+            tipo: "industrial",
+            lat: -17.7440,
+            lng: -48.6250,
+            municipio: "Caldas Novas",
+            descricao: "Além do turismo, possui indústrias voltadas ao beneficiamento de alimentos e produção de embalagens para o setor hoteleiro.",
+            empresas: "Alimentos e embalagens",
+        },
+        {
+            slug: "parque-tec-ufg",
+            nome: "Parque Tecnológico de Goiás — UFG",
+            tipo: "tecnologico",
+            lat: -16.5985,
+            lng: -49.2648,
+            municipio: "Goiânia",
+            descricao: "Hub de inovação vinculado à Universidade Federal de Goiás, focado em startups de tecnologia, biotecnologia e agritech.",
+            empresas: "Startups e empresas de inovação",
+        },
+        {
+            slug: "neropolis",
+            nome: "Distrito Agroindustrial de Nerópolis",
+            tipo: "agroindustrial",
+            lat: -16.4000,
+            lng: -49.2100,
+            municipio: "Nerópolis",
+            descricao: "Região agroindustrial ao norte da Grande Goiânia com destaque para avicultura, suinocultura e processamento de carnes.",
+            empresas: "Avicultura e suinocultura",
+        },
+        {
+            slug: "goianesia",
+            nome: "Distrito Industrial de Goianésia",
+            tipo: "agroindustrial",
+            lat: -15.3190,
+            lng: -49.1150,
+            municipio: "Goianésia",
+            descricao: "Principal polo sucroalcooleiro do estado. Abriga usinas de cana-de-açúcar e produção de etanol do centro-norte goiano.",
+            empresas: "Polo sucroalcooleiro",
+        },
+        {
+            slug: "quirinopolis",
+            nome: "Distrito Industrial de Quirinópolis",
+            tipo: "agroindustrial",
+            lat: -18.4490,
+            lng: -50.4530,
+            municipio: "Quirinópolis",
+            descricao: "Região de grande expansão do setor sucroalcooleiro, com usinas e complexos agroindustriais de cana-de-açúcar.",
+            empresas: "Setor sucroalcooleiro",
+        },
+    ];
+
+    document.getElementById('total-count').textContent = distritos.length;
+
+    distritos.forEach(d => {
+        const tipo = TIPOS[d.tipo];
+        const popupHtml = `
+            <div style="min-width:220px; max-width:280px;">
+                <div class="popup-title">${d.nome}</div>
+                <span class="popup-tag" style="background:${tipo.cor};">${tipo.label}</span>
+                <div class="popup-info">
+                    <strong>Município:</strong> ${d.municipio}<br>
+                    <strong>Perfil:</strong> ${d.empresas}<br><br>
+                    ${d.descricao}
+                </div>
+                <a href="/mapa-distritos/${d.slug}"
+                   style="display:block; margin-top:12px; padding:8px 0; background:#002b5c; color:white;
+                          text-align:center; border-radius:6px; font-size:12px; font-weight:700;
+                          text-decoration:none; letter-spacing:0.03em;">
+                    Ver Detalhes →
+                </a>
+            </div>
+        `;
+        L.marker([d.lat, d.lng], { icon: criarIcone(d.tipo) })
+            .bindPopup(popupHtml, { maxWidth: 300 })
+            .addTo(map);
+    });
+</script>
+
+</body>
+</html>

@@ -35,14 +35,23 @@
         </div>
 
         <form method="get" class="flex flex-col md:flex-row items-center gap-3 w-full md:w-auto">
-            <div class="relative w-full md:w-80">
-                <i data-lucide="search" class="w-4 h-4 absolute left-3 top-2.5 text-gray-400"></i>
+            <div class="relative w-full md:w-80 group">
+                <div class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none">
+                    <i data-lucide="search" class="w-4 h-4 text-gray-400 group-focus-within:text-[#002b5c] transition-colors"></i>
+                </div>
                 <input id="searchInput"
                     name="q"
                     type="text"
+                    autocomplete="off"
+                    spellcheck="false"
                     value="{{ termo_busca or '' }}"
                     placeholder="{{ 'Pesquisar CNJ, titulo, parte cliente, parte adversa, tipo ou status...' if modo == 'jur' else 'Pesquisar municipio, empresa, CNPJ ou processo...' }}"
-                    class="w-full pl-9 pr-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-[#002b5c] outline-none">
+                    class="w-full pl-10 pr-9 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-800 placeholder:text-gray-400
+                           focus:bg-white focus:border-[#002b5c] focus:ring-4 focus:ring-[#002b5c]/10 outline-none transition-all duration-200 shadow-sm">
+                <button type="button" id="searchClear" tabindex="-1" aria-label="Limpar pesquisa"
+                    class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-300 hover:text-gray-500 transition-all {{ 'opacity-0 scale-75 pointer-events-none' if not termo_busca else '' }}">
+                    <i data-lucide="x-circle" class="w-4 h-4"></i>
+                </button>
             </div>
             {% if modo == 'jur' %}
             <input type="hidden" name="page" value="1">
@@ -67,6 +76,12 @@
                 <p class="font-bold">Atualizacoes pendentes</p>
                 <p class="text-sm">{{ total_atualizacoes_vencidas }} empresa(s) estao sem data de ultima atualizacao ou com ultima atualizacao ha mais de um ano.</p>
             </div>
+        </div>
+        {% endif %}
+
+        {% if dados and modo != 'jur' %}
+        <div class="px-5 py-2.5 bg-gray-50/60 border-b text-xs text-gray-500 font-medium">
+            <span id="resultCount">{{ dados|length }} registro{{ 's' if dados|length != 1 else '' }} encontrado{{ 's' if dados|length != 1 else '' }}</span>
         </div>
         {% endif %}
 
@@ -155,6 +170,13 @@
         </div>
         {% endif %}
 
+        {% if modo != 'jur' %}
+        <div id="emptySearchState" class="hidden p-20 text-center">
+            <i data-lucide="search-x" class="w-16 h-16 text-gray-200 mx-auto mb-4"></i>
+            <p class="text-gray-400 font-medium">Nenhum resultado para essa pesquisa.</p>
+        </div>
+        {% endif %}
+
         {% if modo == 'jur' and paginacao %}
         <div class="border-t bg-gray-50 px-5 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
             <div class="text-sm text-gray-600">
@@ -207,38 +229,83 @@
 lucide.createIcons();
 
 const searchInput = document.getElementById("searchInput");
+const searchClear = document.getElementById("searchClear");
+
+function atualizarBotaoLimpar() {
+    const vazio = searchInput.value.length === 0;
+    searchClear.classList.toggle("opacity-0", vazio);
+    searchClear.classList.toggle("scale-75", vazio);
+    searchClear.classList.toggle("pointer-events-none", vazio);
+}
 
 {% if modo == 'jur' %}
 let searchTimer = null;
 searchInput.addEventListener("input", function () {
+    atualizarBotaoLimpar();
     clearTimeout(searchTimer);
     searchTimer = setTimeout(function () {
         searchInput.form.submit();
     }, 550);
 });
+
+searchClear.addEventListener("click", function () {
+    searchInput.value = "";
+    searchInput.form.submit();
+});
 {% else %}
-searchInput.addEventListener("keyup", function () {
-    const filtro = this.value.toLowerCase().trim();
+const resultCount = document.getElementById("resultCount");
+const emptySearchState = document.getElementById("emptySearchState");
+const totalRegistros = document.querySelectorAll(".linha-registro").length;
+
+function aplicarFiltro() {
+    const filtro = searchInput.value.toLowerCase().trim();
     const filtroNumerico = filtro.replace(/\D/g, "");
     const linhas = document.querySelectorAll(".linha-registro");
 
+    atualizarBotaoLimpar();
+
+    let visiveis = 0;
     linhas.forEach(function(linha) {
         const textoVisivel = linha.innerText.toLowerCase();
         const processoJudicial = (linha.dataset.processo || "").toLowerCase();
         const processoNumerico = processoJudicial.replace(/\D/g, "");
         const processoSEI = (linha.dataset.sei || "").toLowerCase();
 
-        if (
+        const corresponde = (
             textoVisivel.includes(filtro) ||
             processoJudicial.includes(filtro) ||
             processoSEI.includes(filtro) ||
             (filtroNumerico && processoNumerico.includes(filtroNumerico))
-        ) {
-            linha.style.display = "";
-        } else {
-            linha.style.display = "none";
-        }
+        );
+
+        linha.style.display = corresponde ? "" : "none";
+        if (corresponde) visiveis++;
     });
+
+    if (resultCount) {
+        resultCount.textContent = filtro
+            ? `${visiveis} de ${totalRegistros} registro${totalRegistros !== 1 ? 's' : ''}`
+            : `${totalRegistros} registro${totalRegistros !== 1 ? 's' : ''} encontrado${totalRegistros !== 1 ? 's' : ''}`;
+    }
+
+    if (emptySearchState) {
+        emptySearchState.classList.toggle("hidden", !(filtro && visiveis === 0));
+    }
+}
+
+searchInput.addEventListener("input", aplicarFiltro);
+
+searchClear.addEventListener("click", function () {
+    searchInput.value = "";
+    aplicarFiltro();
+    searchInput.focus();
+});
+
+searchInput.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") {
+        searchInput.value = "";
+        aplicarFiltro();
+    }
 });
 {% endif %}
 </script>

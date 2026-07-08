@@ -29,12 +29,21 @@
         </div>
 
         <div class="flex flex-col md:flex-row items-center gap-3 w-full md:w-auto">
-            <div class="relative w-full md:w-96">
-                <i data-lucide="search" class="w-4 h-4 absolute left-3 top-2.5 text-gray-400"></i>
+            <div class="relative w-full md:w-96 group">
+                <div class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none">
+                    <i data-lucide="search" class="w-4 h-4 text-gray-400 group-focus-within:text-[#002b5c] transition-colors"></i>
+                </div>
                 <input id="searchInput"
                     type="text"
+                    autocomplete="off"
+                    spellcheck="false"
                     placeholder="Pesquisar empresa, municipio, CNPJ, distrito ou SEI..."
-                    class="w-full pl-9 pr-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-[#002b5c] outline-none">
+                    class="w-full pl-10 pr-9 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-800 placeholder:text-gray-400
+                           focus:bg-white focus:border-[#002b5c] focus:ring-4 focus:ring-[#002b5c]/10 outline-none transition-all duration-200 shadow-sm">
+                <button type="button" id="searchClear" tabindex="-1" aria-label="Limpar pesquisa"
+                    class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-300 hover:text-gray-500 transition-all opacity-0 scale-75 pointer-events-none">
+                    <i data-lucide="x-circle" class="w-4 h-4"></i>
+                </button>
             </div>
 
             <a href="{{ url_for('dashboard.menu', modo='jur' if session.get('role') in ['jur', 'jur_gestor'] else 'assent') }}"
@@ -45,6 +54,11 @@
     </div>
 
     <div class="bg-white rounded-b-2xl shadow-2xl overflow-hidden border border-white/20">
+        {% if dados %}
+        <div class="px-5 py-2.5 bg-gray-50/60 border-b text-xs text-gray-500 font-medium">
+            <span id="resultCount">{{ dados|length }} registro{{ 's' if dados|length != 1 else '' }} encontrado{{ 's' if dados|length != 1 else '' }}</span>
+        </div>
+        {% endif %}
         <div class="overflow-x-auto custom-scrollbar">
             <table class="w-full text-left">
                 <thead class="bg-gray-50 text-gray-600 border-b">
@@ -84,17 +98,61 @@
             <p class="text-gray-400 font-medium">Nenhum registro de assentamento encontrado.</p>
         </div>
         {% endif %}
+
+        <div id="emptySearchState" class="hidden p-20 text-center">
+            <i data-lucide="search-x" class="w-16 h-16 text-gray-200 mx-auto mb-4"></i>
+            <p class="text-gray-400 font-medium">Nenhum resultado para essa pesquisa.</p>
+        </div>
     </div>
 </div>
 
 <script>
 lucide.createIcons();
 
-document.getElementById("searchInput").addEventListener("keyup", function () {
-    const filtro = this.value.toLowerCase();
-    document.querySelectorAll(".linha-registro").forEach(function(linha) {
-        linha.style.display = linha.innerText.toLowerCase().includes(filtro) ? "" : "none";
+const searchInput = document.getElementById("searchInput");
+const searchClear = document.getElementById("searchClear");
+const resultCount = document.getElementById("resultCount");
+const emptySearchState = document.getElementById("emptySearchState");
+const totalRegistros = document.querySelectorAll(".linha-registro").length;
+
+function aplicarFiltro() {
+    const filtro = searchInput.value.trim().toLowerCase();
+
+    searchClear.classList.toggle("opacity-0", filtro.length === 0);
+    searchClear.classList.toggle("scale-75", filtro.length === 0);
+    searchClear.classList.toggle("pointer-events-none", filtro.length === 0);
+
+    let visiveis = 0;
+    document.querySelectorAll(".linha-registro").forEach(function (linha) {
+        const corresponde = linha.innerText.toLowerCase().includes(filtro);
+        linha.style.display = corresponde ? "" : "none";
+        if (corresponde) visiveis++;
     });
+
+    if (resultCount) {
+        resultCount.textContent = filtro
+            ? `${visiveis} de ${totalRegistros} registro${totalRegistros !== 1 ? 's' : ''}`
+            : `${totalRegistros} registro${totalRegistros !== 1 ? 's' : ''} encontrado${totalRegistros !== 1 ? 's' : ''}`;
+    }
+
+    if (emptySearchState) {
+        emptySearchState.classList.toggle("hidden", !(filtro && visiveis === 0));
+    }
+}
+
+searchInput.addEventListener("input", aplicarFiltro);
+
+searchClear.addEventListener("click", function () {
+    searchInput.value = "";
+    aplicarFiltro();
+    searchInput.focus();
+});
+
+searchInput.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") {
+        searchInput.value = "";
+        aplicarFiltro();
+    }
 });
 </script>
 </body>
