@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edicao Juridica - CODEGO</title>
+    <title>Edição Jurídica - CODEGO</title>
     <link rel="shortcut icon" href="{{ url_for('static', filename='imagens_empresas/asentjur.png') }}" type="image/png">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -22,7 +22,7 @@
         <div class="bg-red-600 p-6 text-white flex justify-between items-center">
             <div>
                 <h2 class="text-2xl font-bold flex items-center gap-2">
-                    <i data-lucide="gavel"></i> Atualizacao do Processo
+                    <i data-lucide="gavel"></i> Atualização do Processo
                 </h2>
                 <p class="text-red-100 text-sm italic">Processo independente, sem vinculo com empresa</p>
             </div>
@@ -39,7 +39,7 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">Numero CNJ</label>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Número CNJ</label>
                         <input type="text" name="numero_processo" required inputmode="numeric" maxlength="25"
                             placeholder="0000000-00.0000.0.00.0000" data-processo-cnj
                             value="{{ processo.numero_processo or '' }}"
@@ -50,12 +50,12 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">Titulo</label>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Título</label>
                         <input type="text" name="titulo" required maxlength="255" value="{{ processo.titulo or '' }}" class="w-full p-3 border rounded-lg">
                     </div>
 
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">Tipo de acao</label>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Tipo de ação</label>
                         <input type="text" name="tipo_acao" required maxlength="120" value="{{ processo.tipo_acao or processo.tipo_processo or '' }}" class="w-full p-3 border rounded-lg">
                     </div>
 
@@ -92,13 +92,13 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">Data de criacao</label>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Data de criação</label>
                         <input type="date" name="data_criacao" value="{{ processo.data_criacao or '' }}" class="w-full p-3 border rounded-lg">
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Descricao</label>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Descrição</label>
                     <textarea name="descricao" rows="4" class="w-full p-3 border rounded-lg">{{ processo.descricao or processo.assunto_judicial or '' }}</textarea>
                 </div>
             </section>
@@ -154,7 +154,7 @@
 {% endif %}{% endfor %}</textarea>
                     </div>
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">Movimentacoes</label>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Movimentações</label>
                         <textarea name="movimentacoes" rows="4" class="w-full p-3 border rounded-lg">{% for evento in movimentacoes_lista %}{{ evento.descricao }}{% if not loop.last %}
 {% endif %}{% endfor %}</textarea>
                     </div>
@@ -192,7 +192,7 @@
                         <input type="date" name="documento_data" class="w-full p-3 border rounded-lg bg-white">
                     </div>
                     <div class="md:col-span-2">
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">Observacao</label>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Observação</label>
                         <textarea name="documento_observacao" rows="3" class="w-full p-3 border rounded-lg bg-white"></textarea>
                     </div>
                 </div>
@@ -224,7 +224,7 @@
 
             <section class="space-y-4">
                 <h3 class="text-[#002b5c] font-bold flex items-center gap-2 border-b pb-4">
-                    <i data-lucide="history"></i> Historico do Sistema
+                    <i data-lucide="history"></i> Histórico do Sistema
                 </h3>
 
                 {% if historico_lista %}
@@ -232,13 +232,13 @@
                         {% for evento in historico_lista %}
                         <div class="border border-gray-200 rounded-lg p-3 bg-gray-50">
                             <div class="text-xs font-bold text-gray-500 uppercase">{{ evento.data_evento or evento.created_at or '-' }}</div>
-                            <div class="text-sm font-bold text-[#002b5c]">{{ evento.titulo or 'Historico do sistema' }}</div>
+                            <div class="text-sm font-bold text-[#002b5c]">{{ evento.titulo or 'Histórico do sistema' }}</div>
                             <div class="text-sm text-gray-700">{{ evento.descricao }}</div>
                         </div>
                         {% endfor %}
                     </div>
                 {% else %}
-                    <p class="text-sm text-gray-500">Nenhum historico automatico registrado ainda.</p>
+                    <p class="text-sm text-gray-500">Nenhum histórico automático registrado ainda.</p>
                 {% endif %}
             </section>
 

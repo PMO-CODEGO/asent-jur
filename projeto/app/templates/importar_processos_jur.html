@@ -20,7 +20,7 @@
             </div>
 
             <a href="{{ url_for('dashboard.menu', modo='jur') }}" class="text-blue-600 hover:text-blue-800 font-medium flex items-center gap-2 text-sm">
-                <i data-lucide="home" class="w-4 h-4"></i> Inicio
+                <i data-lucide="home" class="w-4 h-4"></i> Início
             </a>
         </header>
 
@@ -40,8 +40,8 @@
 
             <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 text-sm text-blue-800">
                 <p class="font-bold mb-2">Colunas reconhecidas:</p>
-                <p>Numero CNJ, Titulo, Descricao, Tipo de acao, Tribunal, Vara, Comarca, Valor da causa, Status, Fase, Data de criacao, Parte cliente, Tipo da parte cliente, Contato da parte cliente, Parte adversa, Tipo da parte adversa, Contato da parte adversa, Outras partes, Prazos, Movimentacoes, Documentos.</p>
-                <p class="mt-2">Para prazos, movimentacoes, documentos e outras partes, use uma informacao por linha dentro da celula.</p>
+                <p>Número CNJ, Título, Descrição, Tipo de ação, Tribunal, Vara, Comarca, Valor da causa, Status, Fase, Data de criação, Parte cliente, Tipo da parte cliente, Contato da parte cliente, Parte adversa, Tipo da parte adversa, Contato da parte adversa, Outras partes, Prazos, Movimentações, Documentos.</p>
+                <p class="mt-2">Para prazos, movimentações, documentos e outras partes, use uma informação por linha dentro da célula.</p>
             </div>
 
             <div class="flex flex-col sm:flex-row sm:justify-end gap-4 border-t pt-6">
@@ -62,7 +62,7 @@
             <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 border-b pb-4">
                 <div>
                     <h2 class="text-lg font-bold text-[#002b5c] flex items-center gap-2">
-                        <i data-lucide="table-properties"></i> Previa da importacao
+                        <i data-lucide="table-properties"></i> Prévia da importação
                     </h2>
                     <p class="text-sm text-gray-500">Arquivo: {{ previa.original_filename }}</p>
                 </div>
@@ -84,7 +84,7 @@
 
             <div>
                 <h3 class="text-[#002b5c] font-bold mb-3 flex items-center gap-2">
-                    <i data-lucide="list-checks" class="w-5 h-5"></i> Amostra dos processos validos
+                    <i data-lucide="list-checks" class="w-5 h-5"></i> Amostra dos processos válidos
                 </h3>
                 {% if previa.amostra %}
                 <div class="overflow-x-auto border rounded-xl">
@@ -112,7 +112,7 @@
                     </table>
                 </div>
                 {% else %}
-                <p class="text-sm text-gray-500">Nenhum processo valido encontrado com o mapeamento atual.</p>
+                <p class="text-sm text-gray-500">Nenhum processo válido encontrado com o mapeamento atual.</p>
                 {% endif %}
             </div>
 
@@ -147,7 +147,7 @@
                     </button>
                     <button type="submit" name="acao" value="confirmar"
                         class="bg-green-600 hover:bg-green-700 text-white px-10 py-3 rounded-lg font-bold flex items-center justify-center gap-2">
-                        <i data-lucide="database" class="w-5 h-5"></i> Confirmar Importacao
+                        <i data-lucide="database" class="w-5 h-5"></i> Confirmar Importação
                     </button>
                 </div>
             </form>
@@ -204,7 +204,7 @@
             {% if resultado.erros %}
             <div class="border border-red-100 rounded-xl overflow-hidden">
                 <div class="bg-red-50 px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                    <div class="text-sm font-bold text-red-700">Linhas nao importadas</div>
+                    <div class="text-sm font-bold text-red-700">Linhas não importadas</div>
                     {% if resultado.relatorio_erros %}
                     <a href="{{ url_for('cadastro.baixar_erros_importacao_processos', nome_arquivo=resultado.relatorio_erros) }}"
                         class="inline-flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-xs font-bold">

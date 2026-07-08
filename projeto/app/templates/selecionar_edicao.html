@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Selecionar para Edicao - CODEGO</title>
+    <title>Selecionar para Edição - CODEGO</title>
     <link rel="shortcut icon" href="{{ url_for('static', filename='imagens_empresas/asentjur.png') }}" type="image/png">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -28,7 +28,7 @@
                 </h1>
                 <p class="text-xs text-gray-500 font-medium">MODO:
                     <span class="{% if modo == 'jur' %}text-red-600{% else %}text-blue-600{% endif %} uppercase">
-                        {{ 'Edicao Juridica' if modo == 'jur' else 'Edicao de Assentamento' }}
+                        {{ 'Edição Jurídica' if modo == 'jur' else 'Edição de Assentamento' }}
                     </span>
                 </p>
             </div>
@@ -73,8 +73,8 @@
         <div class="m-5 p-4 rounded-xl bg-amber-50 text-amber-800 border border-amber-200 flex items-start gap-3">
             <i data-lucide="bell-ring" class="w-6 h-6 mt-0.5"></i>
             <div>
-                <p class="font-bold">Atualizacoes pendentes</p>
-                <p class="text-sm">{{ total_atualizacoes_vencidas }} empresa(s) estao sem data de ultima atualizacao ou com ultima atualizacao ha mais de um ano.</p>
+                <p class="font-bold">Atualizações pendentes</p>
+                <p class="text-sm">{{ total_atualizacoes_vencidas }} empresa(s) estão sem data de última atualização ou com última atualização há mais de um ano.</p>
             </div>
         </div>
         {% endif %}
@@ -91,18 +91,18 @@
                     <tr>
                         {% if modo == 'jur' %}
                             <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider">Processo</th>
-                            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider">Titulo</th>
+                            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider">Título</th>
                             <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider">Parte cliente</th>
                             <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider">Parte adversa</th>
-                            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider">Tipo de acao</th>
+                            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider">Tipo de ação</th>
                             <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider">Status</th>
                         {% else %}
-                            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider">Municipio</th>
+                            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider">Município</th>
                             <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider">Empresa</th>
                             <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider">CNPJ</th>
-                            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider">Ultima atualizacao</th>
+                            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider">Última atualização</th>
                         {% endif %}
-                        <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-center">Acao</th>
+                        <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-center">Ação</th>
                     </tr>
                 </thead>
 
@@ -152,7 +152,7 @@
                                 </div>
                             {% else %}
                                 <a href="{{ url_for('edicao.editar', empresa_id=item['id']) }}"
-                                    class="inline-flex items-center gap-2 bg-[#2563eb] hover:bg-[#002b5c] text-white px-4 py-2 rounded-lg text-xs font-bold shadow-sm transition-all transform active:scale-95">
+                                    class="inline-flex items-center justify-center gap-2 bg-[#2563eb] hover:bg-[#002b5c] text-white px-4 py-2 rounded-lg text-xs font-bold shadow-sm transition-all transform active:scale-95">
                                     <i data-lucide="edit" class="w-4 h-4"></i> EDITAR
                                 </a>
                             {% endif %}
@@ -209,11 +209,11 @@
                     {% if paginacao.tem_proxima %}
                     <a href="{{ url_for('edicao.selecionar_edicao', modo='jur', q=termo_busca, page=paginacao.pagina + 1) }}"
                         class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#002b5c] text-white text-sm font-bold hover:bg-blue-800">
-                        Proxima <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                        Próxima <i data-lucide="chevron-right" class="w-4 h-4"></i>
                     </a>
                     {% else %}
                     <span class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-100 border text-sm font-bold text-gray-400 cursor-not-allowed">
-                        Proxima <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                        Próxima <i data-lucide="chevron-right" class="w-4 h-4"></i>
                     </span>
                     {% endif %}
                 </div>
@@ -222,8 +222,25 @@
         {% endif %}
     </div>
 
-    <p class="text-white/50 text-[10px] text-center mt-4 uppercase tracking-widest">Sistema ASENTJUR - CODEGO 2024</p>
+    <p class="text-white/50 text-[10px] text-center mt-4 uppercase tracking-widest">Sistema ASSENTJUR - CODEGO 2024</p>
 </div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<div class="fixed bottom-6 right-6 z-50 flex flex-col gap-3 max-w-sm" id="flashContainer">
+    {% for category, message in messages %}
+    <div class="flex items-start gap-3 p-4 rounded-xl shadow-2xl border text-sm font-medium
+        {% if category == 'success' %}bg-green-50 border-green-200 text-green-800
+        {% elif category == 'danger' %}bg-red-50 border-red-200 text-red-800
+        {% else %}bg-blue-50 border-blue-200 text-blue-800{% endif %}">
+        <i data-lucide="{% if category == 'success' %}check-circle{% elif category == 'danger' %}alert-triangle{% else %}info{% endif %}" class="w-5 h-5 shrink-0 mt-0.5"></i>
+        <span>{{ message }}</span>
+    </div>
+    {% endfor %}
+</div>
+<script>setTimeout(function(){ var c = document.getElementById('flashContainer'); if(c) c.remove(); }, 4000);</script>
+{% endif %}
+{% endwith %}
 
 <script>
 lucide.createIcons();
@@ -255,27 +272,34 @@ searchClear.addEventListener("click", function () {
 {% else %}
 const resultCount = document.getElementById("resultCount");
 const emptySearchState = document.getElementById("emptySearchState");
-const totalRegistros = document.querySelectorAll(".linha-registro").length;
+
+function normalizar(str) {
+    return (str || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+}
+
+// pré-calcula texto normalizado uma vez no carregamento
+const linhas = Array.from(document.querySelectorAll(".linha-registro"));
+const totalRegistros = linhas.length;
+linhas.forEach(function(linha) {
+    linha._textoNorm = normalizar(linha.innerText);
+    linha._processoNorm = normalizar(linha.dataset.processo || "");
+    linha._processoNum = linha._processoNorm.replace(/\D/g, "");
+    linha._seiNorm = normalizar(linha.dataset.sei || "");
+});
 
 function aplicarFiltro() {
-    const filtro = searchInput.value.toLowerCase().trim();
+    const filtro = normalizar(searchInput.value.trim());
     const filtroNumerico = filtro.replace(/\D/g, "");
-    const linhas = document.querySelectorAll(".linha-registro");
 
     atualizarBotaoLimpar();
 
     let visiveis = 0;
     linhas.forEach(function(linha) {
-        const textoVisivel = linha.innerText.toLowerCase();
-        const processoJudicial = (linha.dataset.processo || "").toLowerCase();
-        const processoNumerico = processoJudicial.replace(/\D/g, "");
-        const processoSEI = (linha.dataset.sei || "").toLowerCase();
-
         const corresponde = (
-            textoVisivel.includes(filtro) ||
-            processoJudicial.includes(filtro) ||
-            processoSEI.includes(filtro) ||
-            (filtroNumerico && processoNumerico.includes(filtroNumerico))
+            linha._textoNorm.includes(filtro) ||
+            linha._processoNorm.includes(filtro) ||
+            linha._seiNorm.includes(filtro) ||
+            (filtroNumerico && linha._processoNum.includes(filtroNumerico))
         );
 
         linha.style.display = corresponde ? "" : "none";
@@ -308,6 +332,7 @@ searchInput.addEventListener("keydown", function (e) {
     }
 });
 {% endif %}
+
 </script>
 </body>
 </html>

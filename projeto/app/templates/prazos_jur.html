@@ -22,7 +22,7 @@
             </div>
             <div>
                 <h1 class="text-2xl font-bold text-[#002b5c]">Alertas de Prazos</h1>
-                <p class="text-sm text-gray-500">Prazos vencidos e proximos do setor juridico</p>
+                <p class="text-sm text-gray-500">Prazos vencidos e próximos do setor jurídico</p>
             </div>
         </div>
 
@@ -56,7 +56,7 @@
         </a>
         <a href="{{ url_for('juridico.prazos_juridicos', filtro='proximo', dias=dias_alerta) }}"
             class="bg-yellow-50 border border-yellow-200 rounded-xl p-4 hover:bg-yellow-100 transition">
-            <p class="text-xs font-bold uppercase text-yellow-700">Proximos</p>
+            <p class="text-xs font-bold uppercase text-yellow-700">Próximos</p>
             <p class="text-3xl font-black text-yellow-700">{{ resumo.proximo }}</p>
         </a>
         <a href="{{ url_for('juridico.prazos_juridicos', filtro='sem_data', dias=dias_alerta) }}"
@@ -75,13 +75,13 @@
         <div class="border-b bg-gray-50 px-5 py-4 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
             <div>
                 <h2 class="text-lg font-bold text-[#002b5c]">
-                    {% if filtro == 'alertas' %}Alertas ativos{% elif filtro == 'vencido' %}Prazos vencidos{% elif filtro == 'hoje' %}Prazos que vencem hoje{% elif filtro == 'proximo' %}Prazos proximos{% elif filtro == 'sem_data' %}Prazos sem data{% elif filtro == 'futuro' %}Prazos futuros{% else %}Todos os prazos{% endif %}
+                    {% if filtro == 'alertas' %}Alertas ativos{% elif filtro == 'vencido' %}Prazos vencidos{% elif filtro == 'hoje' %}Prazos que vencem hoje{% elif filtro == 'proximo' %}Prazos próximos{% elif filtro == 'sem_data' %}Prazos sem data{% elif filtro == 'futuro' %}Prazos futuros{% else %}Todos os prazos{% endif %}
                 </h2>
                 <p class="text-sm text-gray-500">{{ prazos|length }} registro(s) exibido(s)</p>
             </div>
 
             <div class="flex flex-wrap gap-2">
-                {% for chave, label in [('alertas', 'Alertas'), ('vencido', 'Vencidos'), ('hoje', 'Hoje'), ('proximo', 'Proximos'), ('sem_data', 'Sem data'), ('todos', 'Todos')] %}
+                {% for chave, label in [('alertas', 'Alertas'), ('vencido', 'Vencidos'), ('hoje', 'Hoje'), ('proximo', 'Próximos'), ('sem_data', 'Sem data'), ('todos', 'Todos')] %}
                 <a href="{{ url_for('juridico.prazos_juridicos', filtro=chave, dias=dias_alerta) }}"
                     class="px-3 py-2 rounded-lg text-xs font-bold border {% if filtro == chave %}bg-[#002b5c] text-white border-[#002b5c]{% else %}bg-white text-gray-700 hover:bg-gray-100{% endif %}">
                     {{ label }}
@@ -99,7 +99,7 @@
                         <th class="px-5 py-4 text-xs font-bold uppercase tracking-wider">Processo</th>
                         <th class="px-5 py-4 text-xs font-bold uppercase tracking-wider">Prazo</th>
                         <th class="px-5 py-4 text-xs font-bold uppercase tracking-wider">Status</th>
-                        <th class="px-5 py-4 text-xs font-bold uppercase tracking-wider text-center">Acao</th>
+                        <th class="px-5 py-4 text-xs font-bold uppercase tracking-wider text-center">Ação</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
@@ -116,7 +116,7 @@
                                 </span>
                             {% elif prazo.situacao == 'proximo' %}
                                 <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-yellow-100 text-yellow-800 text-xs font-bold">
-                                    <i data-lucide="clock" class="w-3.5 h-3.5"></i> Proximo
+                                    <i data-lucide="clock" class="w-3.5 h-3.5"></i> Próximo
                                 </span>
                             {% elif prazo.situacao == 'sem_data' %}
                                 <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-bold">

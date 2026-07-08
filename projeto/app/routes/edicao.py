@@ -247,6 +247,42 @@ def editar(empresa_id):
         return redirect(url_for('edicao.selecionar_edicao', modo='assent'))
 
 
+@edicao_bp.route('/excluir_empresa/<int:empresa_id>', methods=['POST'])
+@role_required('admin')
+def excluir_empresa(empresa_id):
+    try:
+        with get_db() as db:
+            with db.cursor(dictionary=True) as cursor:
+                cursor.execute("SELECT empresa, caminho_imagem FROM municipal_lots ml LEFT JOIN empresa_infos ei ON ei.empresa_id = ml.id WHERE ml.id = %s", (empresa_id,))
+                empresa = cursor.fetchone()
+                if not empresa:
+                    flash('Empresa não encontrada.', 'danger')
+                    return redirect(url_for('edicao.selecionar_edicao', modo='assent'))
+
+                empresa_nome = empresa.get('empresa') or f'ID {empresa_id}'
+
+                caminho_imagem = empresa.get('caminho_imagem')
+                if caminho_imagem and os.path.exists(caminho_imagem):
+                    os.remove(caminho_imagem)
+
+                cursor.execute("DELETE FROM empresa_infos WHERE empresa_id = %s", (empresa_id,))
+                cursor.execute("DELETE FROM municipal_lots WHERE id = %s", (empresa_id,))
+                db.commit()
+
+                gravar_log(
+                    acao="EXCLUSAO_EMPRESA",
+                    descricao=f"Empresa excluída: {empresa_nome} (ID {empresa_id})",
+                    usuario_username=session.get('username'),
+                    db_conn=db
+                )
+
+        flash(f'Empresa "{empresa_nome}" excluída com sucesso.', 'success')
+    except Exception as e:
+        flash(f'Erro ao excluir empresa: {e}', 'danger')
+
+    return redirect(url_for('edicao.selecionar_edicao', modo='assent'))
+
+
 @edicao_bp.route('/editar_jur/<int:processo_id>', methods=['GET', 'POST'])
 @role_required('jur', 'admin', 'jur_gestor')
 def editar_jur(processo_id):

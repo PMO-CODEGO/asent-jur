@@ -98,6 +98,7 @@
             flex-grow: 1;
             display: flex;
             flex-direction: column;
+            overflow: hidden;
             background-color: #f3f4f6;
         }
 
@@ -149,6 +150,8 @@
 
         .report-container {
             padding: 40px;
+            flex: 1;
+            min-height: 0;
             overflow-y: auto;
         }
 
@@ -445,6 +448,7 @@
             valueField: "id",
             labelField: "empresa",
             searchField: ["empresa", "municipio", "cnpj", "processo_sei", "numeros_processos"],
+            diacritics: true,
             options: empresas,
             maxOptions: 1000,
             create: false,

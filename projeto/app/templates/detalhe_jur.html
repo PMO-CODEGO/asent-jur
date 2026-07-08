@@ -29,7 +29,7 @@
     <div class="bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-200">
         <div class="bg-red-700 p-5 md:p-6 text-white flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div class="min-w-0">
-                <p class="text-xs font-bold uppercase text-red-100">Processo juridico</p>
+                <p class="text-xs font-bold uppercase text-red-100">Processo jurídico</p>
                 <h1 class="text-2xl font-bold flex items-center gap-2 break-words">
                     <i data-lucide="scale" class="w-7 h-7 shrink-0"></i>
                     {{ processo.titulo or processo.numero_processo }}
@@ -59,7 +59,7 @@
                     <p class="text-lg font-bold text-[#002b5c] break-words">{{ processo.fase or '-' }}</p>
                 </div>
                 <div class="border border-gray-200 rounded-lg p-4 bg-gray-50">
-                    <p class="text-xs font-bold uppercase text-gray-500">Tipo de acao</p>
+                    <p class="text-xs font-bold uppercase text-gray-500">Tipo de ação</p>
                     <p class="text-lg font-bold text-[#002b5c] break-words">{{ processo.tipo_acao or processo.tipo_processo or '-' }}</p>
                 </div>
                 <div class="border border-gray-200 rounded-lg p-4 bg-gray-50">
@@ -79,9 +79,9 @@
                     <button type="button" class="tab-button active px-4 py-2 rounded-lg border text-sm font-bold text-gray-700" data-tab="dados">Dados principais</button>
                     <button type="button" class="tab-button px-4 py-2 rounded-lg border text-sm font-bold text-gray-700" data-tab="partes">Partes</button>
                     <button type="button" class="tab-button px-4 py-2 rounded-lg border text-sm font-bold text-gray-700" data-tab="prazos">Prazos</button>
-                    <button type="button" class="tab-button px-4 py-2 rounded-lg border text-sm font-bold text-gray-700" data-tab="movimentacoes">Movimentacoes</button>
+                    <button type="button" class="tab-button px-4 py-2 rounded-lg border text-sm font-bold text-gray-700" data-tab="movimentacoes">Movimentações</button>
                     <button type="button" class="tab-button px-4 py-2 rounded-lg border text-sm font-bold text-gray-700" data-tab="documentos">Documentos</button>
-                    <button type="button" class="tab-button px-4 py-2 rounded-lg border text-sm font-bold text-gray-700" data-tab="historico">Historico</button>
+                    <button type="button" class="tab-button px-4 py-2 rounded-lg border text-sm font-bold text-gray-700" data-tab="historico">Histórico</button>
                 </div>
             </div>
 
@@ -100,17 +100,17 @@
                         <p class="text-sm text-gray-800 break-words">{{ processo.comarca or '-' }}</p>
                     </div>
                     <div class="border rounded-lg p-4">
-                        <p class="text-xs font-bold uppercase text-gray-500">Data de criacao</p>
+                        <p class="text-xs font-bold uppercase text-gray-500">Data de criação</p>
                         <p class="text-sm text-gray-800 break-words">{{ processo.data_criacao or '-' }}</p>
                     </div>
                     <div class="border rounded-lg p-4 md:col-span-2">
-                        <p class="text-xs font-bold uppercase text-gray-500">Descricao</p>
+                        <p class="text-xs font-bold uppercase text-gray-500">Descrição</p>
                         <p class="text-sm text-gray-800 whitespace-pre-wrap break-words">{{ processo.descricao or processo.assunto_judicial or '-' }}</p>
                     </div>
                     <div class="border rounded-lg p-4 md:col-span-2">
                         <p class="text-xs font-bold uppercase text-gray-500">Recurso</p>
                         <p class="text-sm text-gray-800 break-words">
-                            {{ 'Sim' if processo.recurso_acionado else 'Nao' }}
+                            {{ 'Sim' if processo.recurso_acionado else 'Não' }}
                             {% if processo.tipo_recurso %}- {{ processo.tipo_recurso }}{% endif %}
                         </p>
                     </div>

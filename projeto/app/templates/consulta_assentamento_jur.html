@@ -24,7 +24,7 @@
 
             <div>
                 <h1 class="text-xl font-bold text-[#002b5c]">Consulta de Assentamento</h1>
-                <p class="text-xs text-gray-500 font-medium uppercase">Visualizacao somente leitura</p>
+                <p class="text-xs text-gray-500 font-medium uppercase">Visualização somente leitura</p>
             </div>
         </div>
 
@@ -37,7 +37,7 @@
                     type="text"
                     autocomplete="off"
                     spellcheck="false"
-                    placeholder="Pesquisar empresa, municipio, CNPJ, distrito ou SEI..."
+                    placeholder="Pesquisar empresa, município, CNPJ, distrito ou SEI..."
                     class="w-full pl-10 pr-9 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-800 placeholder:text-gray-400
                            focus:bg-white focus:border-[#002b5c] focus:ring-4 focus:ring-[#002b5c]/10 outline-none transition-all duration-200 shadow-sm">
                 <button type="button" id="searchClear" tabindex="-1" aria-label="Limpar pesquisa"
@@ -64,11 +64,11 @@
                 <thead class="bg-gray-50 text-gray-600 border-b">
                     <tr>
                         <th class="px-5 py-4 text-xs font-bold uppercase tracking-wider">Empresa</th>
-                        <th class="px-5 py-4 text-xs font-bold uppercase tracking-wider">Municipio</th>
+                        <th class="px-5 py-4 text-xs font-bold uppercase tracking-wider">Município</th>
                         <th class="px-5 py-4 text-xs font-bold uppercase tracking-wider">Distrito</th>
                         <th class="px-5 py-4 text-xs font-bold uppercase tracking-wider">CNPJ</th>
                         <th class="px-5 py-4 text-xs font-bold uppercase tracking-wider">Status</th>
-                        <th class="px-5 py-4 text-xs font-bold uppercase tracking-wider text-center">Acao</th>
+                        <th class="px-5 py-4 text-xs font-bold uppercase tracking-wider text-center">Ação</th>
                     </tr>
                 </thead>
 
@@ -115,16 +115,24 @@ const resultCount = document.getElementById("resultCount");
 const emptySearchState = document.getElementById("emptySearchState");
 const totalRegistros = document.querySelectorAll(".linha-registro").length;
 
+function normalizar(str) {
+    return (str || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+}
+
+// pré-calcula texto normalizado uma vez no carregamento
+const linhas = Array.from(document.querySelectorAll(".linha-registro"));
+linhas.forEach(function(linha) { linha._textoNorm = normalizar(linha.innerText); });
+
 function aplicarFiltro() {
-    const filtro = searchInput.value.trim().toLowerCase();
+    const filtro = normalizar(searchInput.value.trim());
 
     searchClear.classList.toggle("opacity-0", filtro.length === 0);
     searchClear.classList.toggle("scale-75", filtro.length === 0);
     searchClear.classList.toggle("pointer-events-none", filtro.length === 0);
 
     let visiveis = 0;
-    document.querySelectorAll(".linha-registro").forEach(function (linha) {
-        const corresponde = linha.innerText.toLowerCase().includes(filtro);
+    linhas.forEach(function (linha) {
+        const corresponde = linha._textoNorm.includes(filtro);
         linha.style.display = corresponde ? "" : "none";
         if (corresponde) visiveis++;
     });
