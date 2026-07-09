@@ -23,15 +23,15 @@
         body, html {
             margin: 0;
             padding: 0;
-            height: 100%;
+            min-height: 100%;
             width: 100%;
             font-family: 'Inter', sans-serif;
-            overflow: hidden;
+            background-color: #f3f4f6; /* Corrigido de overflow para background-color */
         }
 
         .wrapper {
             display: flex;
-            height: 100vh;
+            min-height: 100vh;
             width: 100vw;
         }
 
@@ -46,6 +46,7 @@
             padding: 20px;
             box-shadow: 2px 0 10px rgba(0,0,0,0.05);
             z-index: 10;
+            align-self: stretch;
         }
 
         .logo-container {
@@ -100,6 +101,7 @@
             flex-direction: column;
             overflow: hidden;
             background-color: #f3f4f6;
+            min-height: 100vh;
         }
 
         .topbar {
@@ -150,9 +152,13 @@
 
         .report-container {
             padding: 40px;
+<<<<<<< HEAD:projeto/app/templates/relatorios.html
             flex: 1;
             min-height: 0;
             overflow-y: auto;
+=======
+            /* Removido o antigo overflow-y incorreto para deixar a página rolar solta */
+>>>>>>> 5fff88b (ajuste relatorios e num cadastro):projeto_teste/app/templates/relatorios.html
         }
 
         .report-card {
@@ -279,6 +285,36 @@
             padding: 14px 12px !important;
             color: #94a3b8 !important;
             font-size: 13px !important;
+        }
+
+        /* Barra de rolagem customizada para o menu suspenso de busca de empresas */
+        .ts-dropdown .ts-dropdown-content {
+            max-height: 280px !important;
+            overflow-y: auto !important;
+        }
+
+        /* Estilização elegante da barra de rolagem */
+        .ts-dropdown .ts-dropdown-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .ts-dropdown .ts-dropdown-content::-webkit-scrollbar-track {
+            background: #f3f4f6;
+            border-radius: 4px;
+        }
+
+        .ts-dropdown .ts-dropdown-content::-webkit-scrollbar-thumb {
+            background: var(--button-blue);
+            border-radius: 4px;
+        }
+
+        .ts-dropdown .ts-dropdown-content::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-blue);
+        }
+
+        .ts-dropdown .ts-dropdown-content {
+            scrollbar-width: thin;
+            scrollbar-color: var(--button-blue) #f1f1f1;
         }
 
         @media (max-width: 900px) {
@@ -450,7 +486,7 @@
             searchField: ["empresa", "municipio", "cnpj", "processo_sei", "numeros_processos"],
             diacritics: true,
             options: empresas,
-            maxOptions: 1000,
+            maxOptions: 2000,
             create: false,
             placeholder: "Digite empresa, município, CNPJ, processo SEI ou número do processo...",
             onInitialize: function() {

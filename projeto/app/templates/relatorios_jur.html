@@ -24,15 +24,16 @@
         body, html {
             margin: 0;
             padding: 0;
-            height: 100%;
+            min-height: 100%;
             width: 100%;
             font-family: 'Inter', sans-serif;
             overflow: hidden;
+            background-color: #f3f4f6;
         }
 
         .wrapper {
             display: flex;
-            height: 100vh;
+            min-height: 100vh;
             width: 100vw;
         }
 
@@ -47,6 +48,7 @@
             padding: 20px;
             box-shadow: 2px 0 10px rgba(0,0,0,0.05);
             z-index: 10;
+            align-self: stretch;
         }
 
         .logo-link {
@@ -96,6 +98,7 @@
             display: flex;
             flex-direction: column;
             background-color: #f3f4f6;
+            min-height: 100vh;
         }
 
         .topbar {
@@ -300,6 +303,38 @@
             font-size: 13px !important;
         }
 
+        /* Barra de rolagem customizada para o menu suspenso de busca de empresas */
+        .ts-dropdown .ts-dropdown-content {
+            max-height: 280px !important; /* Controla a altura máxima da listagem */
+            overflow-y: auto !important; /* Força a barra de rolagem */
+        }
+
+        /* Estilização elegante da barra de rolagem para navegadores modernos (Chrome, Edge, Safari) */
+        .ts-dropdown .ts-dropdown-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .ts-dropdown .ts-dropdown-content::-webkit-scrollbar-track {
+            background: #f3f4f6;
+            border-radius: 4px;
+        }
+
+        .ts-dropdown .ts-dropdown-content::-webkit-scrollbar-thumb {
+            background: var(--button-blue);
+            border-radius: 4px;
+        }
+
+        .ts-dropdown .ts-dropdown-content::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-blue);
+        }
+
+        /* Suporte para barra de rolagem fina no Firefox */
+        .ts-dropdown .ts-dropdown-content {
+            scrollbar-width: thin;
+            scrollbar-color: var(--button-blue) #f1f1f1;
+        }
+
+
         @media (max-width: 900px) {
             body, html {
                 height: auto;
@@ -382,6 +417,10 @@
                 padding: 20px;
                 border-radius: 10px;
             }
+            .report-container {
+        padding: 40px;
+        flex-grow: 1;
+    }
         }
     </style>
 </head>
