@@ -28,6 +28,20 @@ services:
       - ./docker/mysql/init:/docker-entrypoint-initdb.d
     restart: always
 
+  backup:
+    build: ./docker/backup
+    container_name: codego_backup
+    environment:
+      MYSQL_HOST: db
+      MYSQL_USER: root
+      MYSQL_PASSWORD: Joaolopes05
+      MYSQL_DATABASE: codego_db
+    volumes:
+      - ./backups:/backups
+    depends_on:
+      - db
+    restart: always
+
   nginx:
     image: nginx:latest
     container_name: nginx_codego
