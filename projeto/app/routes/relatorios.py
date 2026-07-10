@@ -12,7 +12,7 @@ from reportlab.platypus import Image, Paragraph, SimpleDocTemplate, Spacer, Tabl
 from app.db import get_db
 from app.constants import LABELS
 from app.services.juridico_schema_service import garantir_schema_juridico
-from app.services.pdf_service import add_watermark
+from app.services.pdf_service import add_header_footer, bloco_identificacao, linha_assinatura
 from app.utils.decorators import role_required
 
 relatorio_bp = Blueprint("relatorio", __name__)
@@ -75,6 +75,8 @@ def valor_pdf(valor):
     return str(valor)
 
 
+IMAGEM_PADRAO = '/static/imagens_empresas/empresa_default.png'
+
 def caminho_imagem_empresa(empresa_id):
     static_dir = Path(current_app.root_path) / 'static'
     padroes = [
@@ -87,10 +89,10 @@ def caminho_imagem_empresa(empresa_id):
             continue
         arquivos = sorted(pasta.glob(f'empresa{empresa_id}*'))
         for arquivo in arquivos:
-            if arquivo.is_file():
+            if arquivo.is_file() and 'default' not in arquivo.name:
                 return '/static/' + arquivo.relative_to(static_dir).as_posix()
 
-    return ''
+    return IMAGEM_PADRAO
 
 
 def dividir_tuplas_sql(valores_sql):
@@ -256,153 +258,124 @@ def adicionar_lista_eventos(story, titulo, eventos, subtitle_style, cell_style):
 
 def gerar_pdf_processo(processo, partes, eventos, documentos):
     buffer = BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=A4, leftMargin=72, rightMargin=72, topMargin=120, bottomMargin=72)
+    doc = SimpleDocTemplate(buffer, pagesize=A4, leftMargin=54, rightMargin=54, topMargin=90, bottomMargin=72)
+
+    emitido_por = session.get('username', 'sistema')
+    data_emissao = datetime.now().strftime('%d/%m/%Y')
+    doc_code = f"CODEGO-JUR-{processo.get('id', '000'):04}" if isinstance(processo.get('id'), int) else 'CODEGO-JUR'
+    doc._iso_doc_code = doc_code
+    doc._iso_rev = 'Rev. 00'
+    doc._iso_data = data_emissao
 
     styles = getSampleStyleSheet()
-    title_style = ParagraphStyle(
-        'ProcessoTitle',
-        parent=styles['Heading1'],
-        fontName='Helvetica-Bold',
-        fontSize=16,
-        leading=22,
-        alignment=1,
-        spaceAfter=14,
-        textColor=colors.HexColor('#1a233a')
-    )
-    subtitle_style = ParagraphStyle(
-        'ProcessoSubtitle',
-        parent=styles['Normal'],
-        fontName='Helvetica-Bold',
-        fontSize=12,
-        leading=16,
-        spaceAfter=8,
-        textColor=colors.HexColor('#374151')
-    )
-    cell_style = ParagraphStyle(
-        'ProcessoCell',
-        parent=styles['Normal'],
-        fontName='Helvetica',
-        fontSize=9,
-        leading=12,
-        wordWrap='CJK'
-    )
+    title_style = ParagraphStyle('ProcessoTitle', parent=styles['Heading1'],
+        fontName='Helvetica-Bold', fontSize=14, leading=20, alignment=1,
+        spaceAfter=6, textColor=colors.HexColor('#002b5c'))
+    subtitle_style = ParagraphStyle('ProcessoSubtitle', parent=styles['Normal'],
+        fontName='Helvetica-Bold', fontSize=10, leading=14, spaceAfter=6,
+        spaceBefore=12, textColor=colors.HexColor('#002b5c'),
+        borderPad=4, backColor=colors.HexColor('#f0f4f8'),
+        borderColor=colors.HexColor('#002b5c'), borderWidth=0.5, borderRadius=2)
+    cell_style = ParagraphStyle('ProcessoCell', parent=styles['Normal'],
+        fontName='Helvetica', fontSize=9, leading=12, wordWrap='CJK')
+    styles_map = {'cell': cell_style, 'bold': title_style}
 
     story = []
-    logo_path = os.path.join(current_app.root_path, 'static', 'logo_codego.png')
-    if os.path.exists(logo_path):
-        story.append(Image(logo_path, width=300, height=60, hAlign='CENTER'))
-        story.append(Spacer(1, 20))
 
-    story.append(Paragraph("RELATORIO DO PROCESSO JURIDICO", title_style))
-    story.append(Paragraph(valor_pdf(processo.get('numero_processo')), title_style))
-    story.append(Spacer(1, 12))
+    bloco_identificacao(story,
+        titulo=f"Relatório de Processo Jurídico — {valor_pdf(processo.get('numero_processo'))}",
+        doc_code=doc_code, rev='Rev. 00', data_emissao=data_emissao,
+        emitido_por=emitido_por, styles_map=styles_map)
 
-    story.append(Paragraph("DADOS PRINCIPAIS", subtitle_style))
+    story.append(Paragraph("DADOS PRINCIPAIS DO PROCESSO", subtitle_style))
     adicionar_tabela_chave_valor(story, processo, RELATORIO_PROCESSO_LABELS, cell_style)
 
-    story.append(Spacer(1, 16))
-    story.append(Paragraph("PARTES", subtitle_style))
-    partes_labels = [('papel', 'Papel'), ('nome', 'Nome'), ('tipo_parte', 'Tipo'), ('contato', 'Contato'), ('observacoes', 'Observacoes')]
+    story.append(Spacer(1, 8))
+    story.append(Paragraph("PARTES ENVOLVIDAS", subtitle_style))
+    partes_labels = [('papel', 'Papel'), ('nome', 'Nome'), ('tipo_parte', 'Tipo'), ('contato', 'Contato'), ('observacoes', 'Observações')]
     if partes:
         for parte in partes:
             adicionar_tabela_chave_valor(story, parte, partes_labels, cell_style, header_color='#002b5c')
-            story.append(Spacer(1, 8))
+            story.append(Spacer(1, 6))
     else:
         story.append(Paragraph("Nenhuma parte cadastrada.", cell_style))
 
     adicionar_lista_eventos(story, "PRAZOS", [e for e in eventos if e.get('categoria') == 'prazo'], subtitle_style, cell_style)
-    adicionar_lista_eventos(story, "MOVIMENTACOES", [e for e in eventos if e.get('categoria') == 'movimentacao'], subtitle_style, cell_style)
+    adicionar_lista_eventos(story, "MOVIMENTAÇÕES", [e for e in eventos if e.get('categoria') == 'movimentacao'], subtitle_style, cell_style)
     adicionar_lista_eventos(story, "DOCUMENTOS TEXTUAIS", [e for e in eventos if e.get('categoria') == 'documento'], subtitle_style, cell_style)
 
-    story.append(Spacer(1, 16))
+    story.append(Spacer(1, 8))
     story.append(Paragraph("ARQUIVOS ANEXADOS", subtitle_style))
     if documentos:
-        labels_doc = [('nome', 'Nome'), ('tipo', 'Tipo'), ('data_documento', 'Data'), ('nome_arquivo_original', 'Arquivo'), ('observacao', 'Observacao')]
+        labels_doc = [('nome', 'Nome'), ('tipo', 'Tipo'), ('data_documento', 'Data'), ('nome_arquivo_original', 'Arquivo'), ('observacao', 'Observação')]
         for documento in documentos:
             adicionar_tabela_chave_valor(story, documento, labels_doc, cell_style, header_color='#002b5c')
-            story.append(Spacer(1, 8))
+            story.append(Spacer(1, 6))
     else:
         story.append(Paragraph("Nenhum arquivo anexado.", cell_style))
 
-    story.append(Spacer(1, 10))
-    story.append(Paragraph(
-        f"Gerado em: {datetime.now().strftime('%d/%m/%Y %H:%M')} | Usuario: {session.get('username', 'sistema')}",
-        ParagraphStyle('FooterProcesso', parent=styles['Normal'], fontName='Helvetica', fontSize=8, alignment=2, textColor=colors.grey)
-    ))
+    linha_assinatura(story, emitido_por, styles_map)
 
-    doc.build(story, onFirstPage=add_watermark, onLaterPages=add_watermark)
+    doc.build(story, onFirstPage=add_header_footer, onLaterPages=add_header_footer)
     buffer.seek(0)
     return buffer
 
 
 def gerar_pdf_geral_processos(processos):
     buffer = BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=A4, leftMargin=54, rightMargin=54, topMargin=110, bottomMargin=54)
+    doc = SimpleDocTemplate(buffer, pagesize=A4, leftMargin=54, rightMargin=54, topMargin=90, bottomMargin=72)
+
+    emitido_por = session.get('username', 'sistema')
+    data_emissao = datetime.now().strftime('%d/%m/%Y')
+    doc._iso_doc_code = 'CODEGO-JUR-GERAL'
+    doc._iso_rev = 'Rev. 00'
+    doc._iso_data = data_emissao
 
     styles = getSampleStyleSheet()
-    title_style = ParagraphStyle(
-        'GeralProcessosTitle',
-        parent=styles['Heading1'],
-        fontName='Helvetica-Bold',
-        fontSize=16,
-        leading=22,
-        alignment=1,
-        spaceAfter=14,
-        textColor=colors.HexColor('#1a233a')
-    )
-    subtitle_style = ParagraphStyle(
-        'GeralProcessosSubtitle',
-        parent=styles['Normal'],
-        fontName='Helvetica-Bold',
-        fontSize=11,
-        leading=14,
-        spaceAfter=8,
-        textColor=colors.HexColor('#374151')
-    )
-    cell_style = ParagraphStyle(
-        'GeralProcessosCell',
-        parent=styles['Normal'],
-        fontName='Helvetica',
-        fontSize=7,
-        leading=9,
-        wordWrap='CJK'
-    )
+    subtitle_style = ParagraphStyle('GeralSubtitle', parent=styles['Normal'],
+        fontName='Helvetica-Bold', fontSize=10, leading=14, spaceAfter=6,
+        spaceBefore=12, textColor=colors.HexColor('#002b5c'),
+        borderPad=4, backColor=colors.HexColor('#f0f4f8'),
+        borderColor=colors.HexColor('#002b5c'), borderWidth=0.5, borderRadius=2)
+    cell_style = ParagraphStyle('GeralCell', parent=styles['Normal'],
+        fontName='Helvetica', fontSize=7, leading=9, wordWrap='CJK')
+    styles_map = {'cell': cell_style, 'bold': subtitle_style}
 
     story = []
-    logo_path = os.path.join(current_app.root_path, 'static', 'logo_codego.png')
-    if os.path.exists(logo_path):
-        story.append(Image(logo_path, width=300, height=60, hAlign='CENTER'))
-        story.append(Spacer(1, 18))
 
-    story.append(Paragraph("RELATORIO GERAL DE PROCESSOS", title_style))
-    story.append(Paragraph(f"Total de processos: {len(processos)}", subtitle_style))
-    story.append(Spacer(1, 8))
+    bloco_identificacao(story,
+        titulo=f"Relatório Geral de Processos Jurídicos ({len(processos)} processos)",
+        doc_code='CODEGO-JUR-GERAL', rev='Rev. 00', data_emissao=data_emissao,
+        emitido_por=emitido_por, styles_map=styles_map)
 
+    # Resumo por status
     resumo_status = {}
     for processo in processos:
         status = valor_pdf(processo.get('status'))
         resumo_status[status] = resumo_status.get(status, 0) + 1
 
     if resumo_status:
-        resumo_linhas = [["Status", "Quantidade"]]
-        for status, quantidade in sorted(resumo_status.items()):
-            resumo_linhas.append([Paragraph(status, cell_style), Paragraph(str(quantidade), cell_style)])
-
-        resumo_table = Table(resumo_linhas, colWidths=[300, 100], repeatRows=1)
+        story.append(Paragraph("RESUMO POR STATUS", subtitle_style))
+        resumo_linhas = [['Status', 'Quantidade']]
+        for status, qtd in sorted(resumo_status.items()):
+            resumo_linhas.append([Paragraph(status, cell_style), Paragraph(str(qtd), cell_style)])
+        resumo_table = Table(resumo_linhas, colWidths=[400, 100], repeatRows=1)
         resumo_table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1a233a')),
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#002b5c')),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
             ('FONTSIZE', (0, 0), (-1, 0), 8),
-            ('FONTSIZE', (0, 1), (-1, -1), 7),
             ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
             ('TOPPADDING', (0, 0), (-1, -1), 5),
             ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
+            ('LEFTPADDING', (0, 0), (-1, -1), 5),
         ]))
         story.append(resumo_table)
-        story.append(Spacer(1, 16))
+        story.append(Spacer(1, 10))
 
-    linhas = [["CNJ", "Titulo", "Tipo", "Tribunal", "Comarca", "Status", "Fase"]]
+    # Tabela de processos
+    story.append(Paragraph("LISTAGEM DE PROCESSOS", subtitle_style))
+    linhas = [['CNJ', 'Título', 'Tipo', 'Tribunal', 'Comarca', 'Status', 'Fase']]
     for processo in processos:
         linhas.append([
             Paragraph(valor_pdf(processo.get('numero_processo')), cell_style),
@@ -416,12 +389,13 @@ def gerar_pdf_geral_processos(processos):
 
     tabela = Table(linhas, colWidths=[82, 95, 80, 75, 65, 55, 58], repeatRows=1)
     tabela.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#7f1d1d')),
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#002b5c')),
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
         ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
         ('FONTSIZE', (0, 0), (-1, 0), 7),
         ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
         ('FONTSIZE', (0, 1), (-1, -1), 6.5),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f8fafc')]),
         ('VALIGN', (0, 0), (-1, -1), 'TOP'),
         ('GRID', (0, 0), (-1, -1), 0.4, colors.grey),
         ('TOPPADDING', (0, 0), (-1, -1), 4),
@@ -431,13 +405,9 @@ def gerar_pdf_geral_processos(processos):
     ]))
     story.append(tabela)
 
-    story.append(Spacer(1, 10))
-    story.append(Paragraph(
-        f"Gerado em: {datetime.now().strftime('%d/%m/%Y %H:%M')} | Usuario: {session.get('username', 'sistema')}",
-        ParagraphStyle('FooterGeralProcessos', parent=styles['Normal'], fontName='Helvetica', fontSize=8, alignment=2, textColor=colors.grey)
-    ))
+    linha_assinatura(story, emitido_por, styles_map)
 
-    doc.build(story, onFirstPage=add_watermark, onLaterPages=add_watermark)
+    doc.build(story, onFirstPage=add_header_footer, onLaterPages=add_header_footer)
     buffer.seek(0)
     return buffer
 
@@ -540,85 +510,46 @@ def relatorios():
 
             buffer = BytesIO()
             doc = SimpleDocTemplate(
-                buffer,
-                pagesize=A4,
-                leftMargin=72,
-                rightMargin=72,
-                topMargin=120,
-                bottomMargin=72
+                buffer, pagesize=A4,
+                leftMargin=54, rightMargin=54, topMargin=90, bottomMargin=72
             )
+
+            emitido_por = session.get('username', 'sistema')
+            data_emissao = datetime.now().strftime('%d/%m/%Y')
+            doc_code = f"CODEGO-ASS-{empresa_id.zfill(4)}"
+            doc._iso_doc_code = doc_code
+            doc._iso_rev = 'Rev. 00'
+            doc._iso_data = data_emissao
 
             styles = getSampleStyleSheet()
-            font_title = 'Helvetica-Bold'
-            font_normal = 'Helvetica'
-
-            title_style = ParagraphStyle(
-                'CustomTitle',
-                parent=styles['Heading1'],
-                fontName=font_title,
-                fontSize=16,
-                leading=22,
-                alignment=1,
-                spaceAfter=20,
-                textColor=colors.HexColor('#1a233a')
-            )
-
-            subtitle_style = ParagraphStyle(
-                'Subtitle',
-                parent=styles['Normal'],
-                fontName=font_title,
-                fontSize=12,
-                leading=16,
-                alignment=1,
-                spaceAfter=10,
-                textColor=colors.HexColor('#374151')
-            )
-
-            normal_style = ParagraphStyle(
-                'CustomNormal',
-                parent=styles['Normal'],
-                fontName=font_normal,
-                fontSize=10,
-                leading=14,
-                spaceBefore=0,
-                spaceAfter=0
-            )
-
-            cell_style = ParagraphStyle(
-                'CellStyle',
-                parent=styles['Normal'],
-                fontName=font_normal,
-                fontSize=9,
-                leading=12,
-                wordWrap='CJK'
-            )
+            cell_style = ParagraphStyle('AssCell', parent=styles['Normal'],
+                fontName='Helvetica', fontSize=9, leading=12, wordWrap='CJK')
+            subtitle_style = ParagraphStyle('AssSubtitle', parent=styles['Normal'],
+                fontName='Helvetica-Bold', fontSize=10, leading=14, spaceAfter=6,
+                spaceBefore=12, textColor=colors.HexColor('#002b5c'),
+                borderPad=4, backColor=colors.HexColor('#f0f4f8'),
+                borderColor=colors.HexColor('#002b5c'), borderWidth=0.5, borderRadius=2)
+            styles_map = {'cell': cell_style, 'bold': subtitle_style}
 
             story = []
 
-            logo_path = os.path.join(current_app.root_path, 'static', 'logo_codego.png')
-            if os.path.exists(logo_path):
-                logo = Image(logo_path, width=300, height=60, hAlign='CENTER')
-                story.append(logo)
-                story.append(Spacer(1, 20))
+            titulo_relatorio = "Relatório Jurídico de Empresa" if modo == 'jur' else "Relatório de Assentamento Industrial"
+            bloco_identificacao(story,
+                titulo=f"{titulo_relatorio} — {lot.get('empresa', 'N/A')}",
+                doc_code=doc_code, rev='Rev. 00', data_emissao=data_emissao,
+                emitido_por=emitido_por, styles_map=styles_map)
 
-            titulo_relatorio = "RELATÓRIO JURÍDICO" if modo == 'jur' else "RELATÓRIO DE ASSENTAMENTO"
-            story.append(Paragraph(titulo_relatorio, title_style))
-            story.append(Paragraph(f"Relatório: {lot.get('empresa', 'N/A')}", title_style))
-            story.append(Spacer(1, 12))
+            story.append(Paragraph("DADOS CADASTRAIS", subtitle_style))
 
-            data = [["Campo", "Valor"]]
             campos_juridicos_legados = {'processo_judicial', 'status', 'assunto_judicial', 'valor_da_causa'}
             campos_disponiveis = {
-                chave: valor
-                for chave, valor in lot.items()
+                chave: valor for chave, valor in lot.items()
                 if chave != 'id' and chave not in campos_juridicos_legados
             }
             chaves_ordenadas = [chave for chave in RELATORIO_EMPRESA_ORDEM if chave in campos_disponiveis]
-            chaves_ordenadas.extend(
-                chave for chave in campos_disponiveis.keys()
-                if chave not in chaves_ordenadas
-            )
+            chaves_ordenadas.extend(chave for chave in campos_disponiveis if chave not in chaves_ordenadas)
 
+            data = [['Campo', 'Valor']]
             for chave in chaves_ordenadas:
                 valor = campos_disponiveis[chave]
                 data.append([
@@ -626,43 +557,31 @@ def relatorios():
                     Paragraph(str(valor) if valor is not None else '-', cell_style)
                 ])
 
-            table = Table(data, colWidths=[150, 350], repeatRows=1)
+            table = Table(data, colWidths=[160, 340], repeatRows=1)
             table.setStyle(TableStyle([
-                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1a233a')),
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#002b5c')),
                 ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
                 ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
-                ('FONTNAME', (0, 0), (-1, 0), font_title),
-                ('FONTSIZE', (0, 0), (-1, 0), 10),
-                ('TOPPADDING', (0, 0), (-1, 0), 8),
-                ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
-                ('FONTNAME', (0, 1), (-1, -1), font_normal),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, 0), 9),
+                ('TOPPADDING', (0, 0), (-1, 0), 7),
+                ('BOTTOMPADDING', (0, 0), (-1, 0), 7),
+                ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
                 ('FONTSIZE', (0, 1), (-1, -1), 9),
+                ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f8fafc')]),
                 ('VALIGN', (0, 1), (-1, -1), 'TOP'),
                 ('TOPPADDING', (0, 1), (-1, -1), 6),
                 ('BOTTOMPADDING', (0, 1), (-1, -1), 6),
                 ('LEFTPADDING', (0, 1), (-1, -1), 6),
                 ('RIGHTPADDING', (0, 1), (-1, -1), 6),
-                ('BACKGROUND', (0, 1), (-1, -1), colors.transparent),
-                ('GRID', (0, 0), (-1, -1), 0.5, colors.grey)
+                ('BOX', (0, 0), (-1, -1), 0.8, colors.HexColor('#002b5c')),
+                ('GRID', (0, 0), (-1, -1), 0.4, colors.grey),
             ]))
             story.append(table)
 
-            footer_para = Paragraph(
-                f"Gerado em: {datetime.now().strftime('%d/%m/%Y %H:%M')} | Usuário: {session.get('username', 'sistema')}",
-                ParagraphStyle(
-                    'Footer',
-                    parent=styles['Normal'],
-                    fontName=font_normal,
-                    fontSize=8,
-                    alignment=2,
-                    spaceBefore=10,
-                    textColor=colors.grey
-                )
-            )
-            story.append(Spacer(1, 10))
-            story.append(footer_para)
+            linha_assinatura(story, emitido_por, styles_map)
 
-            doc.build(story, onFirstPage=add_watermark, onLaterPages=add_watermark)
+            doc.build(story, onFirstPage=add_header_footer, onLaterPages=add_header_footer)
 
             buffer.seek(0)
             response = make_response(buffer.getvalue())
@@ -723,7 +642,7 @@ def relatorios():
             seed_info = seed_infos.get(empresa_id, {})
             empresas_info[empresa_id] = {
                 "descricao": row.get('descricao') or seed_info.get('descricao') or 'Sem descrição cadastrada.',
-                "foto": row.get('caminho_imagem') or seed_info.get('foto') or caminho_imagem_empresa(empresa_id),
+                "foto": row.get('caminho_imagem') or seed_info.get('foto') or caminho_imagem_empresa(empresa_id) or IMAGEM_PADRAO,
             }
 
         for empresa in empresas:
@@ -736,7 +655,7 @@ def relatorios():
             seed_info = seed_infos.get(empresa_id, {})
             empresas_info[empresa_id] = {
                 "descricao": seed_info.get('descricao') or 'Sem descrição cadastrada.',
-                "foto": seed_info.get('foto') or caminho_imagem_empresa(empresa_id),
+                "foto": seed_info.get('foto') or caminho_imagem_empresa(empresa_id) or IMAGEM_PADRAO,
             }
     except Exception as err:
         print("Erro ao carregar dados:", err)
