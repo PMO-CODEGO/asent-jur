@@ -423,7 +423,8 @@
             </div>
 
             <div id="empresa-info" style="margin-top: 30px; width: 100%; display: none;">
-                <div style="text-align: center; margin-bottom: 10px;">
+
+                <div id="container-foto" style="text-align: center; margin-bottom: 10px;">
                     <img id="empresa-foto"
                         src=""
                         alt="Foto da empresa"
@@ -518,31 +519,32 @@
         });
 
         document.addEventListener('DOMContentLoaded', function() {
-            const empresaInfoBox = document.getElementById('empresa-info');
-            const empresaFoto = document.getElementById('empresa-foto');
-            const empresaNome = document.getElementById('empresa-nome');
-            const empresaDescricao = document.getElementById('empresa-descricao');
+    const empresaInfoBox = document.getElementById('empresa-info');
+    const empresaFoto = document.getElementById('empresa-foto');
+    const empresaNome = document.getElementById('empresa-nome');
+    const empresaDescricao = document.getElementById('empresa-descricao');
+    **
 
-            function atualizarEmpresaInfo(id) {
-                if (!id || !empresasInfo[id]) {
-                    empresaInfoBox.style.display = 'none';
-                    return;
-                }
+    function atualizarEmpresaInfo(id) {
+        if (!id || !empresasInfo[id]) {
+            empresaInfoBox.style.display = 'none';
+            return;
+        }
 
-                const info = empresasInfo[id];
-                const empresaSelecionada = empresas.find(function(item) {
-                    return String(item.id) === String(id);
-                });
-
-                empresaFoto.src = info.foto;
-                empresaFoto.alt = `Foto da empresa ${id}`;
-                empresaNome.textContent = empresaSelecionada ? empresaSelecionada.empresa : '';
-                empresaDescricao.textContent = info.descricao;
-                empresaInfoBox.style.display = 'block';
-            }
-
-            select.on('change', atualizarEmpresaInfo);
+        const info = empresasInfo[id];
+        const empresaSelecionada = empresas.find(function(item) {
+            return String(item.id) === String(id);
         });
+
+        empresaFoto.src = info.foto;
+        empresaFoto.alt = `Foto da empresa ${id}`;
+        empresaNome.textContent = empresaSelecionada ? empresaSelecionada.empresa : '';
+        empresaDescricao.textContent = info.descricao;
+        empresaInfoBox.style.display = 'block';
+    }
+
+    select.on('change', atualizarEmpresaInfo);
+});
     </script>
 </body>
 </html>
