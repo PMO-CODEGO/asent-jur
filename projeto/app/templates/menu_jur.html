@@ -287,11 +287,18 @@
                 <a href="{{ url_for('dashboard.mapa_distritos') }}" class="nav-button">Mapa de Distritos</a>
 
                 {% if session.get('role') == 'jur_gestor' %}
-    <a href="{{ url_for('auth_user.registrar_colaborador') }}" class="nav-button" style="background-color: var(--button-red); margin-top: 10px;">
-        <i data-lucide="user-plus" class="w-4 h-4 inline-block mr-2"></i>
-        Registrar Usuario
-    </a>
-    {% endif %}
+                <a href="{{ url_for('auth_user.registrar_colaborador') }}" class="nav-button" style="background-color: var(--button-red); margin-top: 10px;">
+                    <i data-lucide="user-plus" class="w-4 h-4 inline-block mr-2"></i>
+                    Registrar Usuário
+                </a>
+                {% endif %}
+
+                {% if session.get('role') == 'admin' %}
+                <a href="{{ url_for('dashboard.menu', modo='assent') }}" class="nav-button" style="background: linear-gradient(135deg, #f7cf63, #e7a73a); color: #1a202c; margin-top: 10px;">
+                    <i data-lucide="arrow-left-right" class="w-4 h-4 inline-block mr-2"></i>
+                    Alternar Menu
+                </a>
+                {% endif %}
             </div>
         </div>
 
@@ -302,13 +309,6 @@
                 </div>
 
                 <div class="topbar-actions">
-                    {% if session.get('role') == 'admin' %}
-                        <a href="{{ url_for('dashboard.menu', modo='assent') }}" class="btn-topbar btn-switch-menu">
-                            <i data-lucide="arrow-left-right" class="w-4 h-4"></i>
-                            Alternar Menu
-                        </a>
-                    {% endif %}
-
                     <a href="{{ url_for('auth_login.logout') }}" class="btn-topbar btn-logout">
                         <i data-lucide="log-out" class="w-4 h-4"></i>
                         Sair do Sistema
