@@ -408,7 +408,7 @@
     <div class="wrapper">
         <div class="sidebar">
             <div class="logo-container">
-                <a href="{{ url_for('dashboard.menu', modo='assent') }}" class="logo-link" aria-label="Voltar ao menu principal">
+                <a href="{{ url_for('dashboard.inicio_assent') }}" class="logo-link" aria-label="Voltar ao início">
                     <img src="{{ url_for('static', filename='logo_codego.png') }}" alt="Logo CodeGO">
                 </a>
             </div>
@@ -420,6 +420,31 @@
                 {% endif %}
                 <a href="{{ url_for('juridico.consultar_assentamento') }}" class="nav-button">Consultar Assentamento</a>
                 <a href="{{ url_for('relatorio.relatorios', modo='assent') }}" class="nav-button active">Gerar Relatório</a>
+                <a href="{{ url_for('dashboard.mapa_distritos') }}" class="nav-button">Mapa de Distritos</a>
+
+                {% if session.get('role') == 'admin' %}
+                <a href="{{ url_for('auth_user.registrar_usuario') }}" class="nav-button" style="background-color: #f59e0b; color: #1a202c; margin-top: 10px;">
+                    <i data-lucide="user-plus" class="w-4 h-4 inline-block mr-2"></i>
+                    Registrar Usuário
+                </a>
+                {% endif %}
+                {% if session.get('role') == 'assent_gestor' %}
+                <a href="{{ url_for('auth_user.registrar_colaborador') }}" class="nav-button" style="background-color: #10b981; margin-top: 10px;">
+                    <i data-lucide="user-plus" class="w-4 h-4 inline-block mr-2"></i>
+                    Registrar Usuário
+                </a>
+                {% endif %}
+
+                {% if session.get('role') == 'admin' %}
+                <a href="{{ url_for('logs.logs') }}" class="nav-button" style="background-color: #f59e0b; color: #1a202c;">
+                    <i data-lucide="database-zap" class="w-4 h-4 inline-block mr-2"></i>
+                    Logs do Sistema
+                </a>
+                <a href="{{ url_for('dashboard.menu', modo='jur') }}" class="nav-button" style="background: linear-gradient(135deg, #f7cf63, #e7a73a); color: #1a202c;">
+                    <i data-lucide="arrow-left-right" class="w-4 h-4 inline-block mr-2"></i>
+                    Alternar Menu
+                </a>
+                {% endif %}
             </div>
 
             <div id="empresa-info" style="margin-top: 30px; width: 100%; display: none;">
