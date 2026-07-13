@@ -138,6 +138,16 @@ TIPO_LABELS = {
     "tecnologico": "Parque Tecnológico",
 }
 
+@dashboard_bp.route('/assent/inicio')
+@role_required('assent', 'admin', 'assent_gestor')
+def inicio_assent():
+    return render_template('inicio_assent.html')
+
+@dashboard_bp.route('/assent/controle-area')
+@role_required('assent', 'admin', 'assent_gestor')
+def controle_area():
+    return render_template('controle_area.html')
+
 @dashboard_bp.route('/menu/<modo>')
 @role_required('assent', 'jur', 'admin','assent_gestor','jur_gestor')
 def menu(modo):

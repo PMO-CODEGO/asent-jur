@@ -275,7 +275,7 @@
     <div class="wrapper">
         <div class="sidebar">
             <div class="logo-container">
-                <a href="{{ url_for('dashboard.menu', modo='assent') }}" class="logo-link" aria-label="Voltar ao menu principal">
+                <a href="{{ url_for('dashboard.inicio_assent') }}" class="logo-link" aria-label="Voltar ao início">
                     <img src="{{ url_for('static', filename='logo_codego.png') }}" alt="Logo CodeGO">
                 </a>
             </div>
@@ -326,6 +326,12 @@
                     </a>
                     {% endif %}
 
+                    {% if session.get('role') in ['assent', 'assent_gestor', 'admin'] %}
+                    <a href="{{ url_for('dashboard.inicio_assent') }}" class="btn-topbar" style="background-color:#4b5563;">
+                        <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                        Início
+                    </a>
+                    {% endif %}
                     <a href="{{ url_for('auth_login.logout') }}" class="btn-topbar btn-logout">
                         <i data-lucide="log-out" class="w-4 h-4"></i>
                         Sair do Sistema
