@@ -242,12 +242,21 @@ def cadastro():
         except Exception as e:
             flash(f'Erro ao cadastrar: {e}', 'danger')
 
+    with get_db() as db:
+        with db.cursor() as cursor:
+            cursor.execute("SELECT DISTINCT municipio FROM municipal_lots WHERE municipio IS NOT NULL AND municipio != '-' ORDER BY municipio")
+            municipios = [r[0] for r in cursor.fetchall()]
+            cursor.execute("SELECT DISTINCT distrito FROM municipal_lots WHERE distrito IS NOT NULL AND distrito != '-' ORDER BY distrito")
+            distritos = [r[0] for r in cursor.fetchall()]
+
     return render_template(
         'cadastro.html',
         username=session.get('username'),
         ramo_de_atividade_opcoes=ramo_de_atividade_opcoes,
         status_de_assentamento_opcoes=status_de_assentamento_opcoes,
         imovel_opcoes=imovel_opcoes,
+        municipios=municipios,
+        distritos=distritos,
     )
 
 
