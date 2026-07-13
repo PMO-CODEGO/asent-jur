@@ -186,16 +186,6 @@
             <span class="topbar-title">Bem-vindo, {{ session['username'] }}</span>
         </div>
         <div class="topbar-actions">
-            {% if session.get('role') == 'admin' %}
-            <a href="{{ url_for('logs.logs') }}" class="btn-topbar btn-logs">
-                <i data-lucide="database-zap" style="width:16px;height:16px;"></i>
-                Logs
-            </a>
-            <a href="{{ url_for('dashboard.menu', modo='jur') }}" class="btn-topbar btn-switch">
-                <i data-lucide="arrow-left-right" style="width:16px;height:16px;"></i>
-                Alternar Menu
-            </a>
-            {% endif %}
             <a href="{{ url_for('auth_login.logout') }}" class="btn-topbar btn-logout">
                 <i data-lucide="log-out" style="width:16px;height:16px;"></i>
                 Sair
