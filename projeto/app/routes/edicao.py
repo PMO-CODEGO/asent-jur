@@ -230,6 +230,12 @@ def editar(empresa_id):
                     flash('Alteracoes salvas!', 'success')
                     return redirect(url_for('edicao.selecionar_edicao', modo='assent'))
 
+                with db.cursor() as cur2:
+                    cur2.execute("SELECT DISTINCT municipio FROM municipal_lots WHERE municipio IS NOT NULL AND municipio != '-' ORDER BY municipio")
+                    municipios = [r[0] for r in cur2.fetchall()]
+                    cur2.execute("SELECT DISTINCT distrito FROM municipal_lots WHERE distrito IS NOT NULL AND distrito != '-' ORDER BY distrito")
+                    distritos = [r[0] for r in cur2.fetchall()]
+
                 return render_template(
                     'editar.html',
                     dados=empresa,
@@ -241,6 +247,8 @@ def editar(empresa_id):
                     status_de_assentamento_opcoes=status_de_assentamento_opcoes,
                     imovel_opcoes=imovel_opcoes,
                     acao_judicial_opcoes=acao_judicial_opcoes,
+                    municipios=municipios,
+                    distritos=distritos,
                 )
     except Exception as e:
         flash(f'Erro ao editar: {e}', 'danger')
