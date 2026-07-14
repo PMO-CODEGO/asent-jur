@@ -63,6 +63,7 @@
         .obs-cell { max-width: 180px; font-size: 0.75rem; color: #6b7280; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .no-data { color: #9ca3af; font-style: italic; }
         .empty { padding: 48px; text-align: center; color: #9ca3af; }
+        .valor-grupo { display: inline-flex; align-items: center; gap: 5px; background-color: #fef3c7; color: #92400e; border-radius: 6px; padding: 3px 8px; font-size: 0.75rem; font-weight: 600; cursor: help; white-space: nowrap; }
         .btn-action { display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; text-decoration: none; border: none; cursor: pointer; transition: all 0.15s; }
         .btn-edit { background-color: #eff6ff; color: #1e40af; }
         .btn-edit:hover { background-color: #dbeafe; }
@@ -193,7 +194,17 @@
                                 <td class="num">{{ '{:,.0f}'.format(r.area_util_m2).replace(',', '.') if r.area_util_m2 else '-' }}</td>
                                 <td class="num">{{ r.reserva_legal_m2 if r.reserva_legal_m2 else '-' }}</td>
                                 <td class="num">{{ '{:,.0f}'.format(r.area_total_m2).replace(',', '.') if r.area_total_m2 else '-' }}</td>
-                                <td>{{ r.valor_imovel or '-' }}</td>
+                                <td>
+                                    {% if r.valor_conjunto %}
+                                    <span class="valor-grupo" title="Valor compartilhado com o grupo: {{ r.grupo or 'sem nome' }}">
+                                        <i data-lucide="link-2" style="width:12px;height:12px;"></i>
+                                        R$ {{ '{:,.2f}'.format(r.valor_conjunto).replace(',', 'X').replace('.', ',').replace('X', '.') }}
+                                    </span>
+                                    {% if r.grupo %}<div style="font-size:0.7rem;color:#9ca3af;margin-top:3px;">{{ r.grupo }}</div>{% endif %}
+                                    {% else %}
+                                    {{ r.valor_imovel or '-' }}
+                                    {% endif %}
+                                </td>
                                 <td class="descricao" title="{{ r.descricao_area or '' }}">{{ r.descricao_area or '-' }}</td>
                                 <td class="num">{{ 'R$ {:,.2f}'.format(r.valor_mercado_2024).replace(',', 'X').replace('.', ',').replace('X', '.') if r.valor_mercado_2024 else '-' }}</td>
                                 <td class="num">{{ 'R$ {:,.2f}'.format(r.valor_subsidiado_2024).replace(',', 'X').replace('.', ',').replace('X', '.') if r.valor_subsidiado_2024 else '-' }}</td>
