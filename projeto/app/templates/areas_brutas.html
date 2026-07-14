@@ -192,13 +192,19 @@
                                     </span>
                                     {% if r.grupo %}<div style="font-size:0.7rem;color:#9ca3af;margin-top:3px;">{{ r.grupo }}</div>{% endif %}
                                     {% else %}
-                                    {{ r.valor_imovel or '-' }}
+                                    {{ r.valor_imovel_fmt or r.valor_imovel or '-' }}
                                     {% endif %}
                                 </td>
                                 <td class="descricao" title="{{ r.descricao_area or '' }}">{{ r.descricao_area or '-' }}</td>
                                 <td class="num">{{ 'R$ {:,.2f}'.format(r.valor_mercado_2024).replace(',', 'X').replace('.', ',').replace('X', '.') if r.valor_mercado_2024 else '-' }}</td>
                                 <td class="num">{{ 'R$ {:,.2f}'.format(r.valor_subsidiado_2024).replace(',', 'X').replace('.', ',').replace('X', '.') if r.valor_subsidiado_2024 else '-' }}</td>
-                                <td class="obs-cell" title="{{ r.ocupacao or '' }}">{{ r.ocupacao or '-' }}</td>
+                                <td class="obs-cell" title="{{ r.ocupacao or '' }}">
+                                    {% if r.ocupacao_fmt %}
+                                    <span style="font-weight:600;color:#065f46;">{{ r.ocupacao_fmt }}</span>
+                                    {% else %}
+                                    {{ r.ocupacao or '-' }}
+                                    {% endif %}
+                                </td>
                                 <td class="obs-cell" title="{{ r.tipo_aquisicao or '' }}">{{ r.tipo_aquisicao or '-' }}</td>
                                 <td>{{ r.registro_propriedade or '-' }}</td>
                                 <td class="link-cell">{% if r.link_geo %}<a href="{{ r.link_geo }}" target="_blank">Ver</a>{% else %}-{% endif %}</td>
@@ -260,7 +266,13 @@
                                 <td class="num">{{ 'R$ {:,.2f}'.format(r.valor_mercado_2024).replace(',', 'X').replace('.', ',').replace('X', '.') if r.valor_mercado_2024 else '-' }}</td>
                                 <td class="num">{{ 'R$ {:,.2f}'.format(r.valor_subsidiado_2024).replace(',', 'X').replace('.', ',').replace('X', '.') if r.valor_subsidiado_2024 else '-' }}</td>
                                 <td>{{ r.matricula_parcelamento or '-' }}</td>
-                                <td class="obs-cell" title="{{ r.ocupacao or '' }}">{{ r.ocupacao or '-' }}</td>
+                                <td class="obs-cell" title="{{ r.ocupacao or '' }}">
+                                    {% if r.ocupacao_fmt %}
+                                    <span style="font-weight:600;color:#065f46;">{{ r.ocupacao_fmt }}</span>
+                                    {% else %}
+                                    {{ r.ocupacao or '-' }}
+                                    {% endif %}
+                                </td>
                                 <td class="descricao" title="{{ r.descricao_area or '' }}">{{ r.descricao_area or '-' }}</td>
                                 <td class="obs-cell" title="{{ r.numero_processo or '' }}">{{ r.numero_processo or '-' }}</td>
                                 <td class="link-cell">{% if r.link_geo %}<a href="{{ r.link_geo }}" target="_blank">Ver</a>{% else %}-{% endif %}</td>
