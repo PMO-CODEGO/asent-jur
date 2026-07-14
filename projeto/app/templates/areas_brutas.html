@@ -155,7 +155,6 @@
                     <table id="tabela-imovel">
                         <thead>
                             <tr>
-                                <th>Ações</th>
                                 <th>#</th>
                                 <th>Município</th>
                                 <th>Matrícula</th>
@@ -172,21 +171,12 @@
                                 <th>Registro</th>
                                 <th>Geo</th>
                                 <th>Matrícula</th>
+                                <th>Ações</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for r in imoveis %}
                             <tr class="data-row">
-                                <td class="actions-col">
-                                    <a href="{{ url_for('areas_brutas.editar', registro_id=r.id) }}" class="btn-action btn-edit">
-                                        <i data-lucide="pencil" style="width:12px;height:12px;"></i> Editar
-                                    </a>
-                                    {% if session.get('role') == 'admin' %}
-                                    <button type="button" class="btn-action btn-del" onclick="abrirModal({{ r.id }}, '{{ (r.descricao_area or r.municipio or 'este registro') | replace("'","") }}')">
-                                        <i data-lucide="trash-2" style="width:12px;height:12px;"></i> Excluir
-                                    </button>
-                                    {% endif %}
-                                </td>
                                 <td>{{ r.qtd }}</td>
                                 <td><span class="municipio-badge">{{ r.municipio or '' }}</span></td>
                                 <td>{{ r.num_matricula or '' }}</td>
@@ -213,6 +203,16 @@
                                 <td>{{ r.registro_propriedade or '-' }}</td>
                                 <td class="link-cell">{% if r.link_geo %}<a href="{{ r.link_geo }}" target="_blank">Ver</a>{% else %}-{% endif %}</td>
                                 <td class="link-cell">{% if r.link_matricula %}<a href="{{ r.link_matricula }}" target="_blank">Ver</a>{% else %}-{% endif %}</td>
+                                <td class="actions-col">
+                                    <a href="{{ url_for('areas_brutas.editar', registro_id=r.id) }}" class="btn-action btn-edit">
+                                        <i data-lucide="pencil" style="width:12px;height:12px;"></i> Editar
+                                    </a>
+                                    {% if session.get('role') == 'admin' %}
+                                    <button type="button" class="btn-action btn-del" onclick="abrirModal({{ r.id }}, '{{ (r.descricao_area or r.municipio or 'este registro') | replace("'","") }}')">
+                                        <i data-lucide="trash-2" style="width:12px;height:12px;"></i> Excluir
+                                    </button>
+                                    {% endif %}
+                                </td>
                             </tr>
                             {% else %}
                             <tr><td colspan="17" class="empty">Nenhum registro encontrado.</td></tr>
@@ -235,7 +235,6 @@
                     <table id="tabela-judicial">
                         <thead>
                             <tr>
-                                <th>Ações</th>
                                 <th>#</th>
                                 <th>Município</th>
                                 <th>Matrícula</th>
@@ -248,21 +247,12 @@
                                 <th>Nº Processo</th>
                                 <th>Geo</th>
                                 <th>Matrícula</th>
+                                <th>Ações</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for r in judiciais %}
                             <tr class="data-row">
-                                <td class="actions-col">
-                                    <a href="{{ url_for('areas_brutas.editar', registro_id=r.id) }}" class="btn-action btn-edit">
-                                        <i data-lucide="pencil" style="width:12px;height:12px;"></i> Editar
-                                    </a>
-                                    {% if session.get('role') == 'admin' %}
-                                    <button type="button" class="btn-action btn-del" onclick="abrirModal({{ r.id }}, '{{ (r.descricao_area or r.municipio or 'este registro') | replace("'","") }}')">
-                                        <i data-lucide="trash-2" style="width:12px;height:12px;"></i> Excluir
-                                    </button>
-                                    {% endif %}
-                                </td>
                                 <td>{{ r.qtd }}</td>
                                 <td><span class="municipio-badge">{{ r.municipio or '' }}</span></td>
                                 <td>{{ r.num_matricula or '' }}</td>
@@ -275,6 +265,16 @@
                                 <td class="obs-cell" title="{{ r.numero_processo or '' }}">{{ r.numero_processo or '-' }}</td>
                                 <td class="link-cell">{% if r.link_geo %}<a href="{{ r.link_geo }}" target="_blank">Ver</a>{% else %}-{% endif %}</td>
                                 <td class="link-cell">{% if r.link_matricula %}<a href="{{ r.link_matricula }}" target="_blank">Ver</a>{% else %}-{% endif %}</td>
+                                <td class="actions-col">
+                                    <a href="{{ url_for('areas_brutas.editar', registro_id=r.id) }}" class="btn-action btn-edit">
+                                        <i data-lucide="pencil" style="width:12px;height:12px;"></i> Editar
+                                    </a>
+                                    {% if session.get('role') == 'admin' %}
+                                    <button type="button" class="btn-action btn-del" onclick="abrirModal({{ r.id }}, '{{ (r.descricao_area or r.municipio or 'este registro') | replace("'","") }}')">
+                                        <i data-lucide="trash-2" style="width:12px;height:12px;"></i> Excluir
+                                    </button>
+                                    {% endif %}
+                                </td>
                             </tr>
                             {% else %}
                             <tr><td colspan="13" class="empty">Nenhum registro encontrado.</td></tr>
