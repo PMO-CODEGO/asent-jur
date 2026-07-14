@@ -156,7 +156,12 @@ def areas_parceladas():
 @dashboard_bp.route('/assent/areas-brutas')
 @role_required('assent', 'admin', 'assent_gestor')
 def areas_brutas():
-    return render_template('areas_brutas.html')
+    from app.db import get_db
+    with get_db() as db:
+        with db.cursor(dictionary=True) as cursor:
+            cursor.execute("SELECT * FROM areas_brutas ORDER BY tipo, municipio")
+            registros = cursor.fetchall()
+    return render_template('areas_brutas.html', registros=registros)
 
 @dashboard_bp.route('/menu/<modo>')
 @role_required('assent', 'jur', 'admin','assent_gestor','jur_gestor')

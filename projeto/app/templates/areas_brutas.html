@@ -5,28 +5,70 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Áreas Brutas - CODEGO</title>
     <link rel="shortcut icon" href="{{ url_for('static', filename='imagens_empresas/asentjur.png') }}" type="image/png">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body, html { height: 100%; font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
-        .topbar { background-color: #002b5c; color: white; padding: 0 32px; height: 68px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+
+        .topbar { background-color: #002b5c; color: white; padding: 0 32px; height: 68px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); position: sticky; top: 0; z-index: 100; }
         .topbar-left { display: flex; align-items: center; gap: 16px; }
         .topbar img { height: 38px; }
         .topbar-title { font-size: 1rem; font-weight: 600; opacity: 0.9; }
         .topbar-actions { display: flex; gap: 10px; align-items: center; }
         .btn-topbar { text-decoration: none; padding: 9px 18px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; display: flex; align-items: center; gap: 7px; transition: all 0.2s ease; color: white; }
         .btn-back { background-color: #4b5563; }
-        .btn-back:hover { background-color: #374151; transform: translateY(-1px); }
+        .btn-back:hover { background-color: #374151; }
         .btn-logout { background-color: #ef4444; }
-        .btn-logout:hover { background-color: #dc2626; transform: translateY(-1px); }
-        .page-body { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: calc(100vh - 68px); padding: 40px 20px; }
-        .empty-state { background: white; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.07); padding: 64px 48px; text-align: center; max-width: 480px; width: 100%; }
-        .empty-icon { width: 80px; height: 80px; background-color: #fef3c7; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; color: #92400e; }
-        .empty-icon svg { width: 40px; height: 40px; }
-        .empty-state h1 { font-size: 1.5rem; font-weight: 800; color: #002b5c; margin-bottom: 12px; }
-        .empty-state p { font-size: 0.95rem; color: #6b7280; line-height: 1.6; }
-        .badge { display: inline-block; margin-top: 20px; background-color: #fef3c7; color: #92400e; font-size: 0.78rem; font-weight: 600; padding: 6px 14px; border-radius: 999px; letter-spacing: 0.02em; }
+        .btn-logout:hover { background-color: #dc2626; }
+
+        .page-body { padding: 32px; max-width: 1600px; margin: 0 auto; }
+
+        .page-header { margin-bottom: 24px; }
+        .page-header h1 { font-size: 1.6rem; font-weight: 800; color: #002b5c; }
+        .page-header p { color: #6b7280; font-size: 0.9rem; margin-top: 4px; }
+
+        .stats-row { display: flex; gap: 16px; margin-bottom: 28px; flex-wrap: wrap; }
+        .stat-card { background: white; border-radius: 12px; padding: 16px 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); display: flex; align-items: center; gap: 14px; min-width: 200px; }
+        .stat-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+        .stat-icon-amber { background-color: #fef3c7; color: #92400e; }
+        .stat-icon-blue { background-color: #dbeafe; color: #002b5c; }
+        .stat-icon-red { background-color: #fee2e2; color: #991b1b; }
+        .stat-value { font-size: 1.4rem; font-weight: 800; color: #111827; }
+        .stat-label { font-size: 0.78rem; color: #6b7280; font-weight: 500; }
+
+        .controls { display: flex; gap: 12px; margin-bottom: 20px; align-items: center; flex-wrap: wrap; }
+        .search-box { display: flex; align-items: center; gap: 8px; background: white; border: 1.5px solid #e5e7eb; border-radius: 8px; padding: 8px 14px; flex: 1; min-width: 220px; max-width: 360px; }
+        .search-box input { border: none; outline: none; font-size: 0.88rem; width: 100%; background: transparent; }
+        .filter-select { background: white; border: 1.5px solid #e5e7eb; border-radius: 8px; padding: 9px 14px; font-size: 0.88rem; outline: none; cursor: pointer; }
+
+        .section { margin-bottom: 40px; }
+        .section-title { font-size: 1rem; font-weight: 700; color: #002b5c; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; padding-bottom: 8px; border-bottom: 2px solid #e5e7eb; }
+        .section-title .badge { font-size: 0.72rem; background-color: #fef3c7; color: #92400e; border-radius: 20px; padding: 2px 10px; font-weight: 600; }
+        .section-title .badge-red { background-color: #fee2e2; color: #991b1b; }
+
+        .table-wrap { background: white; border-radius: 14px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); overflow: hidden; }
+        .table-scroll { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+        thead tr { background-color: #002b5c; color: white; }
+        thead th { padding: 11px 14px; text-align: left; font-weight: 600; white-space: nowrap; font-size: 0.75rem; letter-spacing: 0.02em; }
+        tbody tr { border-bottom: 1px solid #f3f4f6; transition: background 0.12s; }
+        tbody tr:hover { background-color: #f8faff; }
+        tbody tr:last-child { border-bottom: none; }
+        td { padding: 10px 14px; color: #374151; vertical-align: middle; }
+        td.num { text-align: right; font-variant-numeric: tabular-nums; }
+        .municipio-badge { display: inline-block; background-color: #eff6ff; color: #1e40af; border-radius: 6px; padding: 2px 8px; font-size: 0.75rem; font-weight: 600; white-space: nowrap; }
+        .descricao { max-width: 260px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .link-cell a { color: #2563eb; text-decoration: underline; font-size: 0.75rem; }
+        .obs-cell { max-width: 180px; font-size: 0.75rem; color: #6b7280; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .no-data { color: #9ca3af; font-style: italic; }
+        .empty { padding: 48px; text-align: center; color: #9ca3af; }
+
+        @media (max-width: 768px) {
+            .page-body { padding: 16px; }
+            .topbar { padding: 0 16px; }
+            .topbar-title { display: none; }
+        }
     </style>
 </head>
 <body>
@@ -46,14 +88,167 @@
             </a>
         </div>
     </div>
+
     <div class="page-body">
-        <div class="empty-state">
-            <div class="empty-icon"><i data-lucide="trees"></i></div>
+        <div class="page-header">
             <h1>Áreas Brutas</h1>
-            <p>Esta funcionalidade está em desenvolvimento e estará disponível em breve.</p>
-            <span class="badge">Em breve</span>
+            <p>Glebas brutas em posse da CODEGO — imóveis sem parcelamento e áreas em processo judicial</p>
+        </div>
+
+        {% set imoveis = registros | selectattr('tipo', 'equalto', 'imovel') | list %}
+        {% set judiciais = registros | selectattr('tipo', 'equalto', 'judicial') | list %}
+
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-icon stat-icon-amber"><i data-lucide="trees" style="width:22px;height:22px;"></i></div>
+                <div>
+                    <div class="stat-value">{{ imoveis | length }}</div>
+                    <div class="stat-label">Imóveis cadastrados</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon stat-icon-red"><i data-lucide="gavel" style="width:22px;height:22px;"></i></div>
+                <div>
+                    <div class="stat-value">{{ judiciais | length }}</div>
+                    <div class="stat-label">Em processo judicial</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon stat-icon-blue"><i data-lucide="map" style="width:22px;height:22px;"></i></div>
+                <div>
+                    <div class="stat-value">{{ registros | map(attribute='municipio') | unique | list | length }}</div>
+                    <div class="stat-label">Municípios</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="search-box">
+                <i data-lucide="search" style="width:16px;height:16px;color:#9ca3af;"></i>
+                <input type="text" id="busca" placeholder="Buscar por município, descrição...">
+            </div>
+        </div>
+
+        <!-- Imóveis -->
+        <div class="section" id="section-imovel">
+            <div class="section-title">
+                <i data-lucide="trees" style="width:18px;height:18px;"></i>
+                Imóveis — Áreas Brutas
+                <span class="badge">{{ imoveis | length }} registros</span>
+            </div>
+            <div class="table-wrap">
+                <div class="table-scroll">
+                    <table id="tabela-imovel">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Município</th>
+                                <th>Matrícula</th>
+                                <th>Ano</th>
+                                <th>Área Útil (m²)</th>
+                                <th>Reserva Legal (m²)</th>
+                                <th>Área Total (m²)</th>
+                                <th>Valor Imóvel</th>
+                                <th>Descrição</th>
+                                <th>V. Mercado 2024</th>
+                                <th>V. Subsidiado 2024</th>
+                                <th>Ocupação</th>
+                                <th>Tipo Aquisição</th>
+                                <th>Registro</th>
+                                <th>Geo</th>
+                                <th>Matrícula</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for r in imoveis %}
+                            <tr class="data-row">
+                                <td>{{ r.qtd }}</td>
+                                <td><span class="municipio-badge">{{ r.municipio or '' }}</span></td>
+                                <td>{{ r.num_matricula or '' }}</td>
+                                <td>{{ r.ano_aquisicao or '' }}</td>
+                                <td class="num">{{ '{:,.0f}'.format(r.area_util_m2).replace(',', '.') if r.area_util_m2 else '-' }}</td>
+                                <td class="num">{{ r.reserva_legal_m2 if r.reserva_legal_m2 else '-' }}</td>
+                                <td class="num">{{ '{:,.0f}'.format(r.area_total_m2).replace(',', '.') if r.area_total_m2 else '-' }}</td>
+                                <td>{{ r.valor_imovel or '-' }}</td>
+                                <td class="descricao" title="{{ r.descricao_area or '' }}">{{ r.descricao_area or '-' }}</td>
+                                <td class="num">{{ 'R$ {:,.2f}'.format(r.valor_mercado_2024).replace(',', 'X').replace('.', ',').replace('X', '.') if r.valor_mercado_2024 else '-' }}</td>
+                                <td class="num">{{ 'R$ {:,.2f}'.format(r.valor_subsidiado_2024).replace(',', 'X').replace('.', ',').replace('X', '.') if r.valor_subsidiado_2024 else '-' }}</td>
+                                <td class="obs-cell" title="{{ r.ocupacao or '' }}">{{ r.ocupacao or '-' }}</td>
+                                <td class="obs-cell" title="{{ r.tipo_aquisicao or '' }}">{{ r.tipo_aquisicao or '-' }}</td>
+                                <td>{{ r.registro_propriedade or '-' }}</td>
+                                <td class="link-cell">{% if r.link_geo %}<a href="{{ r.link_geo }}" target="_blank">Ver</a>{% else %}-{% endif %}</td>
+                                <td class="link-cell">{% if r.link_matricula %}<a href="{{ r.link_matricula }}" target="_blank">Ver</a>{% else %}-{% endif %}</td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="16" class="empty">Nenhum registro encontrado.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Judiciais -->
+        <div class="section" id="section-judicial">
+            <div class="section-title">
+                <i data-lucide="gavel" style="width:18px;height:18px;"></i>
+                Em Processo Judicial
+                <span class="badge badge-red">{{ judiciais | length }} registros</span>
+            </div>
+            <div class="table-wrap">
+                <div class="table-scroll">
+                    <table id="tabela-judicial">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Município</th>
+                                <th>Matrícula</th>
+                                <th>Área Total (m²)</th>
+                                <th>V. Mercado 2024</th>
+                                <th>V. Subsidiado 2024</th>
+                                <th>Matrícula Parcelamento</th>
+                                <th>Ocupação</th>
+                                <th>Descrição</th>
+                                <th>Nº Processo</th>
+                                <th>Geo</th>
+                                <th>Matrícula</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for r in judiciais %}
+                            <tr class="data-row">
+                                <td>{{ r.qtd }}</td>
+                                <td><span class="municipio-badge">{{ r.municipio or '' }}</span></td>
+                                <td>{{ r.num_matricula or '' }}</td>
+                                <td class="num">{{ '{:,.0f}'.format(r.area_total_m2).replace(',', '.') if r.area_total_m2 else '-' }}</td>
+                                <td class="num">{{ 'R$ {:,.2f}'.format(r.valor_mercado_2024).replace(',', 'X').replace('.', ',').replace('X', '.') if r.valor_mercado_2024 else '-' }}</td>
+                                <td class="num">{{ 'R$ {:,.2f}'.format(r.valor_subsidiado_2024).replace(',', 'X').replace('.', ',').replace('X', '.') if r.valor_subsidiado_2024 else '-' }}</td>
+                                <td>{{ r.matricula_parcelamento or '-' }}</td>
+                                <td class="obs-cell" title="{{ r.ocupacao or '' }}">{{ r.ocupacao or '-' }}</td>
+                                <td class="descricao" title="{{ r.descricao_area or '' }}">{{ r.descricao_area or '-' }}</td>
+                                <td class="obs-cell" title="{{ r.numero_processo or '' }}">{{ r.numero_processo or '-' }}</td>
+                                <td class="link-cell">{% if r.link_geo %}<a href="{{ r.link_geo }}" target="_blank">Ver</a>{% else %}-{% endif %}</td>
+                                <td class="link-cell">{% if r.link_matricula %}<a href="{{ r.link_matricula }}" target="_blank">Ver</a>{% else %}-{% endif %}</td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="12" class="empty">Nenhum registro encontrado.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
-    <script>lucide.createIcons();</script>
+
+    <script>
+        lucide.createIcons();
+
+        document.getElementById('busca').addEventListener('input', function() {
+            const q = this.value.toLowerCase();
+            document.querySelectorAll('.data-row').forEach(function(row) {
+                row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+            });
+        });
+    </script>
 </body>
 </html>
