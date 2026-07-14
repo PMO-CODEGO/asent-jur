@@ -20,6 +20,7 @@ def create_app():
     from app.routes.edicao import edicao_bp
     from app.routes.juridico import juridico_bp
     from app.routes.dashboard import dashboard_bp
+    from app.routes.areas_brutas import areas_brutas_bp
 
     app.register_blueprint(auth_login_bp)
     app.register_blueprint(auth_password_bp)
@@ -30,5 +31,6 @@ def create_app():
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(edicao_bp)
     app.register_blueprint(juridico_bp)
+    app.register_blueprint(areas_brutas_bp)
 
     return app

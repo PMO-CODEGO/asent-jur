@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ titulo }} - CODEGO</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='imagens_empresas/asentjur.png') }}" type="image/png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="min-h-screen bg-[#002b5c] p-3 sm:p-4 md:p-8">
+
+    <div class="max-w-5xl mx-auto">
+        <div class="bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-200">
+
+            <div class="bg-[#002b5c] p-6 text-white flex justify-between items-center">
+                <div>
+                    <h2 class="text-2xl font-bold flex items-center gap-2">
+                        <i data-lucide="{% if registro %}edit{% else %}plus-circle{% endif %}"></i>
+                        {{ titulo }}
+                    </h2>
+                    <p class="text-blue-100 text-sm italic">Controle de Áreas Brutas — CODEGO</p>
+                </div>
+                <a href="{{ url_for('dashboard.areas_brutas') }}" class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition-all text-sm font-bold">
+                    VOLTAR
+                </a>
+            </div>
+
+            <form action="{{ url_for('areas_brutas.editar', registro_id=registro.id) if registro else url_for('areas_brutas.nova') }}"
+                  method="POST" class="p-5 md:p-8">
+
+                <div class="mb-8">
+                    <!-- Tipo -->
+                    <div class="mb-6">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">Tipo</label>
+                        <select name="tipo" class="w-full p-3 border-2 border-gray-100 rounded-xl bg-gray-50/50 focus:ring-2 focus:ring-blue-500 outline-none">
+                            {% for val, label in tipos %}
+                            <option value="{{ val }}" {% if registro and registro.tipo == val %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {% for field, label in campos %}
+                        {% if field != 'tipo' %}
+                        <div class="space-y-1 {% if field in ['descricao_area', 'ocupacao', 'tipo_aquisicao'] %}lg:col-span-2{% endif %}">
+                            <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider ml-1">
+                                {{ label }}
+                            </label>
+
+                            {% set val = registro[field] if registro and registro[field] is not none else '' %}
+
+                            {% if field == 'descricao_area' %}
+                            <textarea name="{{ field }}" rows="2"
+                                class="w-full p-3 border-2 border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all shadow-sm bg-gray-50/50">{{ val }}</textarea>
+
+                            {% elif field in ['area_util_m2', 'area_total_m2', 'valor_mercado_2021',
+                                'valor_subsidiado_2021', 'valor_mercado_2022', 'valor_subsidiado_2022',
+                                'valor_mercado_2023', 'valor_subsidiado_2023', 'valor_mercado_2024',
+                                'valor_subsidiado_2024'] %}
+                            <input type="number" name="{{ field }}" value="{{ val }}" step="0.01" min="0"
+                                class="w-full p-3 border-2 border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all shadow-sm bg-gray-50/50">
+
+                            {% elif field == 'ano_aquisicao' %}
+                            <input type="number" name="{{ field }}" value="{{ val }}" min="1900" max="2100" step="1"
+                                class="w-full p-3 border-2 border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all shadow-sm bg-gray-50/50">
+
+                            {% elif field in ['link_geo', 'link_matricula'] %}
+                            <input type="url" name="{{ field }}" value="{{ val }}" placeholder="https://..."
+                                class="w-full p-3 border-2 border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all shadow-sm bg-gray-50/50">
+
+                            {% else %}
+                            <input type="text" name="{{ field }}" value="{{ val }}"
+                                class="w-full p-3 border-2 border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all shadow-sm bg-gray-50/50">
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="mt-8 flex justify-between gap-4 border-t pt-6">
+                    <a href="{{ url_for('dashboard.areas_brutas') }}"
+                        class="px-8 py-3 rounded-lg font-bold text-gray-500 hover:bg-gray-100 transition-all">
+                        CANCELAR
+                    </a>
+                    <button type="submit"
+                        class="bg-[#002b5c] hover:bg-blue-800 text-white px-12 py-3 rounded-lg font-bold shadow-lg transform transition active:scale-95 flex items-center justify-center gap-2">
+                        <i data-lucide="check-circle" class="w-5 h-5"></i>
+                        {% if registro %}SALVAR ALTERAÇÕES{% else %}CADASTRAR{% endif %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>lucide.createIcons();</script>
+</body>
+</html>

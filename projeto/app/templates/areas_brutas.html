@@ -63,6 +63,15 @@
         .obs-cell { max-width: 180px; font-size: 0.75rem; color: #6b7280; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .no-data { color: #9ca3af; font-style: italic; }
         .empty { padding: 48px; text-align: center; color: #9ca3af; }
+        .btn-action { display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; text-decoration: none; border: none; cursor: pointer; transition: all 0.15s; }
+        .btn-edit { background-color: #eff6ff; color: #1e40af; }
+        .btn-edit:hover { background-color: #dbeafe; }
+        .btn-del { background-color: #fff1f1; color: #991b1b; }
+        .btn-del:hover { background-color: #fee2e2; }
+        .actions-col { white-space: nowrap; }
+        .modal-backdrop { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:200; align-items:center; justify-content:center; }
+        .modal-backdrop.open { display:flex; }
+        .modal { background:white; border-radius:16px; padding:28px; max-width:400px; width:90%; box-shadow:0 8px 40px rgba(0,0,0,0.2); }
 
         @media (max-width: 768px) {
             .page-body { padding: 16px; }
@@ -127,6 +136,10 @@
                 <i data-lucide="search" style="width:16px;height:16px;color:#9ca3af;"></i>
                 <input type="text" id="busca" placeholder="Buscar por município, descrição...">
             </div>
+            <a href="{{ url_for('areas_brutas.nova') }}" class="btn-topbar btn-back" style="background-color:#002b5c;padding:9px 18px;border-radius:8px;font-size:0.85rem;font-weight:600;display:flex;align-items:center;gap:7px;text-decoration:none;color:white;">
+                <i data-lucide="plus" style="width:16px;height:16px;"></i>
+                Nova Área
+            </a>
         </div>
 
         <!-- Imóveis -->
@@ -141,6 +154,7 @@
                     <table id="tabela-imovel">
                         <thead>
                             <tr>
+                                <th>Ações</th>
                                 <th>#</th>
                                 <th>Município</th>
                                 <th>Matrícula</th>
@@ -162,6 +176,16 @@
                         <tbody>
                             {% for r in imoveis %}
                             <tr class="data-row">
+                                <td class="actions-col">
+                                    <a href="{{ url_for('areas_brutas.editar', registro_id=r.id) }}" class="btn-action btn-edit">
+                                        <i data-lucide="pencil" style="width:12px;height:12px;"></i> Editar
+                                    </a>
+                                    {% if session.get('role') == 'admin' %}
+                                    <button type="button" class="btn-action btn-del" onclick="abrirModal({{ r.id }}, '{{ (r.descricao_area or r.municipio or 'este registro') | replace("'","") }}')">
+                                        <i data-lucide="trash-2" style="width:12px;height:12px;"></i> Excluir
+                                    </button>
+                                    {% endif %}
+                                </td>
                                 <td>{{ r.qtd }}</td>
                                 <td><span class="municipio-badge">{{ r.municipio or '' }}</span></td>
                                 <td>{{ r.num_matricula or '' }}</td>
@@ -180,7 +204,7 @@
                                 <td class="link-cell">{% if r.link_matricula %}<a href="{{ r.link_matricula }}" target="_blank">Ver</a>{% else %}-{% endif %}</td>
                             </tr>
                             {% else %}
-                            <tr><td colspan="16" class="empty">Nenhum registro encontrado.</td></tr>
+                            <tr><td colspan="17" class="empty">Nenhum registro encontrado.</td></tr>
                             {% endfor %}
                         </tbody>
                     </table>
@@ -200,6 +224,7 @@
                     <table id="tabela-judicial">
                         <thead>
                             <tr>
+                                <th>Ações</th>
                                 <th>#</th>
                                 <th>Município</th>
                                 <th>Matrícula</th>
@@ -217,6 +242,16 @@
                         <tbody>
                             {% for r in judiciais %}
                             <tr class="data-row">
+                                <td class="actions-col">
+                                    <a href="{{ url_for('areas_brutas.editar', registro_id=r.id) }}" class="btn-action btn-edit">
+                                        <i data-lucide="pencil" style="width:12px;height:12px;"></i> Editar
+                                    </a>
+                                    {% if session.get('role') == 'admin' %}
+                                    <button type="button" class="btn-action btn-del" onclick="abrirModal({{ r.id }}, '{{ (r.descricao_area or r.municipio or 'este registro') | replace("'","") }}')">
+                                        <i data-lucide="trash-2" style="width:12px;height:12px;"></i> Excluir
+                                    </button>
+                                    {% endif %}
+                                </td>
                                 <td>{{ r.qtd }}</td>
                                 <td><span class="municipio-badge">{{ r.municipio or '' }}</span></td>
                                 <td>{{ r.num_matricula or '' }}</td>
@@ -231,12 +266,39 @@
                                 <td class="link-cell">{% if r.link_matricula %}<a href="{{ r.link_matricula }}" target="_blank">Ver</a>{% else %}-{% endif %}</td>
                             </tr>
                             {% else %}
-                            <tr><td colspan="12" class="empty">Nenhum registro encontrado.</td></tr>
+                            <tr><td colspan="13" class="empty">Nenhum registro encontrado.</td></tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Modal de exclusão -->
+    <div id="modalExcluir" class="modal-backdrop">
+        <div class="modal">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+                <div style="background:#fee2e2;border-radius:50%;padding:8px;">
+                    <i data-lucide="trash-2" style="width:20px;height:20px;color:#991b1b;"></i>
+                </div>
+                <h3 style="font-size:1.1rem;font-weight:700;color:#111827;">Confirmar exclusão</h3>
+            </div>
+            <p style="color:#6b7280;font-size:0.9rem;margin-bottom:8px;">Você está prestes a excluir permanentemente:</p>
+            <p id="modalDescricao" style="font-weight:700;color:#002b5c;margin-bottom:16px;font-size:0.95rem;"></p>
+            <p style="font-size:0.8rem;color:#991b1b;background:#fff1f1;border:1px solid #fecaca;border-radius:8px;padding:10px;margin-bottom:20px;">
+                Esta ação não pode ser desfeita.
+            </p>
+            <form id="formExcluir" method="POST">
+                <div style="display:flex;justify-content:flex-end;gap:12px;">
+                    <button type="button" onclick="fecharModal()" style="padding:8px 20px;border-radius:8px;font-weight:600;color:#6b7280;background:#f3f4f6;border:none;cursor:pointer;">
+                        Cancelar
+                    </button>
+                    <button type="submit" style="padding:8px 20px;border-radius:8px;font-weight:600;color:white;background:#dc2626;border:none;cursor:pointer;display:flex;align-items:center;gap:6px;">
+                        <i data-lucide="trash-2" style="width:14px;height:14px;"></i> Excluir
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -248,6 +310,24 @@
             document.querySelectorAll('.data-row').forEach(function(row) {
                 row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
             });
+        });
+
+        function abrirModal(id, descricao) {
+            document.getElementById('modalDescricao').textContent = descricao;
+            document.getElementById('formExcluir').action = '/assent/areas-brutas/' + id + '/excluir';
+            document.getElementById('modalExcluir').classList.add('open');
+        }
+
+        function fecharModal() {
+            document.getElementById('modalExcluir').classList.remove('open');
+        }
+
+        document.getElementById('modalExcluir').addEventListener('click', function(e) {
+            if (e.target === this) fecharModal();
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') fecharModal();
         });
     </script>
 </body>
