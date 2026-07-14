@@ -159,7 +159,7 @@ def areas_brutas():
     from app.db import get_db
     with get_db() as db:
         with db.cursor(dictionary=True) as cursor:
-            cursor.execute("SELECT * FROM areas_brutas ORDER BY tipo, municipio")
+            cursor.execute("SELECT * FROM areas_brutas ORDER BY tipo, municipio, qtd")
             registros = cursor.fetchall()
     return render_template('areas_brutas.html', registros=registros)
 
