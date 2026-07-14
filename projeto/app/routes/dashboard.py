@@ -148,6 +148,16 @@ def inicio_assent():
 def controle_area():
     return render_template('controle_area.html')
 
+@dashboard_bp.route('/assent/areas-parceladas')
+@role_required('assent', 'admin', 'assent_gestor')
+def areas_parceladas():
+    return render_template('areas_parceladas.html')
+
+@dashboard_bp.route('/assent/areas-brutas')
+@role_required('assent', 'admin', 'assent_gestor')
+def areas_brutas():
+    return render_template('areas_brutas.html')
+
 @dashboard_bp.route('/menu/<modo>')
 @role_required('assent', 'jur', 'admin','assent_gestor','jur_gestor')
 def menu(modo):

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Áreas Parceladas - CODEGO</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='imagens_empresas/asentjur.png') }}" type="image/png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body, html { height: 100%; font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        .topbar { background-color: #002b5c; color: white; padding: 0 32px; height: 68px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .topbar-left { display: flex; align-items: center; gap: 16px; }
+        .topbar img { height: 38px; }
+        .topbar-title { font-size: 1rem; font-weight: 600; opacity: 0.9; }
+        .topbar-actions { display: flex; gap: 10px; align-items: center; }
+        .btn-topbar { text-decoration: none; padding: 9px 18px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; display: flex; align-items: center; gap: 7px; transition: all 0.2s ease; color: white; }
+        .btn-back { background-color: #4b5563; }
+        .btn-back:hover { background-color: #374151; transform: translateY(-1px); }
+        .btn-logout { background-color: #ef4444; }
+        .btn-logout:hover { background-color: #dc2626; transform: translateY(-1px); }
+        .page-body { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: calc(100vh - 68px); padding: 40px 20px; }
+        .empty-state { background: white; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.07); padding: 64px 48px; text-align: center; max-width: 480px; width: 100%; }
+        .empty-icon { width: 80px; height: 80px; background-color: #dbeafe; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; color: #002b5c; }
+        .empty-icon svg { width: 40px; height: 40px; }
+        .empty-state h1 { font-size: 1.5rem; font-weight: 800; color: #002b5c; margin-bottom: 12px; }
+        .empty-state p { font-size: 0.95rem; color: #6b7280; line-height: 1.6; }
+        .badge { display: inline-block; margin-top: 20px; background-color: #fef3c7; color: #92400e; font-size: 0.78rem; font-weight: 600; padding: 6px 14px; border-radius: 999px; letter-spacing: 0.02em; }
+    </style>
+</head>
+<body>
+    <div class="topbar">
+        <div class="topbar-left">
+            <img src="{{ url_for('static', filename='logo_codego.png') }}" alt="Logo CodeGO">
+            <span class="topbar-title">Áreas Parceladas</span>
+        </div>
+        <div class="topbar-actions">
+            <a href="{{ url_for('dashboard.controle_area') }}" class="btn-topbar btn-back">
+                <i data-lucide="arrow-left" style="width:16px;height:16px;"></i>
+                Voltar
+            </a>
+            <a href="{{ url_for('auth_login.logout') }}" class="btn-topbar btn-logout">
+                <i data-lucide="log-out" style="width:16px;height:16px;"></i>
+                Sair
+            </a>
+        </div>
+    </div>
+    <div class="page-body">
+        <div class="empty-state">
+            <div class="empty-icon"><i data-lucide="layout-grid"></i></div>
+            <h1>Áreas Parceladas</h1>
+            <p>Esta funcionalidade está em desenvolvimento e estará disponível em breve.</p>
+            <span class="badge">Em breve</span>
+        </div>
+    </div>
+    <script>lucide.createIcons();</script>
+</body>
+</html>
