@@ -57,19 +57,3 @@ ON processo_partes(processo_id);
 CREATE INDEX idx_processo_eventos_processo
 ON processo_eventos(processo_id);
 
-ALTER TABLE processos
-    ADD COLUMN IF NOT EXISTS empresa_id INT NULL AFTER id,
-    ADD COLUMN IF NOT EXISTS titulo VARCHAR(255) AFTER numero_processo,
-    ADD COLUMN IF NOT EXISTS descricao TEXT AFTER titulo,
-    ADD COLUMN IF NOT EXISTS tipo_acao VARCHAR(120) AFTER descricao,
-    ADD COLUMN IF NOT EXISTS tipo_processo VARCHAR(100) AFTER tipo_acao,
-    ADD COLUMN IF NOT EXISTS tribunal VARCHAR(120) AFTER tipo_processo,
-    ADD COLUMN IF NOT EXISTS vara VARCHAR(120) AFTER tribunal,
-    ADD COLUMN IF NOT EXISTS comarca VARCHAR(120) AFTER vara,
-    ADD COLUMN IF NOT EXISTS fase VARCHAR(120) AFTER status,
-    ADD COLUMN IF NOT EXISTS data_criacao DATE AFTER fase,
-    ADD COLUMN IF NOT EXISTS recurso_acionado BOOLEAN DEFAULT FALSE AFTER assunto_judicial,
-    ADD COLUMN IF NOT EXISTS tipo_recurso VARCHAR(100) AFTER recurso_acionado;
-
-ALTER TABLE processos
-    MODIFY COLUMN empresa_id INT NULL;
