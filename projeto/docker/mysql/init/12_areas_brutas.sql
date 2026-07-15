@@ -1,6 +1,5 @@
--- Migration 001: cria tabela areas_brutas e importa dados iniciais
--- Executar dentro do container db:
---   docker exec mysql_sistema mysql -uroot -pJoaolopes05 codego_db < /migrations/001_areas_brutas.sql
+SET NAMES utf8mb4;
+SET CHARACTER SET utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `areas_brutas` (
   `id` int NOT NULL AUTO_INCREMENT,
