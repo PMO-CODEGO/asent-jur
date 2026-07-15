@@ -1,0 +1,4 @@
+* text=auto
+
+# SQL files must keep LF and UTF-8 for MySQL compatibility
+*.sql text eol=lf working-tree-encoding=UTF-8
