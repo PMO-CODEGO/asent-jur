@@ -67,6 +67,8 @@
         .btn-action { display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; text-decoration: none; border: none; cursor: pointer; transition: all 0.15s; }
         .btn-edit { background-color: #eff6ff; color: #1e40af; }
         .btn-edit:hover { background-color: #dbeafe; }
+        .btn-pdf { background-color: #f0fdf4; color: #166534; }
+        .btn-pdf:hover { background-color: #dcfce7; }
         .btn-del { background-color: #fff1f1; color: #991b1b; }
         .btn-del:hover { background-color: #fee2e2; }
         .actions-col { white-space: nowrap; }
@@ -215,6 +217,9 @@
                                     <a href="{{ url_for('areas_brutas.editar', registro_id=r.id) }}" class="btn-action btn-edit">
                                         <i data-lucide="pencil" style="width:12px;height:12px;"></i> Editar
                                     </a>
+                                    <a href="{{ url_for('areas_brutas.relatorio', registro_id=r.id) }}" class="btn-action btn-pdf">
+                                        <i data-lucide="file-text" style="width:12px;height:12px;"></i> PDF
+                                    </a>
                                     {% if session.get('role') == 'admin' %}
                                     <button type="button" class="btn-action btn-del" onclick="abrirModal({{ r.id }}, '{{ (r.descricao_area or r.municipio or 'este registro') | replace("'","") }}')">
                                         <i data-lucide="trash-2" style="width:12px;height:12px;"></i> Excluir
@@ -282,6 +287,9 @@
                                 <td class="actions-col">
                                     <a href="{{ url_for('areas_brutas.editar', registro_id=r.id) }}" class="btn-action btn-edit">
                                         <i data-lucide="pencil" style="width:12px;height:12px;"></i> Editar
+                                    </a>
+                                    <a href="{{ url_for('areas_brutas.relatorio', registro_id=r.id) }}" class="btn-action btn-pdf">
+                                        <i data-lucide="file-text" style="width:12px;height:12px;"></i> PDF
                                     </a>
                                     {% if session.get('role') == 'admin' %}
                                     <button type="button" class="btn-action btn-del" onclick="abrirModal({{ r.id }}, '{{ (r.descricao_area or r.municipio or 'este registro') | replace("'","") }}')">
