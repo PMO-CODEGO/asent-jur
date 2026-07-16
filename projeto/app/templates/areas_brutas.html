@@ -48,14 +48,21 @@
         .section-title .badge-red { background-color: #fee2e2; color: #991b1b; }
 
         .table-wrap { background: white; border-radius: 14px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); overflow: hidden; }
-        .table-scroll { overflow-x: auto; }
+        .table-scroll { overflow-x: auto; overflow-y: auto; max-height: 65vh; border-radius: 14px; }
         table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
         thead tr { background-color: #002b5c; color: white; }
-        thead th { padding: 11px 14px; text-align: left; font-weight: 600; white-space: nowrap; font-size: 0.75rem; letter-spacing: 0.02em; }
+        thead th { padding: 11px 14px; text-align: left; font-weight: 600; white-space: nowrap; font-size: 0.75rem; letter-spacing: 0.02em; position: sticky; top: 0; z-index: 10; background-color: #002b5c; }
         tbody tr { border-bottom: 1px solid #f3f4f6; transition: background 0.12s; }
         tbody tr:hover { background-color: #f8faff; }
         tbody tr:last-child { border-bottom: none; }
         td { padding: 10px 14px; color: #374151; vertical-align: middle; }
+        /* Colunas fixas à esquerda */
+        th.col-fix, td.col-fix { position: sticky; z-index: 5; background-color: white; }
+        thead th.col-fix { background-color: #002b5c; z-index: 11; }
+        th.col-fix-0, td.col-fix-0 { left: 0; }
+        th.col-fix-1, td.col-fix-1 { left: 44px; }
+        td.col-fix::after, th.col-fix-1::after { content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 3px; background: linear-gradient(to right, rgba(0,0,0,0.08), transparent); pointer-events: none; }
+        tbody tr:hover td.col-fix { background-color: #f8faff; }
         td.num { text-align: right; font-variant-numeric: tabular-nums; }
         .municipio-badge { display: inline-block; background-color: #eff6ff; color: #1e40af; border-radius: 6px; padding: 2px 8px; font-size: 0.75rem; font-weight: 600; white-space: nowrap; }
         .descricao { max-width: 260px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -157,8 +164,8 @@
                     <table id="tabela-imovel">
                         <thead>
                             <tr>
-                                <th>#</th>
-                                <th>Município</th>
+                                <th class="col-fix col-fix-0">#</th>
+                                <th class="col-fix col-fix-1">Município</th>
                                 <th>Matrícula</th>
                                 <th>Ano</th>
                                 <th>Área Útil (m²)</th>
@@ -180,8 +187,8 @@
                         <tbody>
                             {% for r in imoveis %}
                             <tr class="data-row">
-                                <td>{{ r.qtd }}</td>
-                                <td><span class="municipio-badge">{{ r.municipio or '' }}</span></td>
+                                <td class="col-fix col-fix-0">{{ r.qtd }}</td>
+                                <td class="col-fix col-fix-1"><span class="municipio-badge">{{ r.municipio or '' }}</span></td>
                                 <td>{{ r.num_matricula or '' }}</td>
                                 <td>{{ r.ano_aquisicao or '' }}</td>
                                 <td class="num">{{ '{:,.0f}'.format(r.area_util_m2).replace(',', '.') if r.area_util_m2 else '-' }}</td>
@@ -248,8 +255,8 @@
                     <table id="tabela-judicial">
                         <thead>
                             <tr>
-                                <th>#</th>
-                                <th>Município</th>
+                                <th class="col-fix col-fix-0">#</th>
+                                <th class="col-fix col-fix-1">Município</th>
                                 <th>Matrícula</th>
                                 <th>Área Total (m²)</th>
                                 <th>V. Mercado 2024</th>
@@ -266,8 +273,8 @@
                         <tbody>
                             {% for r in judiciais %}
                             <tr class="data-row">
-                                <td>{{ r.qtd }}</td>
-                                <td><span class="municipio-badge">{{ r.municipio or '' }}</span></td>
+                                <td class="col-fix col-fix-0">{{ r.qtd }}</td>
+                                <td class="col-fix col-fix-1"><span class="municipio-badge">{{ r.municipio or '' }}</span></td>
                                 <td>{{ r.num_matricula or '' }}</td>
                                 <td class="num">{{ '{:,.0f}'.format(r.area_total_m2).replace(',', '.') if r.area_total_m2 else '-' }}</td>
                                 <td class="num">{{ 'R$ {:,.2f}'.format(r.valor_mercado_2024).replace(',', 'X').replace('.', ',').replace('X', '.') if r.valor_mercado_2024 else '-' }}</td>
