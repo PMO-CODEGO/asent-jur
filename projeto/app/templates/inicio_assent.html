@@ -110,10 +110,11 @@
 
         .card {
             background: white;
-            border-radius: 16px;
+            border-radius: 20px;
             box-shadow: 0 4px 24px rgba(0,0,0,0.08);
-            padding: 48px 40px;
-            width: 280px;
+            padding: 56px 56px;
+            width: 480px;
+            max-width: 90vw;
             text-align: center;
             text-decoration: none;
             color: inherit;
@@ -132,8 +133,8 @@
         }
 
         .card-icon {
-            width: 72px;
-            height: 72px;
+            width: 88px;
+            height: 88px;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -143,19 +144,45 @@
         .card-icon-blue { background-color: #dbeafe; color: #002b5c; }
         .card-icon-green { background-color: #d1fae5; color: #065f46; }
 
-        .card-icon svg { width: 36px; height: 36px; }
+        .card-icon svg { width: 44px; height: 44px; }
 
         .card h2 {
-            font-size: 1.15rem;
-            font-weight: 700;
+            font-size: 1.4rem;
+            font-weight: 800;
             color: #111827;
             line-height: 1.3;
         }
 
         .card p {
-            font-size: 0.85rem;
+            font-size: 0.95rem;
             color: #6b7280;
-            line-height: 1.5;
+            line-height: 1.7;
+            max-width: 340px;
+        }
+
+        .card-features {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            width: 100%;
+            text-align: left;
+            margin-top: 4px;
+        }
+
+        .card-feature {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.85rem;
+            color: #374151;
+        }
+
+        .card-feature-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #065f46;
+            flex-shrink: 0;
         }
 
         .card-arrow {
@@ -205,12 +232,17 @@
                     <i data-lucide="map"></i>
                 </div>
                 <h2>Controle de Área</h2>
-                <p>Gerencie e monitore as áreas dos distritos industriais de Goiás.</p>
+                <p>Gerencie e monitore o patrimônio fundiário da CODEGO nos distritos industriais de Goiás — desde glebas brutas até lotes parcelados.</p>
+                <div class="card-features">
+                    <div class="card-feature"><span class="card-feature-dot"></span>Áreas brutas: glebas sem parcelamento em posse da CODEGO</div>
+                    <div class="card-feature"><span class="card-feature-dot"></span>Áreas em processo judicial</div>
+                    <div class="card-feature"><span class="card-feature-dot"></span>Valores de mercado e subsidiado por ano</div>
+                    <div class="card-feature"><span class="card-feature-dot"></span>Geração de relatórios em PDF por registro</div>
+                </div>
                 <div class="card-arrow">
-                    <i data-lucide="arrow-right" style="width:20px;height:20px;"></i>
+                    <i data-lucide="arrow-right" style="width:22px;height:22px;"></i>
                 </div>
             </a>
-
         </div>
     </div>
 
