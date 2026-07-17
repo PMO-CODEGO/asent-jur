@@ -1,6 +1,7 @@
 from flask import render_template, request, flash, redirect, session, url_for, current_app, Blueprint
 from app.services.auth_service import AuthService
 from app.utils.decorators import role_required
+from app.services.log_service import gravar_log
 
 auth_user_bp = Blueprint("auth_user", __name__)
 
@@ -9,7 +10,8 @@ def registrar_usuario():
     if request.method == 'POST':
         try:
             AuthService.registrar_usuario(request.form)
-            
+            novo_username = request.form.get('username', '').strip()
+            gravar_log('USUARIO_CRIADO', f"Novo usuário registrado: '{novo_username}'")
             flash('Usuário registrado com sucesso!', 'success')
             return redirect(url_for('auth_login.login'))
 

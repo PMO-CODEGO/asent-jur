@@ -8,6 +8,7 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.enums import TA_CENTER, TA_LEFT
 from app.utils.decorators import role_required
 from app.db import get_db
+from app.services.log_service import gravar_log
 
 areas_brutas_bp = Blueprint('areas_brutas', __name__)
 
@@ -91,6 +92,8 @@ def nova():
                     _insert_values(request.form)
                 )
                 db.commit()
+        municipio = request.form.get('municipio', '')
+        gravar_log('AREA_BRUTA_CRIADA', f"Nova área bruta criada: município '{municipio}'")
         return redirect(url_for('dashboard.areas_brutas'))
     return render_template('areas_brutas_form.html', registro=None, campos=CAMPOS, tipos=TIPOS,
                            titulo='Nova Área Bruta')
@@ -108,6 +111,8 @@ def editar(registro_id):
                     values + (registro_id,)
                 )
                 db.commit()
+                municipio = request.form.get('municipio', '')
+                gravar_log('AREA_BRUTA_EDITADA', f"Área bruta ID {registro_id} editada: município '{municipio}'")
                 return redirect(url_for('dashboard.areas_brutas'))
             cursor.execute('SELECT * FROM areas_brutas WHERE id=%s', (registro_id,))
             registro = cursor.fetchone()
@@ -284,6 +289,7 @@ def relatorio(registro_id):
     doc.build(story)
     buf.seek(0)
 
+    gravar_log('AREA_BRUTA_PDF', f"Relatório PDF gerado para área bruta ID {registro_id}: município '{r.get('municipio', '')}'")
     nome_arquivo = f'area_bruta_{municipio.replace(" ", "_")}_{matricula or registro_id}.pdf'
     return send_file(buf, mimetype='application/pdf', as_attachment=True, download_name=nome_arquivo)
 
@@ -292,7 +298,10 @@ def relatorio(registro_id):
 @role_required('admin')
 def excluir(registro_id):
     with get_db() as db:
-        with db.cursor() as cursor:
+        with db.cursor(dictionary=True) as cursor:
+            cursor.execute('SELECT municipio, num_matricula FROM areas_brutas WHERE id=%s', (registro_id,))
+            r = cursor.fetchone() or {}
             cursor.execute('DELETE FROM areas_brutas WHERE id=%s', (registro_id,))
             db.commit()
+    gravar_log('AREA_BRUTA_EXCLUIDA', f"Área bruta ID {registro_id} excluída: município '{r.get('municipio', '')}', matrícula '{r.get('num_matricula', '')}'")
     return redirect(url_for('dashboard.areas_brutas'))
