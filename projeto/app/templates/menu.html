@@ -307,10 +307,6 @@
     {% endif %}
 
     {% if session.get('role') == 'admin' %}
-    <a href="{{ url_for('logs.logs') }}" class="nav-button" style="background-color: var(--admin-amber); color: #1a202c; margin-top: 10px;">
-        <i data-lucide="database-zap" class="w-4 h-4 inline-block mr-2"></i>
-        Logs do Sistema
-    </a>
     <a href="{{ url_for('dashboard.menu', modo='jur') }}" class="nav-button" style="background: linear-gradient(135deg, #f7cf63, #e7a73a); color: #1a202c;">
         <i data-lucide="arrow-left-right" class="w-4 h-4 inline-block mr-2"></i>
         Alternar Menu
