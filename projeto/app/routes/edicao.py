@@ -279,7 +279,7 @@ def excluir_empresa(empresa_id):
 
                 gravar_log(
                     acao="EXCLUSAO_EMPRESA",
-                    descricao=f"Empresa excluída: {empresa_nome} (ID {empresa_id})",
+                    descricao=f"ID: {empresa_id} | Nome: {empresa_nome}",
                     usuario_username=session.get('username'),
                     db_conn=db
                 )
@@ -379,7 +379,14 @@ def editar_jur(processo_id):
                     db.commit()
                     gravar_log(
                         acao="EDICAO_PROCESSO",
-                        descricao=f"Processo juridico atualizado: {processo['numero_processo']} (ID {processo_id})",
+                        descricao=(
+                            f"ID: {processo_id} | "
+                            f"Nº CNJ: {processo['numero_processo']} | "
+                            f"Título: {processo.get('titulo') or '-'} | "
+                            f"Status: {processo.get('status') or '-'} | "
+                            f"Fase: {processo.get('fase') or '-'} | "
+                            f"Alterações: {'; '.join(alteracoes) if alteracoes else 'nenhuma'}"
+                        ),
                         usuario_username=session.get('username'),
                         db_conn=db
                     )

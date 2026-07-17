@@ -92,8 +92,15 @@ def nova():
                     _insert_values(request.form)
                 )
                 db.commit()
-        municipio = request.form.get('municipio', '')
-        gravar_log('AREA_BRUTA_CRIADA', f"Nova área bruta criada: município '{municipio}'")
+        f = request.form
+        gravar_log('AREA_BRUTA_CRIADA', (
+            f"Município: {f.get('municipio') or '-'} | "
+            f"Matrícula: {f.get('num_matricula') or '-'} | "
+            f"Tipo: {f.get('tipo') or '-'} | "
+            f"Área total (m²): {f.get('area_total_m2') or '-'} | "
+            f"Ano aquisição: {f.get('ano_aquisicao') or '-'} | "
+            f"Descrição: {f.get('descricao_area') or '-'}"
+        ))
         return redirect(url_for('dashboard.areas_brutas'))
     return render_template('areas_brutas_form.html', registro=None, campos=CAMPOS, tipos=TIPOS,
                            titulo='Nova Área Bruta')
@@ -111,8 +118,16 @@ def editar(registro_id):
                     values + (registro_id,)
                 )
                 db.commit()
-                municipio = request.form.get('municipio', '')
-                gravar_log('AREA_BRUTA_EDITADA', f"Área bruta ID {registro_id} editada: município '{municipio}'")
+                f = request.form
+                gravar_log('AREA_BRUTA_EDITADA', (
+                    f"ID: {registro_id} | "
+                    f"Município: {f.get('municipio') or '-'} | "
+                    f"Matrícula: {f.get('num_matricula') or '-'} | "
+                    f"Tipo: {f.get('tipo') or '-'} | "
+                    f"Área total (m²): {f.get('area_total_m2') or '-'} | "
+                    f"Ano aquisição: {f.get('ano_aquisicao') or '-'} | "
+                    f"Descrição: {f.get('descricao_area') or '-'}"
+                ))
                 return redirect(url_for('dashboard.areas_brutas'))
             cursor.execute('SELECT * FROM areas_brutas WHERE id=%s', (registro_id,))
             registro = cursor.fetchone()
@@ -289,7 +304,13 @@ def relatorio(registro_id):
     doc.build(story)
     buf.seek(0)
 
-    gravar_log('AREA_BRUTA_PDF', f"Relatório PDF gerado para área bruta ID {registro_id}: município '{r.get('municipio', '')}'")
+    gravar_log('AREA_BRUTA_PDF', (
+        f"ID: {registro_id} | "
+        f"Município: {r.get('municipio') or '-'} | "
+        f"Matrícula: {r.get('num_matricula') or '-'} | "
+        f"Tipo: {'Processo Judicial' if r.get('tipo') == 'judicial' else 'Imóvel'} | "
+        f"Arquivo: {nome_arquivo}"
+    ))
     nome_arquivo = f'area_bruta_{municipio.replace(" ", "_")}_{matricula or registro_id}.pdf'
     return send_file(buf, mimetype='application/pdf', as_attachment=True, download_name=nome_arquivo)
 
@@ -303,5 +324,9 @@ def excluir(registro_id):
             r = cursor.fetchone() or {}
             cursor.execute('DELETE FROM areas_brutas WHERE id=%s', (registro_id,))
             db.commit()
-    gravar_log('AREA_BRUTA_EXCLUIDA', f"Área bruta ID {registro_id} excluída: município '{r.get('municipio', '')}', matrícula '{r.get('num_matricula', '')}'")
+    gravar_log('AREA_BRUTA_EXCLUIDA', (
+        f"ID: {registro_id} | "
+        f"Município: {r.get('municipio') or '-'} | "
+        f"Matrícula: {r.get('num_matricula') or '-'}"
+    ))
     return redirect(url_for('dashboard.areas_brutas'))

@@ -193,8 +193,16 @@ def cadastro():
                     empresa_id = cursor.lastrowid
                     db.commit()
                     gravar_log(
-                        acao=f"CADASTRO_EMPRESA (ID {empresa_id})",
-                        descricao=" | ".join([f"{campo}: {valor}" for campo, valor in dados.items()]),
+                        acao="CADASTRO_EMPRESA",
+                        descricao=(
+                            f"ID: {empresa_id} | "
+                            f"Empresa: {dados.get('empresa') or '-'} | "
+                            f"Município: {dados.get('municipio') or '-'} | "
+                            f"Distrito: {dados.get('distrito') or '-'} | "
+                            f"CNPJ: {dados.get('cnpj') or '-'} | "
+                            f"Ramo de atividade: {dados.get('ramo_de_atividade') or '-'} | "
+                            f"Status: {dados.get('status_de_assentamento') or '-'}"
+                        ),
                         usuario_username=session.get('username'),
                         db_conn=db
                     )
@@ -232,7 +240,8 @@ def cadastro():
 
                     if caminho_imagem:
                         gravar_log(
-                            acao=f"UPLOAD_IMAGEM_EMPRESA (empresa{empresa_id})",
+                            acao="UPLOAD_IMAGEM_EMPRESA",
+                            descricao=f"ID empresa: {empresa_id} | Arquivo: {nome_arquivo}",
                             usuario_username=session.get('username'),
                             db_conn=db
                         )
@@ -290,9 +299,15 @@ def cadastro_jur():
                     gravar_log(
                         acao="CADASTRO_PROCESSO_JURIDICO",
                         descricao=(
-                            f"numero_cnj: {processo['numero_processo']} | titulo: {processo['titulo']} | "
-                            f"tipo_acao: {processo['tipo_acao']} | status: {processo['status']} | "
-                            f"fase: {processo['fase'] or '-'}"
+                            f"Nº CNJ: {processo['numero_processo']} | "
+                            f"Título: {processo['titulo'] or '-'} | "
+                            f"Tipo de ação: {processo['tipo_acao'] or '-'} | "
+                            f"Tribunal: {processo.get('tribunal') or '-'} | "
+                            f"Vara: {processo.get('vara') or '-'} | "
+                            f"Comarca: {processo.get('comarca') or '-'} | "
+                            f"Status: {processo['status'] or '-'} | "
+                            f"Fase: {processo['fase'] or '-'} | "
+                            f"Valor da causa: {processo.get('valor_da_causa') or '-'}"
                         ),
                         usuario_username=session.get('username'),
                         db_conn=db
@@ -370,7 +385,12 @@ def importar_processos_jur():
                     db.commit()
                     gravar_log(
                         acao="IMPORTACAO_PROCESSOS_JURIDICOS",
-                        descricao=f"Importados: {importados} | Duplicados: {duplicados} | Erros: {len(erros)}",
+                        descricao=(
+                            f"Arquivo: {nome_arquivo} | "
+                            f"Importados com sucesso: {importados} | "
+                            f"Duplicados ignorados: {duplicados} | "
+                            f"Erros de processamento: {len(erros)}"
+                        ),
                         usuario_username=session.get('username'),
                         db_conn=db
                     )
