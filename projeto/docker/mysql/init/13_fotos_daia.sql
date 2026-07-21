@@ -59,6 +59,7 @@ INSERT INTO empresa_infos (empresa_id, descricao, caminho_imagem) VALUES
 (371, NULL, '/static/imagens_empresas/empresa371.jpg'),
 (373, NULL, '/static/imagens_empresas/empresa373.jpg'),
 (408, NULL, '/static/imagens_empresas/empresa408.png'),
+(319, NULL, '/static/imagens_empresas/empresa319.jpg'),
 (428, NULL, '/static/imagens_empresas/empresa428.png'),
 (429, NULL, '/static/imagens_empresas/empresa429.webp')
 ON DUPLICATE KEY UPDATE
