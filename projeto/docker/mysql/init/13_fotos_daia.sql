@@ -41,3 +41,26 @@ INSERT INTO empresa_infos (empresa_id, descricao, caminho_imagem) VALUES
 ON DUPLICATE KEY UPDATE
     descricao = COALESCE(empresa_infos.descricao, VALUES(descricao)),
     caminho_imagem = VALUES(caminho_imagem);
+
+INSERT INTO empresa_infos (empresa_id, descricao, caminho_imagem) VALUES
+(254, NULL, '/static/imagens_empresas/empresa254.jfif'),
+(272, NULL, '/static/imagens_empresas/empresa272.jpg'),
+(278, NULL, '/static/imagens_empresas/empresa278.png'),
+(279, NULL, '/static/imagens_empresas/empresa279.png'),
+(288, NULL, '/static/imagens_empresas/empresa288.jfif'),
+(289, NULL, '/static/imagens_empresas/empresa289.jpg'),
+(294, NULL, '/static/imagens_empresas/empresa294.jpg'),
+(300, NULL, '/static/imagens_empresas/empresa300.jpg'),
+(311, NULL, '/static/imagens_empresas/empresa311.jpg'),
+(313, NULL, '/static/imagens_empresas/empresa313.jfif'),
+(327, NULL, '/static/imagens_empresas/empresa327.jpg'),
+(328, NULL, '/static/imagens_empresas/empresa328.jpg'),
+(349, NULL, '/static/imagens_empresas/empresa349.jpg'),
+(371, NULL, '/static/imagens_empresas/empresa371.jpg'),
+(373, NULL, '/static/imagens_empresas/empresa373.jpg'),
+(408, NULL, '/static/imagens_empresas/empresa408.png'),
+(428, NULL, '/static/imagens_empresas/empresa428.png'),
+(429, NULL, '/static/imagens_empresas/empresa429.webp')
+ON DUPLICATE KEY UPDATE
+    descricao = COALESCE(empresa_infos.descricao, VALUES(descricao)),
+    caminho_imagem = VALUES(caminho_imagem);
