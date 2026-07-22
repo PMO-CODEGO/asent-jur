@@ -1,3 +1,4 @@
+SET NAMES utf8mb4;
 -- Descricoes das empresas extraidas das planilhas.
 -- Atualiza descricao sem sobrescrever imagens existentes.
 INSERT INTO empresa_infos (empresa_id, descricao, caminho_imagem) VALUES

@@ -1,3 +1,4 @@
+SET NAMES utf8mb4;
 -- Descricoes das empresas importadas das planilhas
 INSERT INTO empresa_infos (empresa_id, descricao) VALUES
 (3, 'Empresa CodeGO - Líder em desenvolvimento econômico.'),

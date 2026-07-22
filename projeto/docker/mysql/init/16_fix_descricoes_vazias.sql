@@ -1,3 +1,4 @@
+SET NAMES utf8mb4;
 -- Corrige entradas com descricao vazia (string vazia, nao NULL) que o COALESCE nao sobrescreve.
 UPDATE empresa_infos SET descricao = 'A Nativa Cosméticos Ltda é uma empresa goiana fabricante de cosméticos, produtos de higiene pessoal e perfumaria, com sede no Distrito Agroindustrial de Mineiros (DAIM). Atua no mercado nacional com linha de produtos voltados ao cuidado pessoal e limpeza.' WHERE empresa_id = 469 AND (descricao IS NULL OR descricao = '');
 UPDATE empresa_infos SET descricao = 'A Acofergo Tubos e Perfilados Ltda é uma empresa metalúrgica fundada em 2004 e sediada no Distrito Agroindustrial de Itumbiara, em Goiás, com atuação na região de Goiatuba. Especializada na fabricação de tubos de aço soldado, perfis estruturais, telhas galvanizadas e chapas metálicas, a empresa é certificada pela norma ISO 9001:2015.' WHERE empresa_id = 661 AND (descricao IS NULL OR descricao = '');

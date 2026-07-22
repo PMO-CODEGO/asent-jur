@@ -1,3 +1,4 @@
+SET NAMES utf8mb4;
 -- Descricoes das empresas buscadas na web pelos agentes de pesquisa.
 -- Atualiza descricao sem sobrescrever imagens existentes.
 -- Nao sobrescreve descricoes ja existentes (planilhas ou cadastros anteriores).
