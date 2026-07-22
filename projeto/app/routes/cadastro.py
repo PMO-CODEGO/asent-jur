@@ -2,7 +2,7 @@ import os
 import csv
 from uuid import uuid4
 
-from flask import Blueprint, render_template, request, session, redirect, url_for, flash, current_app, send_file
+from flask import Blueprint, render_template, request, session, redirect, url_for, flash, current_app, send_file, jsonify
 from werkzeug.utils import secure_filename
 
 from app.db import get_db
@@ -267,6 +267,29 @@ def cadastro():
         municipios=municipios,
         distritos=distritos,
     )
+
+
+@cadastro_bp.route('/cadastro/municipio', methods=['POST'])
+@role_required('admin', 'assent_gestor')
+def adicionar_municipio():
+    dados = request.get_json(silent=True) or {}
+    nome = (dados.get('municipio') or '').strip().upper()
+    if not nome:
+        return jsonify(ok=False, erro='Nome do município não pode ser vazio.')
+    try:
+        with get_db() as db:
+            with db.cursor() as cursor:
+                cursor.execute(
+                    "SELECT COUNT(*) FROM municipal_lots WHERE municipio = %s", (nome,)
+                )
+                if cursor.fetchone()[0] == 0:
+                    cursor.execute(
+                        "INSERT INTO municipal_lots (municipio, empresa) VALUES (%s, '-')", (nome,)
+                    )
+                    db.commit()
+        return jsonify(ok=True, municipio=nome)
+    except Exception as e:
+        return jsonify(ok=False, erro=str(e))
 
 
 @cadastro_bp.route('/cadastro_jur', methods=['GET', 'POST'])

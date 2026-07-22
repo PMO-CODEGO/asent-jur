@@ -68,12 +68,21 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label class="block text-sm font-bold text-gray-700 mb-1">Município</label>
-                        <select name="MUNICIPIO" required class="w-full p-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all bg-white">
+                        <select id="select-municipio" name="MUNICIPIO" required class="w-full p-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all bg-white">
                             <option value="">Selecione...</option>
                             {% for m in municipios %}
                                 <option value="{{ m }}">{{ m }}</option>
                             {% endfor %}
+                            <option value="__outro__">Outro...</option>
                         </select>
+                        <div id="novo-municipio-box" style="display:none;" class="mt-2 flex gap-2">
+                            <input id="novo-municipio-input" type="text" placeholder="Digite o novo município"
+                                class="flex-1 p-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all" />
+                            <button type="button" id="btn-adicionar-municipio"
+                                class="px-4 py-2 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-all">
+                                Adicionar
+                            </button>
+                        </div>
                     </div>
                     <div>
                         <label class="block text-sm font-bold text-gray-700 mb-1">Distrito</label>
@@ -262,6 +271,65 @@
             // Scroll suave para o topo da página após a mudança
             window.scrollTo({top: 0, behavior: 'smooth'});
         }
+
+        // Município "Outro"
+        const selectMunicipio = document.getElementById('select-municipio');
+        const novaMunicipioBox = document.getElementById('novo-municipio-box');
+        const novaMunicipioInput = document.getElementById('novo-municipio-input');
+        const btnAdicionarMunicipio = document.getElementById('btn-adicionar-municipio');
+
+        selectMunicipio.addEventListener('change', function () {
+            if (this.value === '__outro__') {
+                novaMunicipioBox.style.display = 'flex';
+                novaMunicipioInput.focus();
+                this.removeAttribute('required');
+            } else {
+                novaMunicipioBox.style.display = 'none';
+                this.setAttribute('required', '');
+            }
+        });
+
+        btnAdicionarMunicipio.addEventListener('click', function () {
+            const nome = novaMunicipioInput.value.trim().toUpperCase();
+            if (!nome) {
+                novaMunicipioInput.focus();
+                return;
+            }
+
+            btnAdicionarMunicipio.disabled = true;
+            btnAdicionarMunicipio.textContent = 'Adicionando...';
+
+            fetch('{{ url_for("cadastro.adicionar_municipio") }}', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({municipio: nome})
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.ok) {
+                    // Adiciona a opção antes de "Outro..." e seleciona
+                    const opt = document.createElement('option');
+                    opt.value = data.municipio;
+                    opt.textContent = data.municipio;
+                    selectMunicipio.insertBefore(opt, selectMunicipio.querySelector('option[value="__outro__"]'));
+                    selectMunicipio.value = data.municipio;
+                    selectMunicipio.setAttribute('required', '');
+                    novaMunicipioBox.style.display = 'none';
+                    novaMunicipioInput.value = '';
+                } else {
+                    alert(data.erro || 'Erro ao adicionar município.');
+                }
+            })
+            .catch(() => alert('Erro de comunicação com o servidor.'))
+            .finally(() => {
+                btnAdicionarMunicipio.disabled = false;
+                btnAdicionarMunicipio.textContent = 'Adicionar';
+            });
+        });
+
+        novaMunicipioInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') { e.preventDefault(); btnAdicionarMunicipio.click(); }
+        });
 
         // Script da máscara do CNPJ
         document.querySelectorAll('.cnpj-mask').forEach((input) => {
