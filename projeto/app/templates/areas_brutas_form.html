@@ -69,6 +69,22 @@
                             <input type="url" name="{{ field }}" value="{{ val }}" placeholder="https://..."
                                 class="w-full p-3 border-2 border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all shadow-sm bg-gray-50/50">
 
+                            {% elif field == 'municipio' %}
+                            <select id="select-municipio" name="{{ field }}"
+                                class="w-full p-3 border-2 border-gray-100 rounded-xl bg-gray-50/50 focus:ring-2 focus:ring-blue-500 outline-none">
+                                <option value="">Selecione...</option>
+                                {% for m in municipios %}
+                                <option value="{{ m }}" {% if val == m %}selected{% endif %}>{{ m }}</option>
+                                {% endfor %}
+                                <option value="__outro__">Outro...</option>
+                            </select>
+                            <div id="novo-municipio-box" style="display:none;" class="mt-2 flex gap-2">
+                                <input id="novo-municipio-input" type="text" placeholder="Digite o novo município"
+                                    class="flex-1 p-3 border-2 border-blue-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                                <button type="button" id="btn-adicionar-municipio"
+                                    class="px-4 py-2 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-all">Adicionar</button>
+                            </div>
+
                             {% else %}
                             <input type="text" name="{{ field }}" value="{{ val }}"
                                 class="w-full p-3 border-2 border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all shadow-sm bg-gray-50/50">
@@ -95,5 +111,49 @@
     </div>
 
     <script>lucide.createIcons();</script>
+    <script>
+    (function () {
+        var selectMunicipio = document.getElementById('select-municipio');
+        var novaMunicipioBox = document.getElementById('novo-municipio-box');
+        var novaMunicipioInput = document.getElementById('novo-municipio-input');
+        var btnAdicionar = document.getElementById('btn-adicionar-municipio');
+        if (!selectMunicipio) return;
+
+        selectMunicipio.addEventListener('change', function () {
+            if (this.value === '__outro__') {
+                novaMunicipioBox.style.display = 'flex';
+                novaMunicipioInput.focus();
+            } else {
+                novaMunicipioBox.style.display = 'none';
+            }
+        });
+
+        btnAdicionar.addEventListener('click', function () {
+            var nome = novaMunicipioInput.value.trim().toUpperCase();
+            if (!nome) return;
+            fetch('{{ url_for("cadastro.adicionar_municipio") }}', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({municipio: nome})
+            })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (data.ok) {
+                    var opt = document.createElement('option');
+                    opt.value = data.municipio;
+                    opt.textContent = data.municipio;
+                    selectMunicipio.insertBefore(opt, selectMunicipio.querySelector('option[value="__outro__"]'));
+                    selectMunicipio.value = data.municipio;
+                    novaMunicipioBox.style.display = 'none';
+                    novaMunicipioInput.value = '';
+                }
+            });
+        });
+
+        novaMunicipioInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') { e.preventDefault(); btnAdicionar.click(); }
+        });
+    })();
+    </script>
 </body>
 </html>

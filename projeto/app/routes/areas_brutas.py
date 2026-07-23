@@ -102,8 +102,12 @@ def nova():
             f"Descrição: {f.get('descricao_area') or '-'}"
         ))
         return redirect(url_for('dashboard.areas_brutas'))
+    with get_db() as db:
+        with db.cursor() as cursor:
+            cursor.execute("SELECT DISTINCT municipio FROM municipal_lots WHERE municipio IS NOT NULL AND municipio != '' ORDER BY municipio")
+            municipios = [r[0] for r in cursor.fetchall()]
     return render_template('areas_brutas_form.html', registro=None, campos=CAMPOS, tipos=TIPOS,
-                           titulo='Nova Área Bruta')
+                           titulo='Nova Área Bruta', municipios=municipios)
 
 
 @areas_brutas_bp.route('/assent/areas-brutas/<int:registro_id>/editar', methods=['GET', 'POST'])
@@ -133,8 +137,12 @@ def editar(registro_id):
             registro = cursor.fetchone()
     if not registro:
         return redirect(url_for('dashboard.areas_brutas'))
+    with get_db() as db:
+        with db.cursor() as cursor:
+            cursor.execute("SELECT DISTINCT municipio FROM municipal_lots WHERE municipio IS NOT NULL AND municipio != '' ORDER BY municipio")
+            municipios = [r[0] for r in cursor.fetchall()]
     return render_template('areas_brutas_form.html', registro=registro, campos=CAMPOS, tipos=TIPOS,
-                           titulo='Editar Área Bruta')
+                           titulo='Editar Área Bruta', municipios=municipios)
 
 
 def _fmt_brl(val):
