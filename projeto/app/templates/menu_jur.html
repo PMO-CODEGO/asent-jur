@@ -284,7 +284,6 @@
                 <a href="{{ url_for('juridico.prazos_juridicos') }}" class="nav-button">Alertas de Prazos</a>
                 <a href="{{ url_for('juridico.consultar_assentamento') }}" class="nav-button">Consultar Assentamento</a>
                 <a href="{{ url_for('relatorio.relatorios', modo='jur') }}" class="nav-button">Gerar Relatorio</a>
-                <a href="{{ url_for('dashboard.mapa_distritos') }}" class="nav-button">Mapa de Distritos</a>
 
                 {% if session.get('role') == 'jur_gestor' %}
                 <a href="{{ url_for('auth_user.registrar_colaborador') }}" class="nav-button" style="background-color: var(--button-red); margin-top: 10px;">

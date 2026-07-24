@@ -416,7 +416,6 @@
                 {% endif %}
                 <a href="{{ url_for('juridico.consultar_assentamento') }}" class="nav-button">Consultar Assentamento</a>
                 <a href="{{ url_for('relatorio.relatorios', modo='assent') }}" class="nav-button active">Gerar Relatório</a>
-                <a href="{{ url_for('dashboard.mapa_distritos') }}" class="nav-button">Mapa de Distritos</a>
 
                 {% if session.get('role') == 'admin' %}
                 <a href="{{ url_for('auth_user.registrar_usuario') }}" class="nav-button" style="background-color: #f59e0b; color: #1a202c; margin-top: 10px;">
