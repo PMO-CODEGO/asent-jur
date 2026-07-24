@@ -314,13 +314,13 @@
     </a>
 
     {% if session.get('role') == 'admin' %}
-    <a href="{{ url_for('auth_user.registrar_usuario') }}" class="nav-button" style="background-color: #e0d7ff; color: #3b1fa8; margin-top: 10px;">
+    <a href="{{ url_for('auth_user.registrar_usuario') }}" class="nav-button" style="background-color: #bfdbfe; color: #1e3a5f; margin-top: 10px;">
         <i data-lucide="user-plus" class="w-5 h-5"></i>
         Registrar Usuário
     </a>
     {% endif %}
     {% if session.get('role') == 'assent_gestor' %}
-    <a href="{{ url_for('auth_user.registrar_colaborador') }}" class="nav-button" style="background-color: #d1fae5; color: #065f46; margin-top: 10px;">
+    <a href="{{ url_for('auth_user.registrar_colaborador') }}" class="nav-button" style="background-color: #bfdbfe; color: #1e3a5f; margin-top: 10px;">
         <i data-lucide="user-plus" class="w-5 h-5"></i>
         Registrar Usuário
     </a>
