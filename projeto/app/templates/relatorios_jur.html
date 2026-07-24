@@ -462,10 +462,6 @@
                     <i data-lucide="file-bar-chart" class="w-5 h-5"></i>
                     Gerar Relatório
                 </a>
-                <a href="{{ url_for('dashboard.mapa_distritos') }}" class="nav-button">
-                    <i data-lucide="map" class="w-5 h-5"></i>
-                    Mapa de Distritos
-                </a>
                 {% if session.get('role') == 'jur_gestor' %}
                 <a href="{{ url_for('auth_user.registrar_colaborador') }}" class="nav-button" style="background-color: #e0d7ff; color: #3b1fa8; margin-top: 10px;">
                     <i data-lucide="user-plus" class="w-5 h-5"></i>
