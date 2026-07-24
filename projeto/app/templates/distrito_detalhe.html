@@ -383,23 +383,6 @@
                 Registrar Usuário
             </a>
             {%- endif %}
-        
-            <a href="{{ url_for('juridico.consultar_assentamento') }}" class="nav-button">Consultar Assentamento</a>
-            <a href="{{ url_for('relatorio.relatorios', modo='assent') }}" class="nav-button">Gerar Relatório</a>
-            <a href="{{ url_for('dashboard.mapa_distritos') }}" class="nav-button active">Mapa de Distritos</a>
-
-            {% if session.get('role') == 'admin' %}
-            <a href="{{ url_for('auth_user.registrar_usuario') }}" class="nav-button" style="background-color: var(--admin-amber); color: #1a202c; margin-top: 10px;">
-                <i data-lucide="user-plus" class="w-4 h-4 inline-block mr-2"></i>
-                Registrar Usuário
-            </a>
-            {% endif %}
-            {% if session.get('role') == 'assent_gestor' %}
-            <a href="{{ url_for('auth_user.registrar_colaborador') }}" class="nav-button" style="background-color: #10b981; margin-top: 10px;">
-                <i data-lucide="user-plus" class="w-4 h-4 inline-block mr-2"></i>
-                Registrar Usuário
-            </a>
-            {% endif %}
         </div>
     </div>
 
