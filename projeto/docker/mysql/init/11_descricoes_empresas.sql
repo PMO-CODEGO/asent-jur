@@ -926,5 +926,5 @@ A cooperativa reúne produtores rurais e oferece soluções para toda a cadeia l
 A companhia desenvolve soluções em filmes plásticos e embalagens personalizadas, com foco em qualidade, inovação e proteção de produtos durante armazenamento e transporte.
 
 Com atuação no mercado nacional, a Alpfilm se destaca pelo investimento em tecnologia e processos produtivos voltados à eficiência e sustentabilidade, fornecendo embalagens para diversos segmentos industriais.'),
-(915, 'O CNPJ da empresa TALISMA TRANSPORTES E LOGISTICA LTDA - ME TALISMA TRANSPORTES é 19.781.645/0002-18. Com sede em RONDONOPOLIS, MT, possui 7 anos, 0 meses e 12 dias e foi fundada em 12/06/2019. A sua situação cadastral é ATIVA e sua principal atividade econômica é Transporte rodoviário de produtos perigosos'),
+(915, 'O CNPJ da empresa TALISMA TRANSPORTES E LOGISTICA LTDA - ME TALISMA TRANSPORTES é 19.781.645/0002-18. Com sede em RONDONOPOLIS, MT, possui 7 anos, 0 meses e 12 dias e foi fundada em 12/06/2019. A sua situação cadastral é ATIVA e sua principal atividade econômica é Transporte rodoviário de produtos perigosos')
 ON DUPLICATE KEY UPDATE descricao = VALUES(descricao);
