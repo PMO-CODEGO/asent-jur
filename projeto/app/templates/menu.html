@@ -314,20 +314,20 @@
     </a>
 
     {% if session.get('role') == 'admin' %}
-    <a href="{{ url_for('auth_user.registrar_usuario') }}" class="nav-button" style="background-color: var(--admin-amber); color: #1a202c; margin-top: 10px;">
+    <a href="{{ url_for('auth_user.registrar_usuario') }}" class="nav-button" style="background-color: #e0d7ff; color: #3b1fa8; margin-top: 10px;">
         <i data-lucide="user-plus" class="w-5 h-5"></i>
         Registrar Usuário
     </a>
     {% endif %}
     {% if session.get('role') == 'assent_gestor' %}
-    <a href="{{ url_for('auth_user.registrar_colaborador') }}" class="nav-button" style="background-color: #10b981; margin-top: 10px;">
+    <a href="{{ url_for('auth_user.registrar_colaborador') }}" class="nav-button" style="background-color: #d1fae5; color: #065f46; margin-top: 10px;">
         <i data-lucide="user-plus" class="w-5 h-5"></i>
         Registrar Usuário
     </a>
     {% endif %}
 
     {% if session.get('role') == 'admin' %}
-    <a href="{{ url_for('dashboard.menu', modo='jur') }}" class="nav-button" style="background: linear-gradient(135deg, #f7cf63, #e7a73a); color: #1a202c;">
+    <a href="{{ url_for('dashboard.menu', modo='jur') }}" class="nav-button" style="background-color: #bfdbfe; color: #1e3a5f;">
         <i data-lucide="arrow-left-right" class="w-5 h-5"></i>
         Alternar Menu
     </a>
