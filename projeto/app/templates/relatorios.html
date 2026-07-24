@@ -36,8 +36,8 @@
         }
 
         .sidebar {
-            width: 280px;
-            min-width: 280px;
+            width: 230px;
+            min-width: 230px;
             background-color: var(--sidebar-bg);
             border-right: 1px solid #ddd;
             display: flex;
@@ -71,24 +71,33 @@
             gap: 12px;
         }
 
-        .nav-button {
+                .nav-button {
             background-color: var(--button-blue);
             color: white;
             text-decoration: none;
-            padding: 14px;
-            border-radius: 8px;
+            padding: 13px 16px;
+            border-radius: 10px;
             font-size: 13px;
-            font-weight: bold;
-            text-align: center;
-            transition: all 0.3s;
-            text-transform: uppercase;
+            font-weight: 600;
+            text-align: left;
+            transition: all 0.25s ease;
             border: none;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            letter-spacing: 0.01em;
+        }
+
+        .nav-button svg {
+            flex-shrink: 0;
+            opacity: 0.9;
         }
 
         .nav-button:hover {
             background-color: var(--accent-blue);
-            transform: translateX(5px);
+            transform: translateX(6px);
+            box-shadow: 0 4px 12px rgba(0,43,92,0.25);
         }
 
         .nav-button.active {
@@ -410,10 +419,52 @@
             </div>
 
             <div class="nav-menu">
-                {% if session.get('role') in ['admin', 'assent_gestor'] %}
-                <a href="{{ url_for('cadastro.cadastro') }}" class="nav-button">Cadastrar Nova Empresa</a>
-                <a href="{{ url_for('edicao.selecionar_edicao', modo='assent') }}" class="nav-button">Editar Cadastro</a>
-                {% endif %}
+                            {%- if session.get('role') in ['admin', 'assent_gestor'] %}
+            <a href="{{ url_for('cadastro.cadastro') }}" class="nav-button">
+                <i data-lucide="building-2" class="w-5 h-5"></i>
+                Cadastrar Nova Empresa
+            </a>
+            <a href="{{ url_for('edicao.selecionar_edicao', modo='assent') }}" class="nav-button">
+                <i data-lucide="file-pen" class="w-5 h-5"></i>
+                Editar Cadastro
+            </a>
+            {%- endif %}
+            <a href="{{ url_for('juridico.consultar_assentamento') }}" class="nav-button">
+                <i data-lucide="search" class="w-5 h-5"></i>
+                Consultar Assentamento
+            </a>
+            <a href="{{ url_for('relatorio.relatorios', modo='assent') }}" class="nav-button active">
+                <i data-lucide="file-bar-chart" class="w-5 h-5"></i>
+                Gerar Relatório
+            </a>
+            <a href="{{ url_for('dashboard.mapa_distritos') }}" class="nav-button">
+                <i data-lucide="map" class="w-5 h-5"></i>
+                Mapa de Distritos
+            </a>
+
+            {%- if session.get('role') == 'admin' %}
+            <a href="{{ url_for('auth_user.registrar_usuario') }}" class="nav-button" style="background-color: #bfdbfe; color: #1e3a5f; margin-top: 10px;">
+                <i data-lucide="user-plus" class="w-5 h-5"></i>
+                Registrar Usuário
+            </a>
+            {%- endif %}
+            {%- if session.get('role') == 'assent_gestor' %}
+            <a href="{{ url_for('auth_user.registrar_colaborador') }}" class="nav-button" style="background-color: #bfdbfe; color: #1e3a5f; margin-top: 10px;">
+                <i data-lucide="user-plus" class="w-5 h-5"></i>
+                Registrar Usuário
+            </a>
+            {%- endif %}
+            {%- if session.get('role') == 'admin' %}
+            <a href="{{ url_for('logs.logs') }}" class="nav-button" style="background-color: #bfdbfe; color: #1e3a5f;">
+                <i data-lucide="database-zap" class="w-5 h-5"></i>
+                Logs do Sistema
+            </a>
+            <a href="{{ url_for('dashboard.menu', modo='jur') }}" class="nav-button" style="background-color: #bfdbfe; color: #1e3a5f;">
+                <i data-lucide="arrow-left-right" class="w-5 h-5"></i>
+                Alternar Menu
+            </a>
+            {%- endif %}
+            
                 <a href="{{ url_for('juridico.consultar_assentamento') }}" class="nav-button">Consultar Assentamento</a>
                 <a href="{{ url_for('relatorio.relatorios', modo='assent') }}" class="nav-button active">Gerar Relatório</a>
                 <a href="{{ url_for('dashboard.mapa_distritos') }}" class="nav-button">Mapa de Distritos</a>

@@ -38,8 +38,8 @@
         }
 
         .sidebar {
-            width: 280px;
-            min-width: 280px;
+            width: 230px;
+            min-width: 230px;
             background-color: var(--sidebar-bg);
             border-right: 1px solid #ddd;
             display: flex;
@@ -69,24 +69,33 @@
             gap: 12px;
         }
 
-        .nav-button {
+                .nav-button {
             background-color: var(--button-red);
             color: white;
             text-decoration: none;
-            padding: 14px;
-            border-radius: 8px;
+            padding: 13px 16px;
+            border-radius: 10px;
             font-size: 13px;
-            font-weight: bold;
-            text-align: center;
-            transition: all 0.3s;
-            text-transform: uppercase;
+            font-weight: 600;
+            text-align: left;
+            transition: all 0.25s ease;
             border: none;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            letter-spacing: 0.01em;
+        }
+
+        .nav-button svg {
+            flex-shrink: 0;
+            opacity: 0.9;
         }
 
         .nav-button:hover {
             background-color: var(--button-red-hover);
-            transform: translateX(5px);
+            transform: translateX(6px);
+            box-shadow: 0 4px 12px rgba(180,30,30,0.2);
         }
 
         .nav-button.active {
@@ -433,15 +442,34 @@
                 </a>
             </div>
             <div class="nav-menu">
-                <a href="{{ url_for('cadastro.cadastro_jur') }}" class="nav-button">Adicionar Processos</a>
-                <a href="{{ url_for('edicao.selecionar_edicao', modo='jur') }}" class="nav-button">Editar Processos</a>
-                <a href="{{ url_for('juridico.prazos_juridicos') }}" class="nav-button">Alertas de Prazos</a>
-                <a href="{{ url_for('juridico.consultar_assentamento') }}" class="nav-button">Consultar Assentamento</a>
-                <a href="{{ url_for('relatorio.relatorios', modo='jur') }}" class="nav-button active">Gerar Relatório</a>
+                                <a href="{{ url_for('cadastro.cadastro_jur') }}" class="nav-button">
+                    <i data-lucide="folder-plus" class="w-5 h-5"></i>
+                    Adicionar Processos
+                </a>
+                <a href="{{ url_for('edicao.selecionar_edicao', modo='jur') }}" class="nav-button">
+                    <i data-lucide="file-pen" class="w-5 h-5"></i>
+                    Editar Processos
+                </a>
+                <a href="{{ url_for('juridico.prazos_juridicos') }}" class="nav-button">
+                    <i data-lucide="bell" class="w-5 h-5"></i>
+                    Alertas de Prazos
+                </a>
+                <a href="{{ url_for('juridico.consultar_assentamento') }}" class="nav-button">
+                    <i data-lucide="search" class="w-5 h-5"></i>
+                    Consultar Assentamento
+                </a>
+                <a href="{{ url_for('relatorio.relatorios', modo='jur') }}" class="nav-button active">
+                    <i data-lucide="file-bar-chart" class="w-5 h-5"></i>
+                    Gerar Relatório
+                </a>
+                <a href="{{ url_for('dashboard.mapa_distritos') }}" class="nav-button">
+                    <i data-lucide="map" class="w-5 h-5"></i>
+                    Mapa de Distritos
+                </a>
                 {% if session.get('role') == 'jur_gestor' %}
-                <a href="{{ url_for('auth_user.registrar_colaborador') }}" class="nav-button" style="background-color: var(--button-red); margin-top: 10px;">
-                    <i data-lucide="user-plus" class="w-4 h-4 inline-block mr-2"></i>
-                    Registrar Usuario
+                <a href="{{ url_for('auth_user.registrar_colaborador') }}" class="nav-button" style="background-color: #e0d7ff; color: #3b1fa8; margin-top: 10px;">
+                    <i data-lucide="user-plus" class="w-5 h-5"></i>
+                    Registrar Usuário
                 </a>
                 {% endif %}
             </div>
