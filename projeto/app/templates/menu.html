@@ -318,6 +318,10 @@
         <i data-lucide="user-plus" class="w-5 h-5"></i>
         Registrar Usuário
     </a>
+    <a href="{{ url_for('logs.logs') }}" class="nav-button" style="background-color: #bfdbfe; color: #1e3a5f;">
+        <i data-lucide="database-zap" class="w-5 h-5"></i>
+        Logs do Sistema
+    </a>
     {% endif %}
     {% if session.get('role') == 'assent_gestor' %}
     <a href="{{ url_for('auth_user.registrar_colaborador') }}" class="nav-button" style="background-color: #bfdbfe; color: #1e3a5f; margin-top: 10px;">
