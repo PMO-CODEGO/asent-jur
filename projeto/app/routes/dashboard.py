@@ -27,6 +27,17 @@ def areas_brutas():
         with db.cursor(dictionary=True) as cursor:
             cursor.execute("SELECT * FROM areas_brutas ORDER BY tipo, municipio, qtd")
             registros = cursor.fetchall()
+            # busca avaliações agrupadas por registro
+            cursor.execute("""
+                SELECT area_bruta_id, ano, valor_mercado, valor_subsidiado
+                FROM areas_brutas_avaliacoes
+                ORDER BY area_bruta_id, ano
+            """)
+            aval_rows = cursor.fetchall()
+
+    aval_map = {}
+    for av in aval_rows:
+        aval_map.setdefault(av['area_bruta_id'], []).append(av)
 
     import re
 
@@ -54,6 +65,25 @@ def areas_brutas():
     def _fmt_brl(n):
         return 'R$ {:,.2f}'.format(n).replace(',', 'X').replace('.', ',').replace('X', '.')
 
+    def _fmt_m2_br(val):
+        """Formata valor numérico de área em m² com separador BR e até 3 casas decimais sem zeros finais."""
+        if val is None:
+            return '-'
+        try:
+            n = float(val)
+        except (ValueError, TypeError):
+            s = str(val).strip()
+            return s if s else '-'
+        formatted = '{:,.3f}'.format(n)
+        # remove zeros finais após o decimal
+        intpart, decpart = formatted.split('.')
+        decpart = decpart.rstrip('0')
+        if decpart:
+            result = intpart + ',' + decpart
+        else:
+            result = intpart
+        return result.replace(',', 'X').replace('.', ',').replace('X', '.')
+
     for r in registros:
         # formata ocupacao se for valor numérico
         raw_ocup = r.get('ocupacao') or ''
@@ -64,9 +94,25 @@ def areas_brutas():
         vi = r.get('valor_imovel')
         if vi and not r.get('valor_conjunto'):
             n2 = _parse_brl(vi)
-            r['valor_imovel_fmt'] = _fmt_brl(n2) if n2 is not None else str(vi)
+            r['valor_imovel_fmt'] = _fmt_brl(n2) if n2 is not None else _fmt_brl(_parse_brl(str(vi))) or str(vi)
         else:
             r['valor_imovel_fmt'] = None
+
+        # formata reserva_legal_m2 (varchar) para exibição BR
+        r['reserva_legal_m2_fmt'] = _fmt_m2_br(_parse_brl(r.get('reserva_legal_m2'))) if r.get('reserva_legal_m2') and r.get('reserva_legal_m2') != '-' else (r.get('reserva_legal_m2') or '-')
+
+        # formata m² numéricos com padrão BR
+        r['area_util_m2_fmt']  = _fmt_m2_br(r.get('area_util_m2'))
+        r['area_total_m2_fmt'] = _fmt_m2_br(r.get('area_total_m2'))
+
+        # avaliações do registro
+        avaliacoes = aval_map.get(r['id'], [])
+        r['avaliacoes'] = avaliacoes
+        # última avaliação (maior ano)
+        ultima = max(avaliacoes, key=lambda a: a['ano'], default=None)
+        r['ultima_aval_ano']        = ultima['ano'] if ultima else None
+        r['ultima_aval_mercado']    = ultima['valor_mercado'] if ultima else None
+        r['ultima_aval_subsidiado'] = ultima['valor_subsidiado'] if ultima else None
 
     return render_template('areas_brutas.html', registros=registros)
 

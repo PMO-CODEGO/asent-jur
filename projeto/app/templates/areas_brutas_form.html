@@ -42,7 +42,7 @@
 
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {% for field, label in campos %}
-                        {% if field != 'tipo' %}
+                        {% if field not in ['tipo', 'moeda_conjunto'] %}
                         <div class="space-y-1 {% if field in ['descricao_area', 'ocupacao', 'tipo_aquisicao'] %}lg:col-span-2{% endif %}">
                             <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider ml-1">
                                 {{ label }}
@@ -54,11 +54,24 @@
                             <textarea name="{{ field }}" rows="2"
                                 class="w-full p-3 border-2 border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all shadow-sm bg-gray-50/50">{{ val }}</textarea>
 
+                            {% elif field == 'valor_conjunto' %}
+                            {% set moeda_val = registro['moeda_conjunto'] if registro and registro.get('moeda_conjunto') else 'R$' %}
+                            <div class="flex gap-2">
+                                <select name="moeda_conjunto"
+                                    class="p-3 border-2 border-gray-100 rounded-xl bg-gray-50/50 focus:ring-2 focus:ring-blue-500 outline-none font-semibold text-gray-700 shrink-0">
+                                    <option value="R$"   {% if moeda_val == 'R$'   %}selected{% endif %}>R$</option>
+                                    <option value="CR$"  {% if moeda_val == 'CR$'  %}selected{% endif %}>CR$</option>
+                                    <option value="Ncz$" {% if moeda_val == 'Ncz$' %}selected{% endif %}>Ncz$</option>
+                                </select>
+                                <input type="text" name="{{ field }}" value="{{ val }}" placeholder="Ex: 1.234,56"
+                                    class="flex-1 p-3 border-2 border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all shadow-sm bg-gray-50/50">
+                            </div>
+
                             {% elif field in ['area_util_m2', 'area_total_m2', 'valor_mercado_2021',
                                 'valor_subsidiado_2021', 'valor_mercado_2022', 'valor_subsidiado_2022',
                                 'valor_mercado_2023', 'valor_subsidiado_2023', 'valor_mercado_2024',
                                 'valor_subsidiado_2024'] %}
-                            <input type="number" name="{{ field }}" value="{{ val }}" step="0.01" min="0"
+                            <input type="text" name="{{ field }}" value="{{ val }}" placeholder="Ex: 1.234,56"
                                 class="w-full p-3 border-2 border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all shadow-sm bg-gray-50/50">
 
                             {% elif field == 'ano_aquisicao' %}
@@ -85,6 +98,14 @@
                                     class="px-4 py-2 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-all">Adicionar</button>
                             </div>
 
+                            {% elif field == 'loteamento' %}
+                            <select name="{{ field }}"
+                                class="w-full p-3 border-2 border-gray-100 rounded-xl bg-gray-50/50 focus:ring-2 focus:ring-blue-500 outline-none">
+                                <option value="">Não informado</option>
+                                <option value="Sim" {% if val == 'Sim' %}selected{% endif %}>Sim</option>
+                                <option value="Não" {% if val == 'Não' %}selected{% endif %}>Não</option>
+                            </select>
+
                             {% else %}
                             <input type="text" name="{{ field }}" value="{{ val }}"
                                 class="w-full p-3 border-2 border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all shadow-sm bg-gray-50/50">
@@ -93,6 +114,40 @@
                         {% endif %}
                         {% endfor %}
                     </div>
+                </div>
+
+                <!-- Avaliações de Mercado -->
+                <div class="mb-8">
+                    <div class="flex items-center justify-between mb-4 pb-2 border-b-2 border-gray-100">
+                        <h3 class="text-sm font-bold text-gray-600 uppercase tracking-wider">Avaliações de Mercado</h3>
+                        <button type="button" id="btn-add-aval"
+                            class="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 rounded-xl font-bold text-sm hover:bg-blue-100 transition-all">
+                            <i data-lucide="plus" class="w-4 h-4"></i> Adicionar Ano
+                        </button>
+                    </div>
+                    <div class="flex gap-3 items-center mb-1 px-1">
+                        <span class="w-24 text-xs font-bold text-gray-500 uppercase text-center">Ano</span>
+                        <span class="flex-1 text-xs font-bold text-gray-500 uppercase">Valor de Mercado (R$)</span>
+                        <span class="flex-1 text-xs font-bold text-gray-500 uppercase">Valor Subsidiado (R$)</span>
+                        <span class="w-8"></span>
+                    </div>
+                    <div id="aval-container" class="flex flex-col gap-3">
+                        {% for av in avaliacoes %}
+                        <div class="aval-row flex gap-3 items-center">
+                            <input type="number" name="aval_ano[]" value="{{ av.ano }}" placeholder="Ano" min="1900" max="2100"
+                                class="w-24 p-3 border-2 border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50/50 text-center font-semibold">
+                            <input type="text" name="aval_mercado[]" value="{{ av.valor_mercado }}" placeholder="V. Mercado (Ex: 1.234,56)"
+                                class="flex-1 p-3 border-2 border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50/50">
+                            <input type="text" name="aval_subsidiado[]" value="{{ av.valor_subsidiado }}" placeholder="V. Subsidiado (Ex: 123,45)"
+                                class="flex-1 p-3 border-2 border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50/50">
+                            <button type="button" onclick="this.closest('.aval-row').remove()"
+                                class="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <p class="text-xs text-gray-400 mt-2">Informe o ano e os valores de mercado e subsidiado para cada avaliação.</p>
                 </div>
 
                 <div class="mt-8 flex justify-between gap-4 border-t pt-6">
@@ -111,6 +166,26 @@
     </div>
 
     <script>lucide.createIcons();</script>
+    <script>
+    document.getElementById('btn-add-aval').addEventListener('click', function () {
+        var container = document.getElementById('aval-container');
+        var row = document.createElement('div');
+        row.className = 'aval-row flex gap-3 items-center';
+        row.innerHTML =
+            '<input type="number" name="aval_ano[]" placeholder="Ano" min="1900" max="2100" ' +
+            'class="w-24 p-3 border-2 border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50/50 text-center font-semibold">' +
+            '<input type="text" name="aval_mercado[]" placeholder="Ex: 1.234,56" ' +
+            'class="flex-1 p-3 border-2 border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50/50">' +
+            '<input type="text" name="aval_subsidiado[]" placeholder="Ex: 123,45" ' +
+            'class="flex-1 p-3 border-2 border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50/50">' +
+            '<button type="button" onclick="this.closest(\'.aval-row\').remove()" ' +
+            'class="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all">' +
+            '<i data-lucide="trash-2" class="w-4 h-4"></i></button>';
+        container.appendChild(row);
+        lucide.createIcons();
+        row.querySelector('input[name="aval_ano[]"]').focus();
+    });
+    </script>
     <script>
     (function () {
         var selectMunicipio = document.getElementById('select-municipio');

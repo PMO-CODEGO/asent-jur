@@ -128,8 +128,8 @@
             <p>Glebas sem Registro de Loteamento de Propriedade da CODEGO</p>
         </div>
 
-        {% set imoveis = registros | selectattr('tipo', 'equalto', 'imovel') | list %}
-        {% set judiciais = registros | selectattr('tipo', 'equalto', 'judicial') | list %}
+        {% set imoveis = registros | selectattr('tipo', 'equalto', 'Área bruta') | list %}
+        {% set judiciais = registros | selectattr('tipo', 'equalto', 'Área bruta - Processo judicial') | list %}
 
         <div class="stats-row">
             <div class="stat-card">
@@ -164,7 +164,7 @@
             <div class="stat-card">
                 <div class="stat-icon stat-icon-purple"><i data-lucide="landmark" style="width:22px;height:22px;"></i></div>
                 <div>
-                    {% set total_aval = imoveis | selectattr('valor_mercado_2024') | map(attribute='valor_mercado_2024') | select('number') | sum %}
+                    {% set total_aval = imoveis | map(attribute='ultima_aval_mercado') | select('number') | sum %}
                     <div class="stat-value" style="font-size:1rem;">{{ 'R$ {:,.2f}'.format(total_aval).replace(',', 'X').replace('.', ',').replace('X', '.') }}</div>
                     <div class="stat-label">Total última avaliação</div>
                 </div>
@@ -219,11 +219,11 @@
                                 </td>
                                 <td class="col-fix col-fix-1"><span class="municipio-badge">{{ r.municipio or '' }}</span></td>
                                 <td>{{ r.num_matricula or '' }}</td>
-                                <td class="num">{{ '{:,.0f}'.format(r.area_util_m2).replace(',', '.') if r.area_util_m2 else '-' }}</td>
-                                <td class="num">{{ r.reserva_legal_m2 if r.reserva_legal_m2 else '-' }}</td>
-                                <td class="num">{{ '{:,.0f}'.format(r.area_total_m2).replace(',', '.') if r.area_total_m2 else '-' }}</td>
-                                <td class="num">{{ 'R$ {:,.2f}'.format(r.valor_mercado_2024).replace(',', 'X').replace('.', ',').replace('X', '.') if r.valor_mercado_2024 else '-' }}</td>
-                                <td class="num">{{ 'R$ {:,.2f}'.format(r.valor_subsidiado_2024).replace(',', 'X').replace('.', ',').replace('X', '.') if r.valor_subsidiado_2024 else '-' }}</td>
+                                <td class="num">{{ r.area_util_m2_fmt }}</td>
+                                <td class="num">{{ r.reserva_legal_m2_fmt }}</td>
+                                <td class="num">{{ r.area_total_m2_fmt }}</td>
+                                <td class="num">{{ 'R$ {:,.2f}'.format(r.ultima_aval_mercado).replace(',', 'X').replace('.', ',').replace('X', '.') if r.ultima_aval_mercado else '-' }}<br><small style="color:#9ca3af;font-size:0.68rem;">{{ r.ultima_aval_ano or '' }}</small></td>
+                                <td class="num">{{ 'R$ {:,.2f}'.format(r.ultima_aval_subsidiado).replace(',', 'X').replace('.', ',').replace('X', '.') if r.ultima_aval_subsidiado else '-' }}</td>
                                 <td class="link-cell">{% if r.link_geo %}<a href="{{ r.link_geo }}" target="_blank" onclick="event.stopPropagation()">Ver</a>{% else %}-{% endif %}</td>
                                 <td class="link-cell">{% if r.link_matricula %}<a href="{{ r.link_matricula }}" target="_blank" onclick="event.stopPropagation()">Ver</a>{% else %}-{% endif %}</td>
                                 <td class="obs-cell" title="{{ r.numero_processo or '' }}">{{ r.numero_processo or '-' }}</td>
@@ -254,7 +254,7 @@
                                                 {% if r.valor_conjunto %}
                                                 <span class="valor-grupo" title="Valor compartilhado: {{ r.grupo or '' }}">
                                                     <i data-lucide="link-2" style="width:11px;height:11px;"></i>
-                                                    R$ {{ '{:,.2f}'.format(r.valor_conjunto).replace(',', 'X').replace('.', ',').replace('X', '.') }}
+                                                    {{ r.moeda_conjunto or 'R$' }} {{ '{:,.2f}'.format(r.valor_conjunto).replace(',', 'X').replace('.', ',').replace('X', '.') }}
                                                 </span>
                                                 {% else %}
                                                 {{ r.valor_imovel_fmt or r.valor_imovel or '-' }}
@@ -283,6 +283,35 @@
                                             <span class="detail-label">Registro de Propriedade</span>
                                             <span class="detail-value">{{ r.registro_propriedade or '-' }}</span>
                                         </div>
+                                        <div class="detail-item">
+                                            <span class="detail-label">Loteamento</span>
+                                            <span class="detail-value">{{ r.loteamento or '-' }}</span>
+                                        </div>
+                                        {% if r.avaliacoes %}
+                                        <div class="detail-item" style="grid-column: span 4; margin-top: 8px;">
+                                            <span class="detail-label">Avaliações de Mercado</span>
+                                            <div style="overflow-x:auto; margin-top:6px;">
+                                                <table style="border-collapse:collapse; font-size:0.78rem; width:100%;">
+                                                    <thead>
+                                                        <tr style="background:#e0e7ef;">
+                                                            <th style="padding:5px 12px; text-align:left; font-weight:700; color:#002b5c;">Ano</th>
+                                                            <th style="padding:5px 12px; text-align:right; font-weight:700; color:#002b5c;">V. Mercado</th>
+                                                            <th style="padding:5px 12px; text-align:right; font-weight:700; color:#002b5c;">V. Subsidiado</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {% for av in r.avaliacoes %}
+                                                        <tr style="border-bottom:1px solid #e5e7eb;">
+                                                            <td style="padding:4px 12px; font-weight:600;">{{ av.ano }}</td>
+                                                            <td style="padding:4px 12px; text-align:right; font-variant-numeric:tabular-nums;">{{ 'R$ {:,.2f}'.format(av.valor_mercado).replace(',','X').replace('.',',').replace('X','.') if av.valor_mercado else '-' }}</td>
+                                                            <td style="padding:4px 12px; text-align:right; font-variant-numeric:tabular-nums;">{{ 'R$ {:,.2f}'.format(av.valor_subsidiado).replace(',','X').replace('.',',').replace('X','.') if av.valor_subsidiado else '-' }}</td>
+                                                        </tr>
+                                                        {% endfor %}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                        {% endif %}
                                     </div>
                                 </td>
                             </tr>
@@ -328,9 +357,9 @@
                                 <td class="col-fix col-fix-0">{{ r.qtd }}</td>
                                 <td class="col-fix col-fix-1"><span class="municipio-badge">{{ r.municipio or '' }}</span></td>
                                 <td>{{ r.num_matricula or '' }}</td>
-                                <td class="num">{{ '{:,.0f}'.format(r.area_total_m2).replace(',', '.') if r.area_total_m2 else '-' }}</td>
-                                <td class="num">{{ 'R$ {:,.2f}'.format(r.valor_mercado_2024).replace(',', 'X').replace('.', ',').replace('X', '.') if r.valor_mercado_2024 else '-' }}</td>
-                                <td class="num">{{ 'R$ {:,.2f}'.format(r.valor_subsidiado_2024).replace(',', 'X').replace('.', ',').replace('X', '.') if r.valor_subsidiado_2024 else '-' }}</td>
+                                <td class="num">{{ r.area_total_m2_fmt }}</td>
+                                <td class="num">{{ 'R$ {:,.2f}'.format(r.ultima_aval_mercado).replace(',', 'X').replace('.', ',').replace('X', '.') if r.ultima_aval_mercado else '-' }}<br><small style="color:#9ca3af;font-size:0.68rem;">{{ r.ultima_aval_ano or '' }}</small></td>
+                                <td class="num">{{ 'R$ {:,.2f}'.format(r.ultima_aval_subsidiado).replace(',', 'X').replace('.', ',').replace('X', '.') if r.ultima_aval_subsidiado else '-' }}</td>
                                 <td>{{ r.matricula_parcelamento or '-' }}</td>
                                 <td class="obs-cell" title="{{ r.ocupacao or '' }}">
                                     {% if r.ocupacao_fmt %}
