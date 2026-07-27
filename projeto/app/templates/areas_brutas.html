@@ -80,6 +80,10 @@
         .detail-value { font-size: 0.82rem; color: #1e293b; }
         .data-row:hover { background-color: #f0f7ff; }
         .data-row.open { background-color: #eff6ff; }
+        .row-toggle { display: inline-flex; align-items: center; gap: 6px; color: #6b7280; font-size: 0.75rem; }
+        .row-toggle svg { transition: transform 0.2s ease; flex-shrink: 0; }
+        .data-row.open .row-toggle svg { transform: rotate(90deg); }
+        .data-row:hover .row-toggle { color: #1e3a5f; }
         .valor-grupo { display: inline-flex; align-items: center; gap: 5px; background-color: #fef3c7; color: #92400e; border-radius: 6px; padding: 3px 8px; font-size: 0.75rem; font-weight: 600; cursor: help; white-space: nowrap; }
         .btn-action { display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; text-decoration: none; border: none; cursor: pointer; transition: all 0.15s; }
         .btn-edit { background-color: #eff6ff; color: #1e40af; }
@@ -207,7 +211,12 @@
                         <tbody>
                             {% for r in imoveis %}
                             <tr class="data-row" onclick="toggleDetalhe('d{{ r.id }}')" style="cursor:pointer;">
-                                <td class="col-fix col-fix-0">{{ r.qtd }}</td>
+                                <td class="col-fix col-fix-0">
+                                    <span class="row-toggle">
+                                        <i data-lucide="chevron-right" style="width:14px;height:14px;"></i>
+                                        {{ r.qtd }}
+                                    </span>
+                                </td>
                                 <td class="col-fix col-fix-1"><span class="municipio-badge">{{ r.municipio or '' }}</span></td>
                                 <td>{{ r.num_matricula or '' }}</td>
                                 <td class="num">{{ '{:,.0f}'.format(r.area_util_m2).replace(',', '.') if r.area_util_m2 else '-' }}</td>
