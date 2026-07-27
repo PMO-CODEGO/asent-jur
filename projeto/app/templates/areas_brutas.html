@@ -34,6 +34,7 @@
         .stat-icon-amber { background-color: #fef3c7; color: #92400e; }
         .stat-icon-blue { background-color: #dbeafe; color: #002b5c; }
         .stat-icon-red { background-color: #fee2e2; color: #991b1b; }
+        .stat-icon-green { background-color: #d1fae5; color: #065f46; }
         .stat-value { font-size: 1.4rem; font-weight: 800; color: #111827; }
         .stat-label { font-size: 0.78rem; color: #6b7280; font-weight: 500; }
 
@@ -137,6 +138,14 @@
                 <div>
                     <div class="stat-value">{{ registros | map(attribute='municipio') | unique | list | length }}</div>
                     <div class="stat-label">Municípios</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon stat-icon-green"><i data-lucide="ruler" style="width:22px;height:22px;"></i></div>
+                <div>
+                    {% set total_m2 = imoveis | map(attribute='area_total_m2') | select('number') | sum %}
+                    <div class="stat-value">{{ '{:,.0f}'.format(total_m2).replace(',', '.') }} m²</div>
+                    <div class="stat-label">Área total (sem judiciais)</div>
                 </div>
             </div>
         </div>
