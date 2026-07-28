@@ -199,10 +199,11 @@
                     <!-- Número de Processo -->
                     <div class="space-y-1">
                         <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Número de Processo</label>
-                        <input type="text" name="numero_processo" value="{{ fval('numero_processo') }}"
-                            placeholder="Ex: 5001234-12.2024.8.09.0000"
-                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none bg-white">
-                        <p class="hint">Número do processo judicial, se houver ação em curso relacionada ao imóvel.</p>
+                        <input type="text" name="numero_processo" id="numero_processo" value="{{ fval('numero_processo') }}"
+                            placeholder="0000000-00.0000.0.00.0000"
+                            maxlength="25"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none bg-white transition-colors">
+                        <p class="hint" id="numero_processo_hint">Formato CNJ: <strong>NNNNNNN-DD.AAAA.J.TT.OOOO</strong> — deixe em branco se não houver processo.</p>
                     </div>
 
                     <!-- Link Matrícula -->
@@ -467,6 +468,97 @@ document.getElementById('btn-add-aval').addEventListener('click', function () {
 });
 </script>
 <script>
+/* ── Máscara e validação: Número de Processo CNJ ────────────────── */
+(function () {
+    var input = document.getElementById('numero_processo');
+    var hint  = document.getElementById('numero_processo_hint');
+    if (!input) return;
+
+    // Padrão CNJ: NNNNNNN-DD.AAAA.J.TT.OOOO (20 dígitos, 25 chars com pontuação)
+    var RE_CNJ = /^\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}$/;
+
+    function apenasDigitos(str) {
+        return str.replace(/\D/g, '');
+    }
+
+    function aplicarMascaraCNJ(digitos) {
+        // NNNNNNN - DD . AAAA . J . TT . OOOO
+        var d = digitos.substring(0, 20);
+        var out = '';
+        if (d.length > 0)  out += d.substring(0, Math.min(7, d.length));
+        if (d.length > 7)  out += '-' + d.substring(7, Math.min(9, d.length));
+        if (d.length > 9)  out += '.' + d.substring(9, Math.min(13, d.length));
+        if (d.length > 13) out += '.' + d.substring(13, Math.min(14, d.length));
+        if (d.length > 14) out += '.' + d.substring(14, Math.min(16, d.length));
+        if (d.length > 16) out += '.' + d.substring(16, Math.min(20, d.length));
+        return out;
+    }
+
+    function setEstado(estado) {
+        input.classList.remove('border-gray-200', 'border-green-500', 'border-red-400');
+        hint.classList.remove('text-gray-400', 'text-green-600', 'text-red-500');
+        if (estado === 'ok') {
+            input.classList.add('border-green-500');
+            hint.classList.add('text-green-600');
+            hint.textContent = 'Número de processo válido.';
+        } else if (estado === 'erro') {
+            input.classList.add('border-red-400');
+            hint.classList.add('text-red-500');
+            hint.innerHTML = 'Formato inválido. Use: <strong>NNNNNNN-DD.AAAA.J.TT.OOOO</strong> (ex: 5001234-12.2024.8.09.0000)';
+        } else {
+            input.classList.add('border-gray-200');
+            hint.classList.add('text-gray-400');
+            hint.innerHTML = 'Formato CNJ: <strong>NNNNNNN-DD.AAAA.J.TT.OOOO</strong> — deixe em branco se não houver processo.';
+        }
+    }
+
+    input.addEventListener('input', function () {
+        var digitos = apenasDigitos(this.value);
+        var mascarado = aplicarMascaraCNJ(digitos);
+        this.value = mascarado;
+        if (digitos.length === 0) {
+            setEstado('neutro');
+        } else if (RE_CNJ.test(mascarado)) {
+            setEstado('ok');
+        } else {
+            // ainda digitando — só mostra erro neutro, sem vermelho
+            setEstado('neutro');
+        }
+    });
+
+    input.addEventListener('keypress', function (e) {
+        if (!/\d/.test(e.key) && !e.ctrlKey && !e.metaKey) e.preventDefault();
+    });
+
+    input.addEventListener('paste', function () {
+        setTimeout(function () {
+            var digitos = apenasDigitos(input.value);
+            input.value = aplicarMascaraCNJ(digitos);
+            setEstado(RE_CNJ.test(input.value) ? 'ok' : input.value ? 'erro' : 'neutro');
+        }, 0);
+    });
+
+    input.addEventListener('blur', function () {
+        var val = this.value.trim();
+        if (!val) { setEstado('neutro'); return; }
+        setEstado(RE_CNJ.test(val) ? 'ok' : 'erro');
+    });
+
+    input.addEventListener('focus', function () {
+        if (RE_CNJ.test(this.value)) setEstado('ok');
+        else if (!this.value) setEstado('neutro');
+        // mantém erro visível durante edição se já estava errado
+    });
+
+    // validar valor inicial (modo editar)
+    if (input.value) {
+        var digitos = apenasDigitos(input.value);
+        var mascarado = aplicarMascaraCNJ(digitos);
+        input.value = mascarado;
+        setEstado(RE_CNJ.test(mascarado) ? 'ok' : 'erro');
+    }
+})();
+
 /* ── Adicionar município ─────────────────────────────────────────── */
 (function () {
     var selectMunicipio = document.getElementById('select-municipio');
