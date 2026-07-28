@@ -22,7 +22,6 @@ CAMPOS = [
     ('reserva_legal_m2',       'Reserva Legal (m²)'),
     ('area_total_m2',          'Área Total (m²)'),
     ('valor_imovel',           'Valor do Imóvel'),
-    ('moeda_imovel',           'Moeda do Imóvel'),
     ('grupo',                  'Grupo (valor compartilhado)'),
     ('valor_conjunto',         'Valor do Conjunto'),
     ('moeda_conjunto',         'Moeda do Conjunto'),

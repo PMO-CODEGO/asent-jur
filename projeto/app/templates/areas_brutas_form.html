@@ -229,23 +229,27 @@
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
 
+                    <!-- Moeda (única para imóvel e conjunto) -->
+                    <div class="md:col-span-2 space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Moeda</label>
+                        {% set moeda_val = registro['moeda_conjunto'] if registro and registro.get('moeda_conjunto') else 'R$' %}
+                        <select id="select-moeda-global" name="moeda_conjunto"
+                            class="p-3 border-2 border-gray-200 rounded-xl bg-white focus:ring-2 focus:ring-violet-500 outline-none font-semibold text-gray-700">
+                            <option value="R$"   {% if moeda_val == 'R$'   %}selected{% endif %}>R$ — Real</option>
+                            <option value="CR$"  {% if moeda_val == 'CR$'  %}selected{% endif %}>CR$ — Cruzeiro Real</option>
+                            <option value="Ncz$" {% if moeda_val == 'Ncz$' %}selected{% endif %}>Ncz$ — Cruzado Novo</option>
+                        </select>
+                        <p class="hint">Moeda utilizada nos campos de valor abaixo — aplica-se ao Valor do Imóvel e ao Valor do Conjunto.</p>
+                    </div>
+
                     <!-- Valor do Imóvel -->
                     <div class="space-y-1">
                         <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Valor do Imóvel</label>
-                        {% set moeda_imovel_val = registro['moeda_imovel'] if registro and registro.get('moeda_imovel') else 'R$' %}
-                        <div class="flex gap-2">
-                            <select name="moeda_imovel"
-                                class="p-3 border-2 border-gray-200 rounded-xl bg-white focus:ring-2 focus:ring-violet-500 outline-none font-semibold text-gray-700 shrink-0">
-                                <option value="R$"   {% if moeda_imovel_val == 'R$'   %}selected{% endif %}>R$</option>
-                                <option value="CR$"  {% if moeda_imovel_val == 'CR$'  %}selected{% endif %}>CR$</option>
-                                <option value="Ncz$" {% if moeda_imovel_val == 'Ncz$' %}selected{% endif %}>Ncz$</option>
-                            </select>
-                            <input type="text" name="valor_imovel" value="{{ fval('valor_imovel') }}"
-                                placeholder="Ex: 13.103.022,72"
-                                data-decimais="2"
-                                class="num-br flex-1 p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 outline-none bg-white">
-                        </div>
-                        <p class="hint">Valor histórico de aquisição ou valor de referência individual do imóvel. Selecione a moeda vigente na época.</p>
+                        <input type="text" name="valor_imovel" value="{{ fval('valor_imovel') }}"
+                            placeholder="Ex: 13.103.022,72"
+                            data-decimais="2"
+                            class="num-br w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 outline-none bg-white">
+                        <p class="hint">Valor individual do imóvel na moeda selecionada acima.</p>
                     </div>
 
                     <!-- Explicação: valor compartilhado -->
@@ -286,20 +290,11 @@
                     <!-- Valor do Conjunto -->
                     <div id="wrapper-valor-conjunto" class="space-y-1">
                         <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Valor do Conjunto</label>
-                        {% set moeda_val = registro['moeda_conjunto'] if registro and registro.get('moeda_conjunto') else 'R$' %}
-                        <div class="flex gap-2">
-                            <select id="select-moeda-conjunto" name="moeda_conjunto"
-                                class="p-3 border-2 border-gray-200 rounded-xl bg-white focus:ring-2 focus:ring-violet-500 outline-none font-semibold text-gray-700 shrink-0 disabled:opacity-60 disabled:cursor-not-allowed">
-                                <option value="R$"   {% if moeda_val == 'R$'   %}selected{% endif %}>R$</option>
-                                <option value="CR$"  {% if moeda_val == 'CR$'  %}selected{% endif %}>CR$</option>
-                                <option value="Ncz$" {% if moeda_val == 'Ncz$' %}selected{% endif %}>Ncz$</option>
-                            </select>
-                            <input type="text" id="input-valor-conjunto" name="valor_conjunto" value="{{ fval('valor_conjunto') }}"
-                                placeholder="Ex: 13.103.022,72"
-                                data-decimais="2"
-                                class="num-br flex-1 p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 outline-none bg-white disabled:opacity-60 disabled:cursor-not-allowed disabled:bg-gray-100">
-                        </div>
-                        <p class="hint" id="hint-valor-conjunto">Valor total do conjunto. Moeda: R$ = Real · CR$ = Cruzeiro Real · Ncz$ = Cruzado Novo.</p>
+                        <input type="text" id="input-valor-conjunto" name="valor_conjunto" value="{{ fval('valor_conjunto') }}"
+                            placeholder="Ex: 13.103.022,72"
+                            data-decimais="2"
+                            class="num-br w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 outline-none bg-white">
+                        <p class="hint" id="hint-valor-conjunto">Valor total do conjunto na moeda selecionada acima. Ao salvar, será aplicado a todos os imóveis do grupo.</p>
                     </div>
 
                 </div>
@@ -600,7 +595,7 @@ document.getElementById('btn-add-aval').addEventListener('click', function () {
     var novoGrupoBox   = document.getElementById('novo-grupo-box');
     var novoGrupoInput = document.getElementById('novo-grupo-input');
     var btnConfirmar   = document.getElementById('btn-confirmar-grupo');
-    var selectMoeda    = document.getElementById('select-moeda-conjunto');
+    var selectMoeda    = document.getElementById('select-moeda-global');
     var inputValor     = document.getElementById('input-valor-conjunto');
     var hintValor      = document.getElementById('hint-valor-conjunto');
     if (!selectGrupo) return;
