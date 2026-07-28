@@ -41,6 +41,7 @@ TIPOS = [('Área bruta', 'Área bruta'), ('Área bruta - Processo judicial', 'Á
 
 DECIMAIS = {'area_util_m2', 'area_total_m2', 'valor_conjunto'}
 INTEIROS = {'ano_aquisicao', 'qtd'}
+MATRICULAS = {'num_matricula', 'matricula_parcelamento'}
 
 
 def _parse_decimal_str(s):
@@ -78,6 +79,17 @@ def _fmt_decimal_br(val):
     return (int_formatted + ',' + dec_part) if dec_part else int_formatted
 
 
+def _fmt_int_br(val):
+    """Formata inteiro/string numérica com pontos de milhar (ex: 118653 → '118.653')."""
+    if not val:
+        return ''
+    s = str(val).strip().replace('.', '')
+    try:
+        return '{:,}'.format(int(s)).replace(',', '.')
+    except ValueError:
+        return str(val)
+
+
 def _parse(field, value):
     if value is None or str(value).strip() == '':
         return None
@@ -88,6 +100,9 @@ def _parse(field, value):
             return int(str(value).replace('.', '').replace(',', ''))
         except ValueError:
             return None
+    if field in MATRICULAS:
+        # remove pontos de milhar inseridos pela máscara antes de salvar
+        return str(value).strip().replace('.', '') or None
     return str(value).strip() or None
 
 
@@ -201,6 +216,10 @@ def editar(registro_id):
     for field in DECIMAIS:
         if registro_display.get(field) is not None:
             registro_display[field] = _fmt_decimal_br(registro_display[field])
+    # matrícula — formata com pontos de milhar para exibição no form
+    for field in MATRICULAS:
+        if registro_display.get(field):
+            registro_display[field] = _fmt_int_br(registro_display[field])
     # valor_imovel é varchar — tenta formatar se for numérico
     vi = registro_display.get('valor_imovel')
     if vi:

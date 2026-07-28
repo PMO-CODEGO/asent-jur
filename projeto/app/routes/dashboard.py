@@ -65,6 +65,15 @@ def areas_brutas():
     def _fmt_brl(n):
         return 'R$ {:,.2f}'.format(n).replace(',', 'X').replace('.', ',').replace('X', '.')
 
+    def _fmt_int_br(val):
+        if not val:
+            return val
+        s = str(val).strip().replace('.', '')
+        try:
+            return '{:,}'.format(int(s)).replace(',', '.')
+        except ValueError:
+            return val
+
     def _fmt_m2_br(val):
         """Formata valor numérico de área em m² com separador BR e sem zeros finais."""
         if val is None:
@@ -106,6 +115,9 @@ def areas_brutas():
         # formata m² numéricos com padrão BR
         r['area_util_m2_fmt']  = _fmt_m2_br(r.get('area_util_m2'))
         r['area_total_m2_fmt'] = _fmt_m2_br(r.get('area_total_m2'))
+
+        r['num_matricula_fmt'] = _fmt_int_br(r.get('num_matricula'))
+        r['matricula_parcelamento_fmt'] = _fmt_int_br(r.get('matricula_parcelamento'))
 
         # avaliações do registro
         avaliacoes = aval_map.get(r['id'], [])

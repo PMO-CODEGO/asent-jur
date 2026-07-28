@@ -110,7 +110,8 @@
                             {% else %}
                             <input type="text" name="{{ field }}" value="{{ val }}"
                                 {% if field == 'valor_imovel' %}data-decimais="2"{% endif %}
-                                class="{{ 'num-br ' if field in ['valor_imovel', 'reserva_legal_m2'] else '' }}w-full p-3 border-2 border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all shadow-sm bg-gray-50/50">
+                                {% if field in ['num_matricula', 'matricula_parcelamento'] %}data-inteiro="1"{% endif %}
+                                class="{{ 'num-br ' if field in ['valor_imovel', 'reserva_legal_m2', 'num_matricula', 'matricula_parcelamento'] else '' }}w-full p-3 border-2 border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all shadow-sm bg-gray-50/50">
                             {% endif %}
                         </div>
                         {% endif %}
@@ -216,7 +217,9 @@
             inp.dataset.maskBound = '1';
             inp.addEventListener('input', function() { aplicarMascaraBR(this); });
             inp.addEventListener('keypress', function(e) {
-                if (!/[\d,]/.test(e.key) && !e.ctrlKey && !e.metaKey) e.preventDefault();
+                var inteiro = inp.dataset.inteiro === '1';
+                var permitido = inteiro ? /\d/.test(e.key) : /[\d,]/.test(e.key);
+                if (!permitido && !e.ctrlKey && !e.metaKey) e.preventDefault();
             });
             inp.addEventListener('paste', function() {
                 setTimeout(function() { aplicarMascaraBR(inp); }, 0);

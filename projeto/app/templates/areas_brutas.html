@@ -218,7 +218,7 @@
                                     </span>
                                 </td>
                                 <td class="col-fix col-fix-1"><span class="municipio-badge">{{ r.municipio or '' }}</span></td>
-                                <td>{{ r.num_matricula or '' }}</td>
+                                <td>{{ r.num_matricula_fmt or '' }}</td>
                                 <td class="num">{{ r.area_util_m2_fmt }}</td>
                                 <td class="num">{{ r.reserva_legal_m2_fmt }}</td>
                                 <td class="num">{{ r.area_total_m2_fmt }}</td>
@@ -356,11 +356,11 @@
                             <tr class="data-row">
                                 <td class="col-fix col-fix-0">{{ r.qtd }}</td>
                                 <td class="col-fix col-fix-1"><span class="municipio-badge">{{ r.municipio or '' }}</span></td>
-                                <td>{{ r.num_matricula or '' }}</td>
+                                <td>{{ r.num_matricula_fmt or '' }}</td>
                                 <td class="num">{{ r.area_total_m2_fmt }}</td>
                                 <td class="num">{{ 'R$ {:,.2f}'.format(r.ultima_aval_mercado).replace(',', 'X').replace('.', ',').replace('X', '.') if r.ultima_aval_mercado else '-' }}<br><small style="color:#9ca3af;font-size:0.68rem;">{{ r.ultima_aval_ano or '' }}</small></td>
                                 <td class="num">{{ 'R$ {:,.2f}'.format(r.ultima_aval_subsidiado).replace(',', 'X').replace('.', ',').replace('X', '.') if r.ultima_aval_subsidiado else '-' }}</td>
-                                <td>{{ r.matricula_parcelamento or '-' }}</td>
+                                <td>{{ r.matricula_parcelamento_fmt or '-' }}</td>
                                 <td class="obs-cell" title="{{ r.ocupacao or '' }}">
                                     {% if r.ocupacao_fmt %}
                                     <span style="font-weight:600;color:#065f46;">{{ r.ocupacao_fmt }}</span>
