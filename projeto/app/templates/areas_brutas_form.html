@@ -279,18 +279,18 @@
                         <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Valor do Conjunto</label>
                         {% set moeda_val = registro['moeda_conjunto'] if registro and registro.get('moeda_conjunto') else 'R$' %}
                         <div class="flex gap-2">
-                            <select name="moeda_conjunto"
-                                class="p-3 border-2 border-gray-200 rounded-xl bg-white focus:ring-2 focus:ring-violet-500 outline-none font-semibold text-gray-700 shrink-0">
+                            <select id="select-moeda-conjunto" name="moeda_conjunto"
+                                class="p-3 border-2 border-gray-200 rounded-xl bg-white focus:ring-2 focus:ring-violet-500 outline-none font-semibold text-gray-700 shrink-0 disabled:opacity-60 disabled:cursor-not-allowed">
                                 <option value="R$"   {% if moeda_val == 'R$'   %}selected{% endif %}>R$</option>
                                 <option value="CR$"  {% if moeda_val == 'CR$'  %}selected{% endif %}>CR$</option>
                                 <option value="Ncz$" {% if moeda_val == 'Ncz$' %}selected{% endif %}>Ncz$</option>
                             </select>
-                            <input type="text" name="valor_conjunto" value="{{ fval('valor_conjunto') }}"
+                            <input type="text" id="input-valor-conjunto" name="valor_conjunto" value="{{ fval('valor_conjunto') }}"
                                 placeholder="Ex: 13.103.022,72"
                                 data-decimais="2"
-                                class="num-br flex-1 p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 outline-none bg-white">
+                                class="num-br flex-1 p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 outline-none bg-white disabled:opacity-60 disabled:cursor-not-allowed disabled:bg-gray-100">
                         </div>
-                        <p class="hint">Valor total pago pelo conjunto. Repita o mesmo valor em todos os imóveis do grupo. Moeda: R$ = Real · CR$ = Cruzeiro Real · Ncz$ = Cruzado Novo.</p>
+                        <p class="hint" id="hint-valor-conjunto">Valor total do conjunto. Moeda: R$ = Real · CR$ = Cruzeiro Real · Ncz$ = Cruzado Novo.</p>
                     </div>
 
                 </div>
@@ -587,25 +587,57 @@ document.getElementById('btn-add-aval').addEventListener('click', function () {
 
 /* ── Select de grupo ─────────────────────────────────────────────── */
 (function () {
-    var selectGrupo = document.getElementById('select-grupo');
-    var novoGrupoBox = document.getElementById('novo-grupo-box');
+    var selectGrupo    = document.getElementById('select-grupo');
+    var novoGrupoBox   = document.getElementById('novo-grupo-box');
     var novoGrupoInput = document.getElementById('novo-grupo-input');
-    var btnConfirmar = document.getElementById('btn-confirmar-grupo');
+    var btnConfirmar   = document.getElementById('btn-confirmar-grupo');
+    var selectMoeda    = document.getElementById('select-moeda-conjunto');
+    var inputValor     = document.getElementById('input-valor-conjunto');
+    var hintValor      = document.getElementById('hint-valor-conjunto');
     if (!selectGrupo) return;
 
-    selectGrupo.addEventListener('change', function () {
-        if (this.value === '__novo_grupo__') {
+    // mapa grupo → {moeda, valor} vindo do servidor
+    var gruposValores = {{ grupos_valores | tojson }};
+
+    function travar(grupo) {
+        var dados = gruposValores[grupo];
+        if (!dados) return;
+        selectMoeda.value    = dados.moeda;
+        inputValor.value     = dados.valor || '';
+        selectMoeda.disabled = true;
+        inputValor.disabled  = true;
+        inputValor.readOnly  = true;
+        hintValor.innerHTML  = '<span class="text-violet-600 font-semibold">Valor definido pelo grupo — igual para todos os imóveis deste conjunto.</span>';
+    }
+
+    function liberar() {
+        selectMoeda.disabled = false;
+        inputValor.disabled  = false;
+        inputValor.readOnly  = false;
+        hintValor.innerHTML  = 'Valor total do conjunto. Moeda: R$ = Real · CR$ = Cruzeiro Real · Ncz$ = Cruzado Novo.';
+    }
+
+    function aoMudarGrupo(valor) {
+        novoGrupoBox.style.display = 'none';
+        if (valor === '__novo_grupo__') {
             novoGrupoBox.style.display = 'flex';
             novoGrupoInput.focus();
+            liberar();
+        } else if (valor === '') {
+            liberar();
+        } else if (gruposValores[valor]) {
+            travar(valor);
         } else {
-            novoGrupoBox.style.display = 'none';
+            // grupo novo criado pelo usuário nesta sessão
+            liberar();
         }
-    });
+    }
+
+    selectGrupo.addEventListener('change', function () { aoMudarGrupo(this.value); });
 
     btnConfirmar.addEventListener('click', function () {
         var nome = novoGrupoInput.value.trim().toUpperCase();
         if (!nome) return;
-        // verifica se já existe no select
         var existente = Array.from(selectGrupo.options).find(function (o) { return o.value === nome; });
         if (!existente) {
             var opt = document.createElement('option');
@@ -616,11 +648,15 @@ document.getElementById('btn-add-aval').addEventListener('click', function () {
         selectGrupo.value = nome;
         novoGrupoBox.style.display = 'none';
         novoGrupoInput.value = '';
+        aoMudarGrupo(nome);
     });
 
     novoGrupoInput.addEventListener('keydown', function (e) {
         if (e.key === 'Enter') { e.preventDefault(); btnConfirmar.click(); }
     });
+
+    // estado inicial ao carregar (modo editar com grupo já selecionado)
+    aoMudarGrupo(selectGrupo.value);
 })();
 
 /* ── Adicionar município ─────────────────────────────────────────── */

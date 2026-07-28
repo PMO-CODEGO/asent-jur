@@ -175,10 +175,19 @@ def nova():
         with db.cursor() as cursor:
             cursor.execute("SELECT DISTINCT municipio FROM municipal_lots WHERE municipio IS NOT NULL AND municipio != '' ORDER BY municipio")
             municipios = [r[0] for r in cursor.fetchall()]
-            cursor.execute("SELECT DISTINCT grupo FROM areas_brutas WHERE grupo IS NOT NULL AND grupo != '' ORDER BY grupo")
-            grupos = [r[0] for r in cursor.fetchall()]
+            cursor.execute("""
+                SELECT grupo, MAX(moeda_conjunto) AS moeda_conjunto, MAX(valor_conjunto) AS valor_conjunto
+                FROM areas_brutas
+                WHERE grupo IS NOT NULL AND grupo != ''
+                  AND valor_conjunto IS NOT NULL
+                GROUP BY grupo
+                ORDER BY grupo
+            """)
+            grupos_rows = cursor.fetchall()
+    grupos = [r[0] for r in grupos_rows]
+    grupos_valores = {r[0]: {'moeda': r[1] or 'R$', 'valor': _fmt_decimal_br(r[2])} for r in grupos_rows}
     return render_template('areas_brutas_form.html', registro=None, avaliacoes=[], campos=CAMPOS, tipos=TIPOS,
-                           titulo='Nova Área Bruta', municipios=municipios, grupos=grupos)
+                           titulo='Nova Área Bruta', municipios=municipios, grupos=grupos, grupos_valores=grupos_valores)
 
 
 @areas_brutas_bp.route('/assent/areas-brutas/<int:registro_id>/editar', methods=['GET', 'POST'])
@@ -214,8 +223,17 @@ def editar(registro_id):
         with db.cursor() as cursor:
             cursor.execute("SELECT DISTINCT municipio FROM municipal_lots WHERE municipio IS NOT NULL AND municipio != '' ORDER BY municipio")
             municipios = [r[0] for r in cursor.fetchall()]
-            cursor.execute("SELECT DISTINCT grupo FROM areas_brutas WHERE grupo IS NOT NULL AND grupo != '' ORDER BY grupo")
-            grupos = [r[0] for r in cursor.fetchall()]
+            cursor.execute("""
+                SELECT grupo, MAX(moeda_conjunto) AS moeda_conjunto, MAX(valor_conjunto) AS valor_conjunto
+                FROM areas_brutas
+                WHERE grupo IS NOT NULL AND grupo != ''
+                  AND valor_conjunto IS NOT NULL
+                GROUP BY grupo
+                ORDER BY grupo
+            """)
+            grupos_rows = cursor.fetchall()
+    grupos = [r[0] for r in grupos_rows]
+    grupos_valores = {r[0]: {'moeda': r[1] or 'R$', 'valor': _fmt_decimal_br(r[2])} for r in grupos_rows}
     registro_display = dict(registro)
     for field in DECIMAIS:
         if registro_display.get(field) is not None:
@@ -241,7 +259,8 @@ def editar(registro_id):
     ]
     return render_template('areas_brutas_form.html', registro=registro_display,
                            avaliacoes=avaliacoes_display, campos=CAMPOS, tipos=TIPOS,
-                           titulo='Editar Área Bruta', municipios=municipios, grupos=grupos)
+                           titulo='Editar Área Bruta', municipios=municipios,
+                           grupos=grupos, grupos_valores=grupos_valores)
 
 
 def _fmt_brl(val):
