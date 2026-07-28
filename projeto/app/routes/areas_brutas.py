@@ -146,6 +146,21 @@ def _fetch_avaliacoes(cursor, area_bruta_id):
     return cursor.fetchall()
 
 
+def _propagar_valor_grupo(cursor, form):
+    """Se o registro pertence a um grupo, aplica moeda e valor a todos do grupo."""
+    grupo = (form.get('grupo') or '').strip()
+    if not grupo:
+        return
+    valor = _parse_decimal_str(form.get('valor_conjunto') or '')
+    moeda = (form.get('moeda_conjunto') or 'R$').strip()
+    if valor is None:
+        return
+    cursor.execute(
+        'UPDATE areas_brutas SET valor_conjunto=%s, moeda_conjunto=%s WHERE grupo=%s',
+        (valor, moeda, grupo)
+    )
+
+
 @areas_brutas_bp.route('/assent/areas-brutas/nova', methods=['GET', 'POST'])
 @role_required('assent', 'admin', 'assent_gestor')
 def nova():
@@ -160,6 +175,7 @@ def nova():
                 )
                 area_id = cursor.lastrowid
                 _save_avaliacoes(cursor, area_id, request.form)
+                _propagar_valor_grupo(cursor, request.form)
                 db.commit()
         f = request.form
         gravar_log('AREA_BRUTA_CRIADA', (
@@ -202,6 +218,7 @@ def editar(registro_id):
                     values + (registro_id,)
                 )
                 _save_avaliacoes(cursor, registro_id, request.form)
+                _propagar_valor_grupo(cursor, request.form)
                 db.commit()
                 f = request.form
                 gravar_log('AREA_BRUTA_EDITADA', (

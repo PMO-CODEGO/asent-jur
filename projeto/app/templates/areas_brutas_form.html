@@ -275,7 +275,7 @@
                     </div>
 
                     <!-- Valor do Conjunto -->
-                    <div class="space-y-1">
+                    <div id="wrapper-valor-conjunto" class="space-y-1">
                         <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Valor do Conjunto</label>
                         {% set moeda_val = registro['moeda_conjunto'] if registro and registro.get('moeda_conjunto') else 'R$' %}
                         <div class="flex gap-2">
@@ -599,22 +599,22 @@ document.getElementById('btn-add-aval').addEventListener('click', function () {
     // mapa grupo → {moeda, valor} vindo do servidor
     var gruposValores = {{ grupos_valores | tojson }};
 
-    function travar(grupo) {
-        var dados = gruposValores[grupo];
-        if (!dados) return;
-        selectMoeda.value    = dados.moeda;
-        inputValor.value     = dados.valor || '';
-        selectMoeda.disabled = true;
-        inputValor.disabled  = true;
-        inputValor.readOnly  = true;
-        hintValor.innerHTML  = '<span class="text-violet-600 font-semibold">Valor definido pelo grupo — igual para todos os imóveis deste conjunto.</span>';
+    var conjuntoWrapper = document.getElementById('wrapper-valor-conjunto');
+
+    function mostrarConjunto(mostrar) {
+        conjuntoWrapper.style.display = mostrar ? '' : 'none';
     }
 
-    function liberar() {
+    function preencherGrupo(grupo) {
+        var dados = gruposValores[grupo];
+        if (dados) {
+            selectMoeda.value = dados.moeda;
+            inputValor.value  = dados.valor || '';
+        }
         selectMoeda.disabled = false;
         inputValor.disabled  = false;
         inputValor.readOnly  = false;
-        hintValor.innerHTML  = 'Valor total do conjunto. Moeda: R$ = Real · CR$ = Cruzeiro Real · Ncz$ = Cruzado Novo.';
+        hintValor.innerHTML  = '<span class="text-violet-600 font-semibold">Ao salvar, este valor será aplicado a todos os imóveis do grupo.</span>';
     }
 
     function aoMudarGrupo(valor) {
@@ -622,14 +622,18 @@ document.getElementById('btn-add-aval').addEventListener('click', function () {
         if (valor === '__novo_grupo__') {
             novoGrupoBox.style.display = 'flex';
             novoGrupoInput.focus();
-            liberar();
+            mostrarConjunto(true);
+            selectMoeda.disabled = false;
+            inputValor.disabled  = false;
+            inputValor.readOnly  = false;
+            inputValor.value     = '';
+            selectMoeda.value    = 'R$';
+            hintValor.innerHTML  = 'Valor total do conjunto. Moeda: R$ = Real · CR$ = Cruzeiro Real · Ncz$ = Cruzado Novo.';
         } else if (valor === '') {
-            liberar();
-        } else if (gruposValores[valor]) {
-            travar(valor);
+            mostrarConjunto(false);
         } else {
-            // grupo novo criado pelo usuário nesta sessão
-            liberar();
+            mostrarConjunto(true);
+            preencherGrupo(valor);
         }
     }
 
