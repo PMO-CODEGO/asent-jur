@@ -239,17 +239,28 @@
                         <p class="hint">Valor histórico de aquisição ou valor de referência individual do imóvel.</p>
                     </div>
 
+                    <!-- Explicação: valor compartilhado -->
+                    <div class="md:col-span-2 bg-violet-100 border border-violet-300 rounded-xl p-4 flex gap-3">
+                        <span class="text-violet-500 mt-0.5 shrink-0"><i data-lucide="info" class="w-5 h-5"></i></span>
+                        <div class="text-sm text-violet-900 space-y-1">
+                            <p class="font-semibold">Como funciona o valor compartilhado?</p>
+                            <p>Alguns imóveis foram adquiridos em conjunto — a CODEGO pagou um valor único por um grupo de áreas ao mesmo tempo. Esse valor não pertence a um imóvel só: ele é o valor total pago pelo <strong>conjunto</strong>.</p>
+                            <p class="text-violet-700">Exemplo: o grupo <em>DAIA II – Anápolis</em> foi adquirido por <strong>R$ 13.103.022,72</strong>. Esse valor é registrado em todos os imóveis do grupo no campo "Valor do Conjunto", e o campo "Grupo" identifica quais imóveis pertencem a esse conjunto.</p>
+                            <p class="text-violet-700">Se este imóvel foi comprado individualmente, deixe o campo "Grupo" em branco e informe o valor no campo "Valor do Imóvel" acima.</p>
+                        </div>
+                    </div>
+
                     <!-- Grupo -->
                     <div class="space-y-1">
-                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Grupo (valor compartilhado)</label>
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Nome do Grupo</label>
                         <input type="text" name="grupo" value="{{ fval('grupo') }}"
                             placeholder="Ex: DAIA II - ANÁPOLIS"
                             class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 outline-none bg-white">
-                        <p class="hint">Nome do grupo ou conjunto ao qual este imóvel pertence. O valor do conjunto é dividido entre todos os imóveis do grupo.</p>
+                        <p class="hint">Identificador do conjunto ao qual este imóvel pertence. Todos os imóveis do mesmo grupo devem ter o mesmo nome aqui.</p>
                     </div>
 
                     <!-- Valor do Conjunto -->
-                    <div class="md:col-span-2 space-y-1">
+                    <div class="space-y-1">
                         <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Valor do Conjunto</label>
                         {% set moeda_val = registro['moeda_conjunto'] if registro and registro.get('moeda_conjunto') else 'R$' %}
                         <div class="flex gap-2">
@@ -264,7 +275,7 @@
                                 data-decimais="2"
                                 class="num-br flex-1 p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 outline-none bg-white">
                         </div>
-                        <p class="hint">Valor total do conjunto de imóveis do grupo. Selecione a moeda vigente na época da avaliação (R$ = Real, CR$ = Cruzeiro Real, Ncz$ = Cruzado Novo).</p>
+                        <p class="hint">Valor total pago pelo conjunto. Repita o mesmo valor em todos os imóveis do grupo. Moeda: R$ = Real · CR$ = Cruzeiro Real · Ncz$ = Cruzado Novo.</p>
                     </div>
 
                 </div>
