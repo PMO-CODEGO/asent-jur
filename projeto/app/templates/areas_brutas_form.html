@@ -253,10 +253,25 @@
                     <!-- Grupo -->
                     <div class="space-y-1">
                         <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Nome do Grupo</label>
-                        <input type="text" name="grupo" value="{{ fval('grupo') }}"
-                            placeholder="Ex: DAIA II - ANÁPOLIS"
-                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 outline-none bg-white">
-                        <p class="hint">Identificador do conjunto ao qual este imóvel pertence. Todos os imóveis do mesmo grupo devem ter o mesmo nome aqui.</p>
+                        {% set val_grupo = fval('grupo') %}
+                        <select id="select-grupo" name="grupo"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl bg-white focus:ring-2 focus:ring-violet-500 outline-none">
+                            <option value="">Sem grupo (imóvel individual)</option>
+                            {% for g in grupos %}
+                            <option value="{{ g }}" {% if val_grupo == g %}selected{% endif %}>{{ g }}</option>
+                            {% endfor %}
+                            {% if val_grupo and val_grupo not in grupos %}
+                            <option value="{{ val_grupo }}" selected>{{ val_grupo }}</option>
+                            {% endif %}
+                            <option value="__novo_grupo__">+ Criar novo grupo</option>
+                        </select>
+                        <div id="novo-grupo-box" style="display:none;" class="mt-2 flex gap-2">
+                            <input id="novo-grupo-input" type="text" placeholder="Nome do grupo em maiúsculas"
+                                class="flex-1 p-3 border-2 border-violet-300 rounded-xl focus:ring-2 focus:ring-violet-500 outline-none bg-white">
+                            <button type="button" id="btn-confirmar-grupo"
+                                class="px-4 py-2 bg-violet-600 text-white rounded-xl font-bold hover:bg-violet-700 transition-all">Confirmar</button>
+                        </div>
+                        <p class="hint">Selecione o grupo ao qual este imóvel pertence, ou crie um novo. Todos os imóveis do mesmo grupo devem ter o mesmo nome.</p>
                     </div>
 
                     <!-- Valor do Conjunto -->
@@ -568,6 +583,44 @@ document.getElementById('btn-add-aval').addEventListener('click', function () {
         input.value = mascarado;
         setEstado(RE_CNJ.test(mascarado) ? 'ok' : 'erro');
     }
+})();
+
+/* ── Select de grupo ─────────────────────────────────────────────── */
+(function () {
+    var selectGrupo = document.getElementById('select-grupo');
+    var novoGrupoBox = document.getElementById('novo-grupo-box');
+    var novoGrupoInput = document.getElementById('novo-grupo-input');
+    var btnConfirmar = document.getElementById('btn-confirmar-grupo');
+    if (!selectGrupo) return;
+
+    selectGrupo.addEventListener('change', function () {
+        if (this.value === '__novo_grupo__') {
+            novoGrupoBox.style.display = 'flex';
+            novoGrupoInput.focus();
+        } else {
+            novoGrupoBox.style.display = 'none';
+        }
+    });
+
+    btnConfirmar.addEventListener('click', function () {
+        var nome = novoGrupoInput.value.trim().toUpperCase();
+        if (!nome) return;
+        // verifica se já existe no select
+        var existente = Array.from(selectGrupo.options).find(function (o) { return o.value === nome; });
+        if (!existente) {
+            var opt = document.createElement('option');
+            opt.value = nome;
+            opt.textContent = nome;
+            selectGrupo.insertBefore(opt, selectGrupo.querySelector('option[value="__novo_grupo__"]'));
+        }
+        selectGrupo.value = nome;
+        novoGrupoBox.style.display = 'none';
+        novoGrupoInput.value = '';
+    });
+
+    novoGrupoInput.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') { e.preventDefault(); btnConfirmar.click(); }
+    });
 })();
 
 /* ── Adicionar município ─────────────────────────────────────────── */

@@ -175,8 +175,10 @@ def nova():
         with db.cursor() as cursor:
             cursor.execute("SELECT DISTINCT municipio FROM municipal_lots WHERE municipio IS NOT NULL AND municipio != '' ORDER BY municipio")
             municipios = [r[0] for r in cursor.fetchall()]
+            cursor.execute("SELECT DISTINCT grupo FROM areas_brutas WHERE grupo IS NOT NULL AND grupo != '' ORDER BY grupo")
+            grupos = [r[0] for r in cursor.fetchall()]
     return render_template('areas_brutas_form.html', registro=None, avaliacoes=[], campos=CAMPOS, tipos=TIPOS,
-                           titulo='Nova Área Bruta', municipios=municipios)
+                           titulo='Nova Área Bruta', municipios=municipios, grupos=grupos)
 
 
 @areas_brutas_bp.route('/assent/areas-brutas/<int:registro_id>/editar', methods=['GET', 'POST'])
@@ -212,6 +214,8 @@ def editar(registro_id):
         with db.cursor() as cursor:
             cursor.execute("SELECT DISTINCT municipio FROM municipal_lots WHERE municipio IS NOT NULL AND municipio != '' ORDER BY municipio")
             municipios = [r[0] for r in cursor.fetchall()]
+            cursor.execute("SELECT DISTINCT grupo FROM areas_brutas WHERE grupo IS NOT NULL AND grupo != '' ORDER BY grupo")
+            grupos = [r[0] for r in cursor.fetchall()]
     registro_display = dict(registro)
     for field in DECIMAIS:
         if registro_display.get(field) is not None:
@@ -237,7 +241,7 @@ def editar(registro_id):
     ]
     return render_template('areas_brutas_form.html', registro=registro_display,
                            avaliacoes=avaliacoes_display, campos=CAMPOS, tipos=TIPOS,
-                           titulo='Editar Área Bruta', municipios=municipios)
+                           titulo='Editar Área Bruta', municipios=municipios, grupos=grupos)
 
 
 def _fmt_brl(val):
