@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS `areas_brutas` (
   `reserva_legal_m2` varchar(50) DEFAULT NULL,
   `area_total_m2` decimal(18,3) DEFAULT NULL,
   `valor_imovel` varchar(200) DEFAULT NULL,
+  `moeda_imovel` enum('R$','CR$','Ncz$') DEFAULT 'R$',
   `grupo` varchar(100) DEFAULT NULL,
   `valor_conjunto` decimal(18,4) DEFAULT NULL,
   `descricao_area` text,

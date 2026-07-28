@@ -231,12 +231,21 @@
 
                     <!-- Valor do Imóvel -->
                     <div class="space-y-1">
-                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Valor do Imóvel (R$)</label>
-                        <input type="text" name="valor_imovel" value="{{ fval('valor_imovel') }}"
-                            placeholder="Ex: 13.103.022,72"
-                            data-decimais="2"
-                            class="num-br w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 outline-none bg-white">
-                        <p class="hint">Valor histórico de aquisição ou valor de referência individual do imóvel.</p>
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Valor do Imóvel</label>
+                        {% set moeda_imovel_val = registro['moeda_imovel'] if registro and registro.get('moeda_imovel') else 'R$' %}
+                        <div class="flex gap-2">
+                            <select name="moeda_imovel"
+                                class="p-3 border-2 border-gray-200 rounded-xl bg-white focus:ring-2 focus:ring-violet-500 outline-none font-semibold text-gray-700 shrink-0">
+                                <option value="R$"   {% if moeda_imovel_val == 'R$'   %}selected{% endif %}>R$</option>
+                                <option value="CR$"  {% if moeda_imovel_val == 'CR$'  %}selected{% endif %}>CR$</option>
+                                <option value="Ncz$" {% if moeda_imovel_val == 'Ncz$' %}selected{% endif %}>Ncz$</option>
+                            </select>
+                            <input type="text" name="valor_imovel" value="{{ fval('valor_imovel') }}"
+                                placeholder="Ex: 13.103.022,72"
+                                data-decimais="2"
+                                class="num-br flex-1 p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 outline-none bg-white">
+                        </div>
+                        <p class="hint">Valor histórico de aquisição ou valor de referência individual do imóvel. Selecione a moeda vigente na época.</p>
                     </div>
 
                     <!-- Explicação: valor compartilhado -->
