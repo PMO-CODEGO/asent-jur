@@ -7,302 +7,509 @@
     <link rel="shortcut icon" href="{{ url_for('static', filename='imagens_empresas/asentjur.png') }}" type="image/png">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .section-card { border-left: 4px solid; }
+        .hint { font-size: 0.72rem; color: #9ca3af; margin-top: 3px; line-height: 1.35; }
+        input:focus, select:focus, textarea:focus { background: #fff !important; }
+    </style>
 </head>
 <body class="min-h-screen bg-[#002b5c] p-3 sm:p-4 md:p-8">
 
-    <div class="max-w-5xl mx-auto">
-        <div class="bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-200">
+{% set val_of = namespace() %}
+{% macro fval(field) %}{{ registro[field] if registro and registro[field] is not none else '' }}{% endmacro %}
 
-            <div class="bg-[#002b5c] p-6 text-white flex justify-between items-center">
-                <div>
-                    <h2 class="text-2xl font-bold flex items-center gap-2">
-                        <i data-lucide="{% if registro %}edit{% else %}plus-circle{% endif %}"></i>
-                        {{ titulo }}
-                    </h2>
-                    <p class="text-blue-100 text-sm italic">Controle de Áreas Brutas — CODEGO</p>
-                </div>
-                <a href="{{ url_for('dashboard.areas_brutas') }}" class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition-all text-sm font-bold">
-                    VOLTAR
-                </a>
+<div class="max-w-5xl mx-auto">
+    <div class="bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-200">
+
+        <!-- Cabeçalho -->
+        <div class="bg-[#002b5c] p-6 text-white flex justify-between items-center">
+            <div>
+                <h2 class="text-2xl font-bold flex items-center gap-2">
+                    <i data-lucide="{% if registro %}edit{% else %}plus-circle{% endif %}"></i>
+                    {{ titulo }}
+                </h2>
+                <p class="text-blue-100 text-sm italic">Controle de Áreas Brutas — CODEGO</p>
             </div>
+            <a href="{{ url_for('dashboard.areas_brutas') }}"
+               class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition-all text-sm font-bold">
+                VOLTAR
+            </a>
+        </div>
 
-            <form action="{{ url_for('areas_brutas.editar', registro_id=registro.id) if registro else url_for('areas_brutas.nova') }}"
-                  method="POST" class="p-5 md:p-8">
+        <form action="{{ url_for('areas_brutas.editar', registro_id=registro.id) if registro else url_for('areas_brutas.nova') }}"
+              method="POST" class="p-5 md:p-8 space-y-8">
 
-                <div class="mb-8">
+            <!-- ── 1. IDENTIFICAÇÃO ───────────────────────────────────────── -->
+            <div class="section-card border-blue-600 bg-blue-50/40 rounded-xl p-5 shadow-sm">
+                <div class="flex items-center gap-2 mb-5">
+                    <span class="bg-blue-600 text-white p-2 rounded-lg"><i data-lucide="file-text" class="w-4 h-4"></i></span>
+                    <div>
+                        <h3 class="font-bold text-blue-900 text-base">Identificação do Imóvel</h3>
+                        <p class="text-xs text-blue-600">Dados básicos que identificam e classificam o imóvel no sistema.</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
                     <!-- Tipo -->
-                    <div class="mb-6">
-                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">Tipo</label>
-                        <select name="tipo" class="w-full p-3 border-2 border-gray-100 rounded-xl bg-gray-50/50 focus:ring-2 focus:ring-blue-500 outline-none">
-                            {% for val, label in tipos %}
-                            <option value="{{ val }}" {% if registro and registro.tipo == val %}selected{% endif %}>{{ label }}</option>
+                    <div class="md:col-span-2 space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Tipo do Imóvel</label>
+                        <select name="tipo"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl bg-white focus:ring-2 focus:ring-blue-500 outline-none">
+                            {% for v, l in tipos %}
+                            <option value="{{ v }}" {% if registro and registro.tipo == v %}selected{% endif %}>{{ l }}</option>
                             {% endfor %}
                         </select>
+                        <p class="hint">Selecione "Área bruta - Processo judicial" se houver pendência jurídica associada ao imóvel.</p>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {% for field, label in campos %}
-                        {% if field not in ['tipo', 'moeda_conjunto'] %}
-                        <div class="space-y-1 {% if field in ['descricao_area', 'ocupacao', 'tipo_aquisicao'] %}lg:col-span-2{% endif %}">
-                            <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider ml-1">
-                                {{ label }}
-                            </label>
-
-                            {% set val = registro[field] if registro and registro[field] is not none else '' %}
-
-                            {% if field == 'descricao_area' %}
-                            <textarea name="{{ field }}" rows="2"
-                                class="w-full p-3 border-2 border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all shadow-sm bg-gray-50/50">{{ val }}</textarea>
-
-                            {% elif field == 'valor_conjunto' %}
-                            {% set moeda_val = registro['moeda_conjunto'] if registro and registro.get('moeda_conjunto') else 'R$' %}
-                            <div class="flex gap-2">
-                                <select name="moeda_conjunto"
-                                    class="p-3 border-2 border-gray-100 rounded-xl bg-gray-50/50 focus:ring-2 focus:ring-blue-500 outline-none font-semibold text-gray-700 shrink-0">
-                                    <option value="R$"   {% if moeda_val == 'R$'   %}selected{% endif %}>R$</option>
-                                    <option value="CR$"  {% if moeda_val == 'CR$'  %}selected{% endif %}>CR$</option>
-                                    <option value="Ncz$" {% if moeda_val == 'Ncz$' %}selected{% endif %}>Ncz$</option>
-                                </select>
-                                <input type="text" name="{{ field }}" value="{{ val }}" placeholder="Ex: 1.234,56"
-                                    data-decimais="2"
-                                    class="num-br flex-1 p-3 border-2 border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all shadow-sm bg-gray-50/50">
-                            </div>
-
-                            {% elif field in ['area_util_m2', 'area_total_m2', 'valor_mercado_2021',
-                                'valor_subsidiado_2021', 'valor_mercado_2022', 'valor_subsidiado_2022',
-                                'valor_mercado_2023', 'valor_subsidiado_2023', 'valor_mercado_2024',
-                                'valor_subsidiado_2024'] %}
-                            <input type="text" name="{{ field }}" value="{{ val }}" placeholder="Ex: 1.234,56"
-                                class="num-br w-full p-3 border-2 border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all shadow-sm bg-gray-50/50">
-
-                            {% elif field == 'ano_aquisicao' %}
-                            <input type="number" name="{{ field }}" value="{{ val }}" min="1900" max="2100" step="1"
-                                class="w-full p-3 border-2 border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all shadow-sm bg-gray-50/50">
-
-                            {% elif field in ['link_geo', 'link_matricula'] %}
-                            <input type="url" name="{{ field }}" value="{{ val }}" placeholder="https://..."
-                                class="w-full p-3 border-2 border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all shadow-sm bg-gray-50/50">
-
-                            {% elif field == 'municipio' %}
-                            <select id="select-municipio" name="{{ field }}"
-                                class="w-full p-3 border-2 border-gray-100 rounded-xl bg-gray-50/50 focus:ring-2 focus:ring-blue-500 outline-none">
-                                <option value="">Selecione...</option>
-                                {% for m in municipios %}
-                                <option value="{{ m }}" {% if val == m %}selected{% endif %}>{{ m }}</option>
-                                {% endfor %}
-                                <option value="__outro__">Outro...</option>
-                            </select>
-                            <div id="novo-municipio-box" style="display:none;" class="mt-2 flex gap-2">
-                                <input id="novo-municipio-input" type="text" placeholder="Digite o novo município"
-                                    class="flex-1 p-3 border-2 border-blue-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-white">
-                                <button type="button" id="btn-adicionar-municipio"
-                                    class="px-4 py-2 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-all">Adicionar</button>
-                            </div>
-
-                            {% elif field == 'loteamento' %}
-                            <select name="{{ field }}"
-                                class="w-full p-3 border-2 border-gray-100 rounded-xl bg-gray-50/50 focus:ring-2 focus:ring-blue-500 outline-none">
-                                <option value="">Não informado</option>
-                                <option value="Sim" {% if val == 'Sim' %}selected{% endif %}>Sim</option>
-                                <option value="Não" {% if val == 'Não' %}selected{% endif %}>Não</option>
-                            </select>
-
-                            {% else %}
-                            <input type="text" name="{{ field }}" value="{{ val }}"
-                                {% if field == 'valor_imovel' %}data-decimais="2"{% endif %}
-                                {% if field in ['num_matricula', 'matricula_parcelamento'] %}data-inteiro="1"{% endif %}
-                                class="{{ 'num-br ' if field in ['valor_imovel', 'reserva_legal_m2', 'num_matricula', 'matricula_parcelamento'] else '' }}w-full p-3 border-2 border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all shadow-sm bg-gray-50/50">
-                            {% endif %}
+                    <!-- Município -->
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Município</label>
+                        {% set val_municipio = fval('municipio') %}
+                        <select id="select-municipio" name="municipio"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl bg-white focus:ring-2 focus:ring-blue-500 outline-none">
+                            <option value="">Selecione o município...</option>
+                            {% for m in municipios %}
+                            <option value="{{ m }}" {% if val_municipio == m %}selected{% endif %}>{{ m }}</option>
+                            {% endfor %}
+                            <option value="__outro__">+ Adicionar novo município</option>
+                        </select>
+                        <div id="novo-municipio-box" style="display:none;" class="mt-2 flex gap-2">
+                            <input id="novo-municipio-input" type="text" placeholder="Nome do município em maiúsculas"
+                                class="flex-1 p-3 border-2 border-blue-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                            <button type="button" id="btn-adicionar-municipio"
+                                class="px-4 py-2 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-all">Adicionar</button>
                         </div>
-                        {% endif %}
-                        {% endfor %}
+                        <p class="hint">Município onde o imóvel está localizado.</p>
+                    </div>
+
+                    <!-- Nº Matrícula -->
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Nº Matrícula do Imóvel</label>
+                        <input type="text" name="num_matricula" value="{{ fval('num_matricula') }}"
+                            placeholder="Ex: 118.653"
+                            data-inteiro="1"
+                            class="num-br w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                        <p class="hint">Número de registro do imóvel no cartório de registro de imóveis.</p>
+                    </div>
+
+                    <!-- Loteamento -->
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Loteamento</label>
+                        <select name="loteamento"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl bg-white focus:ring-2 focus:ring-blue-500 outline-none">
+                            <option value="">Não informado</option>
+                            <option value="Sim" {% if fval('loteamento') == 'Sim' %}selected{% endif %}>Sim — área possui loteamento</option>
+                            <option value="Não" {% if fval('loteamento') == 'Não' %}selected{% endif %}>Não — área sem loteamento</option>
+                        </select>
+                        <p class="hint">Indica se a área já foi ou está sendo parcelada em lotes.</p>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- ── 2. DIMENSÕES E LOCALIZAÇÃO ─────────────────────────────── -->
+            <div class="section-card border-emerald-600 bg-emerald-50/40 rounded-xl p-5 shadow-sm">
+                <div class="flex items-center gap-2 mb-5">
+                    <span class="bg-emerald-600 text-white p-2 rounded-lg"><i data-lucide="map" class="w-4 h-4"></i></span>
+                    <div>
+                        <h3 class="font-bold text-emerald-900 text-base">Dimensões e Localização</h3>
+                        <p class="text-xs text-emerald-700">Medidas da área em m² e link para georreferenciamento.</p>
                     </div>
                 </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
 
-                <!-- Avaliações de Mercado -->
-                <div class="mb-8">
-                    <div class="flex items-center justify-between mb-4 pb-2 border-b-2 border-gray-100">
-                        <h3 class="text-sm font-bold text-gray-600 uppercase tracking-wider">Avaliações de Mercado</h3>
-                        <button type="button" id="btn-add-aval"
-                            class="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 rounded-xl font-bold text-sm hover:bg-blue-100 transition-all">
-                            <i data-lucide="plus" class="w-4 h-4"></i> Adicionar Ano
-                        </button>
+                    <!-- Área Útil -->
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Área Útil (m²)</label>
+                        <input type="text" name="area_util_m2" value="{{ fval('area_util_m2') }}"
+                            placeholder="Ex: 41.881,00"
+                            class="num-br w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none bg-white">
+                        <p class="hint">Área efetivamente utilizável, excluindo restrições e reservas.</p>
                     </div>
-                    <div class="flex gap-3 items-center mb-1 px-1">
-                        <span class="w-24 text-xs font-bold text-gray-500 uppercase text-center">Ano</span>
-                        <span class="flex-1 text-xs font-bold text-gray-500 uppercase">Valor de Mercado (R$)</span>
-                        <span class="flex-1 text-xs font-bold text-gray-500 uppercase">Valor Subsidiado (R$)</span>
+
+                    <!-- Área Total -->
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Área Total (m²)</label>
+                        <input type="text" name="area_total_m2" value="{{ fval('area_total_m2') }}"
+                            placeholder="Ex: 50.000,00"
+                            class="num-br w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none bg-white">
+                        <p class="hint">Área total do imóvel, incluindo reserva legal e faixas de restrição.</p>
+                    </div>
+
+                    <!-- Reserva Legal -->
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Reserva Legal (m²)</label>
+                        <input type="text" name="reserva_legal_m2" value="{{ fval('reserva_legal_m2') }}"
+                            placeholder="Ex: 8.119,00 ou -"
+                            class="num-br w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none bg-white">
+                        <p class="hint">Área destinada à preservação ambiental obrigatória (RL). Digite "-" se não aplicável.</p>
+                    </div>
+
+                    <!-- Link GEO -->
+                    <div class="md:col-span-3 space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Link GEO</label>
+                        <input type="url" name="link_geo" value="{{ fval('link_geo') }}"
+                            placeholder="https://..."
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none bg-white">
+                        <p class="hint">URL do sistema de georreferenciamento (SIEG, SIGGO, etc.) com a localização do imóvel.</p>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- ── 3. AQUISIÇÃO E DOCUMENTAÇÃO ────────────────────────────── -->
+            <div class="section-card border-amber-500 bg-amber-50/40 rounded-xl p-5 shadow-sm">
+                <div class="flex items-center gap-2 mb-5">
+                    <span class="bg-amber-500 text-white p-2 rounded-lg"><i data-lucide="clipboard-list" class="w-4 h-4"></i></span>
+                    <div>
+                        <h3 class="font-bold text-amber-900 text-base">Aquisição e Documentação</h3>
+                        <p class="text-xs text-amber-700">Como e quando o imóvel foi adquirido, e documentos vinculados.</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+                    <!-- Ano de Aquisição -->
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Ano de Aquisição</label>
+                        <input type="number" name="ano_aquisicao" value="{{ fval('ano_aquisicao') }}"
+                            min="1900" max="2100" step="1" placeholder="Ex: 2025"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none bg-white">
+                        <p class="hint">Ano em que o imóvel foi adquirido pela CODEGO.</p>
+                    </div>
+
+                    <!-- Registro de Propriedade -->
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Registro de Propriedade</label>
+                        <input type="text" name="registro_propriedade" value="{{ fval('registro_propriedade') }}"
+                            placeholder="Ex: CODEGO, Estado de Goiás..."
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none bg-white">
+                        <p class="hint">Quem detém o registro formal de propriedade do imóvel.</p>
+                    </div>
+
+                    <!-- Tipo de Aquisição -->
+                    <div class="md:col-span-2 space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Tipo de Aquisição</label>
+                        <input type="text" name="tipo_aquisicao" value="{{ fval('tipo_aquisicao') }}"
+                            placeholder="Ex: Escritura pública de transferência dominial — integralização"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none bg-white">
+                        <p class="hint">Forma jurídica pela qual o imóvel foi transferido para a CODEGO (escritura, doação, desapropriação, etc.).</p>
+                    </div>
+
+                    <!-- Número de Processo -->
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Número de Processo</label>
+                        <input type="text" name="numero_processo" value="{{ fval('numero_processo') }}"
+                            placeholder="Ex: 5001234-12.2024.8.09.0000"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none bg-white">
+                        <p class="hint">Número do processo judicial, se houver ação em curso relacionada ao imóvel.</p>
+                    </div>
+
+                    <!-- Link Matrícula -->
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Link da Matrícula</label>
+                        <input type="url" name="link_matricula" value="{{ fval('link_matricula') }}"
+                            placeholder="https://..."
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none bg-white">
+                        <p class="hint">URL para visualização da matrícula no sistema do cartório ou portal de serviços.</p>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- ── 4. INFORMAÇÕES FINANCEIRAS ─────────────────────────────── -->
+            <div class="section-card border-violet-600 bg-violet-50/40 rounded-xl p-5 shadow-sm">
+                <div class="flex items-center gap-2 mb-5">
+                    <span class="bg-violet-600 text-white p-2 rounded-lg"><i data-lucide="banknote" class="w-4 h-4"></i></span>
+                    <div>
+                        <h3 class="font-bold text-violet-900 text-base">Informações Financeiras</h3>
+                        <p class="text-xs text-violet-700">Valores de referência do imóvel e do grupo ao qual pertence.</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+                    <!-- Valor do Imóvel -->
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Valor do Imóvel (R$)</label>
+                        <input type="text" name="valor_imovel" value="{{ fval('valor_imovel') }}"
+                            placeholder="Ex: 13.103.022,72"
+                            data-decimais="2"
+                            class="num-br w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 outline-none bg-white">
+                        <p class="hint">Valor histórico de aquisição ou valor de referência individual do imóvel.</p>
+                    </div>
+
+                    <!-- Grupo -->
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Grupo (valor compartilhado)</label>
+                        <input type="text" name="grupo" value="{{ fval('grupo') }}"
+                            placeholder="Ex: DAIA II - ANÁPOLIS"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 outline-none bg-white">
+                        <p class="hint">Nome do grupo ou conjunto ao qual este imóvel pertence. O valor do conjunto é dividido entre todos os imóveis do grupo.</p>
+                    </div>
+
+                    <!-- Valor do Conjunto -->
+                    <div class="md:col-span-2 space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Valor do Conjunto</label>
+                        {% set moeda_val = registro['moeda_conjunto'] if registro and registro.get('moeda_conjunto') else 'R$' %}
+                        <div class="flex gap-2">
+                            <select name="moeda_conjunto"
+                                class="p-3 border-2 border-gray-200 rounded-xl bg-white focus:ring-2 focus:ring-violet-500 outline-none font-semibold text-gray-700 shrink-0">
+                                <option value="R$"   {% if moeda_val == 'R$'   %}selected{% endif %}>R$</option>
+                                <option value="CR$"  {% if moeda_val == 'CR$'  %}selected{% endif %}>CR$</option>
+                                <option value="Ncz$" {% if moeda_val == 'Ncz$' %}selected{% endif %}>Ncz$</option>
+                            </select>
+                            <input type="text" name="valor_conjunto" value="{{ fval('valor_conjunto') }}"
+                                placeholder="Ex: 13.103.022,72"
+                                data-decimais="2"
+                                class="num-br flex-1 p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 outline-none bg-white">
+                        </div>
+                        <p class="hint">Valor total do conjunto de imóveis do grupo. Selecione a moeda vigente na época da avaliação (R$ = Real, CR$ = Cruzeiro Real, Ncz$ = Cruzado Novo).</p>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- ── 5. PARCELAMENTO E USO ───────────────────────────────────── -->
+            <div class="section-card border-rose-500 bg-rose-50/40 rounded-xl p-5 shadow-sm">
+                <div class="flex items-center gap-2 mb-5">
+                    <span class="bg-rose-500 text-white p-2 rounded-lg"><i data-lucide="layers" class="w-4 h-4"></i></span>
+                    <div>
+                        <h3 class="font-bold text-rose-900 text-base">Parcelamento e Uso da Área</h3>
+                        <p class="text-xs text-rose-700">Informações sobre o parcelamento, descrição e situação de ocupação do imóvel.</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+                    <!-- Matrícula do Parcelamento -->
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Matrícula do Parcelamento</label>
+                        <input type="text" name="matricula_parcelamento" value="{{ fval('matricula_parcelamento') }}"
+                            placeholder="Ex: 240.472 ou SEM LOTEAMENTO"
+                            data-inteiro="1"
+                            class="num-br w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-rose-500 outline-none bg-white">
+                        <p class="hint">Matrícula gerada no cartório após o parcelamento/loteamento da área. Deixe em branco ou "SEM LOTEAMENTO" se não aplicável.</p>
+                    </div>
+
+                    <!-- Ocupação -->
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Ocupação</label>
+                        <input type="text" name="ocupacao" value="{{ fval('ocupacao') }}"
+                            placeholder="Ex: GLEBA — 41.881 m² subsidiado em 90%"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-rose-500 outline-none bg-white">
+                        <p class="hint">Situação atual de ocupação da área, podendo incluir percentual subsidiado ou tipo de uso.</p>
+                    </div>
+
+                    <!-- Descrição da Área -->
+                    <div class="md:col-span-2 space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Descrição da Área</label>
+                        <textarea name="descricao_area" rows="3"
+                            placeholder="Ex: FAZENDA RETIRO OU BARREIRO — DAIA II, localizada no município de Anápolis..."
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-rose-500 outline-none bg-white resize-y">{{ fval('descricao_area') }}</textarea>
+                        <p class="hint">Descrição completa da área: nome da fazenda, referências geográficas, características relevantes.</p>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- ── 6. AVALIAÇÕES DE MERCADO ───────────────────────────────── -->
+            <div class="section-card border-teal-600 bg-teal-50/40 rounded-xl p-5 shadow-sm">
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="bg-teal-600 text-white p-2 rounded-lg"><i data-lucide="trending-up" class="w-4 h-4"></i></span>
+                    <div>
+                        <h3 class="font-bold text-teal-900 text-base">Avaliações de Mercado</h3>
+                        <p class="text-xs text-teal-700">Histórico de avaliações do imóvel por ano. Adicione quantos anos forem necessários.</p>
+                    </div>
+                    <button type="button" id="btn-add-aval"
+                        class="ml-auto flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-xl font-bold text-sm hover:bg-teal-700 transition-all">
+                        <i data-lucide="plus" class="w-4 h-4"></i> Adicionar Ano
+                    </button>
+                </div>
+
+                <div class="mt-4">
+                    <div class="flex gap-3 items-center mb-2 px-1">
+                        <span class="w-28 text-xs font-bold text-gray-500 uppercase text-center">Ano</span>
+                        <span class="flex-1 text-xs font-bold text-gray-500 uppercase">Valor de Mercado (R$)
+                            <span class="font-normal normal-case text-gray-400 ml-1">— valor venal na avaliação</span>
+                        </span>
+                        <span class="flex-1 text-xs font-bold text-gray-500 uppercase">Valor Subsidiado (R$)
+                            <span class="font-normal normal-case text-gray-400 ml-1">— valor com desconto aplicado</span>
+                        </span>
                         <span class="w-8"></span>
                     </div>
                     <div id="aval-container" class="flex flex-col gap-3">
                         {% for av in avaliacoes %}
                         <div class="aval-row flex gap-3 items-center">
                             <select name="aval_ano[]"
-                                class="w-28 p-3 border-2 border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50/50 text-center font-semibold">
+                                class="w-28 p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 outline-none bg-white text-center font-semibold">
                                 {% for ano in range(1990, 2036) %}
                                 <option value="{{ ano }}" {% if av.ano == ano %}selected{% endif %}>{{ ano }}</option>
                                 {% endfor %}
                             </select>
-                            <input type="text" name="aval_mercado[]" value="{{ av.valor_mercado }}" placeholder="Ex: 1.234,56"
-                                data-decimais="2" class="num-br flex-1 p-3 border-2 border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50/50">
-                            <input type="text" name="aval_subsidiado[]" value="{{ av.valor_subsidiado }}" placeholder="Ex: 123,45"
-                                data-decimais="2" class="num-br flex-1 p-3 border-2 border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50/50">
+                            <input type="text" name="aval_mercado[]" value="{{ av.valor_mercado }}"
+                                placeholder="Ex: 7.925.979,25"
+                                data-decimais="2" class="num-br flex-1 p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 outline-none bg-white">
+                            <input type="text" name="aval_subsidiado[]" value="{{ av.valor_subsidiado }}"
+                                placeholder="Ex: 792.597,93"
+                                data-decimais="2" class="num-br flex-1 p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 outline-none bg-white">
                             <button type="button" onclick="this.closest('.aval-row').remove()"
-                                class="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all">
+                                class="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all" title="Remover avaliação">
                                 <i data-lucide="trash-2" class="w-4 h-4"></i>
                             </button>
                         </div>
                         {% endfor %}
                     </div>
-                    <p class="text-xs text-gray-400 mt-2">Informe o ano e os valores de mercado e subsidiado para cada avaliação.</p>
+                    {% if not avaliacoes %}
+                    <p class="text-sm text-gray-400 text-center py-4 italic" id="aval-empty-msg">Nenhuma avaliação cadastrada. Clique em "Adicionar Ano" para incluir.</p>
+                    {% endif %}
                 </div>
+            </div>
 
-                <div class="mt-8 flex justify-between gap-4 border-t pt-6">
-                    <a href="{{ url_for('dashboard.areas_brutas') }}"
-                        class="px-8 py-3 rounded-lg font-bold text-gray-500 hover:bg-gray-100 transition-all">
-                        CANCELAR
-                    </a>
-                    <button type="submit"
-                        class="bg-[#002b5c] hover:bg-blue-800 text-white px-12 py-3 rounded-lg font-bold shadow-lg transform transition active:scale-95 flex items-center justify-center gap-2">
-                        <i data-lucide="check-circle" class="w-5 h-5"></i>
-                        {% if registro %}SALVAR ALTERAÇÕES{% else %}CADASTRAR{% endif %}
-                    </button>
-                </div>
-            </form>
-        </div>
+            <!-- ── AÇÕES ──────────────────────────────────────────────────── -->
+            <div class="flex justify-between gap-4 border-t pt-6">
+                <a href="{{ url_for('dashboard.areas_brutas') }}"
+                    class="px-8 py-3 rounded-lg font-bold text-gray-500 hover:bg-gray-100 transition-all">
+                    CANCELAR
+                </a>
+                <button type="submit"
+                    class="bg-[#002b5c] hover:bg-blue-800 text-white px-12 py-3 rounded-lg font-bold shadow-lg transform transition active:scale-95 flex items-center justify-center gap-2">
+                    <i data-lucide="check-circle" class="w-5 h-5"></i>
+                    {% if registro %}SALVAR ALTERAÇÕES{% else %}CADASTRAR ÁREA BRUTA{% endif %}
+                </button>
+            </div>
+
+        </form>
     </div>
+</div>
 
-    <script>lucide.createIcons();</script>
-    <script>
-    /* ── Máscara numérica BR ─────────────────────────────────────────── */
-    function aplicarMascaraBR(input) {
-        var raw = input.value;
-        var pos = input.selectionStart;
-        var pontosPre = (raw.substring(0, pos).match(/\./g) || []).length;
+<script>lucide.createIcons();</script>
+<script>
+/* ── Máscara numérica BR ─────────────────────────────────────────── */
+function aplicarMascaraBR(input) {
+    var raw = input.value;
+    var pos = input.selectionStart;
+    var pontosPre = (raw.substring(0, pos).match(/\./g) || []).length;
 
-        // mantém apenas dígitos e a primeira vírgula
-        raw = raw.replace(/[^\d,]/g, '');
-        var idx = raw.indexOf(',');
-        if (idx !== -1) {
-            raw = raw.substring(0, idx + 1) + raw.substring(idx + 1).replace(/,/g, '');
-        }
-
-        var partes = raw.split(',');
-        var intPart = partes[0].replace(/^0+(\d)/, '$1') || '';
-        var decPart = partes.length > 1 ? partes[1] : null;
-
-        // limita casas decimais conforme data-decimais
-        var maxDec = input.dataset.decimais ? parseInt(input.dataset.decimais) : null;
-        if (maxDec !== null && decPart !== null) {
-            decPart = decPart.substring(0, maxDec);
-        }
-
-        // insere pontos de milhar
-        var intFmt = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-
-        var resultado = decPart !== null ? intFmt + ',' + decPart : intFmt;
-
-        if (input.value !== resultado) {
-            input.value = resultado;
-            // reposiciona cursor compensando pontos adicionados/removidos
-            var pontosPos = (resultado.substring(0, pos).match(/\./g) || []).length;
-            var novaPosicao = Math.min(pos + (pontosPos - pontosPre), resultado.length);
-            input.setSelectionRange(novaPosicao, novaPosicao);
-        }
+    raw = raw.replace(/[^\d,]/g, '');
+    var idx = raw.indexOf(',');
+    if (idx !== -1) {
+        raw = raw.substring(0, idx + 1) + raw.substring(idx + 1).replace(/,/g, '');
     }
 
-    function bindMascaras(raiz) {
-        (raiz || document).querySelectorAll('input.num-br').forEach(function(inp) {
-            if (inp.dataset.maskBound) return;
-            inp.dataset.maskBound = '1';
-            inp.addEventListener('input', function() { aplicarMascaraBR(this); });
-            inp.addEventListener('keypress', function(e) {
-                var inteiro = inp.dataset.inteiro === '1';
-                var permitido = inteiro ? /\d/.test(e.key) : /[\d,]/.test(e.key);
-                if (!permitido && !e.ctrlKey && !e.metaKey) e.preventDefault();
-            });
-            inp.addEventListener('paste', function() {
-                setTimeout(function() { aplicarMascaraBR(inp); }, 0);
-            });
+    var partes = raw.split(',');
+    var intPart = partes[0].replace(/^0+(\d)/, '$1') || '';
+    var decPart = partes.length > 1 ? partes[1] : null;
+
+    var maxDec = input.dataset.decimais ? parseInt(input.dataset.decimais) : null;
+    if (maxDec !== null && decPart !== null) {
+        decPart = decPart.substring(0, maxDec);
+    }
+
+    var intFmt = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    var resultado = decPart !== null ? intFmt + ',' + decPart : intFmt;
+
+    if (input.value !== resultado) {
+        input.value = resultado;
+        var pontosPos = (resultado.substring(0, pos).match(/\./g) || []).length;
+        var novaPosicao = Math.min(pos + (pontosPos - pontosPre), resultado.length);
+        input.setSelectionRange(novaPosicao, novaPosicao);
+    }
+}
+
+function bindMascaras(raiz) {
+    (raiz || document).querySelectorAll('input.num-br').forEach(function(inp) {
+        if (inp.dataset.maskBound) return;
+        inp.dataset.maskBound = '1';
+        inp.addEventListener('input', function() { aplicarMascaraBR(this); });
+        inp.addEventListener('keypress', function(e) {
+            var inteiro = inp.dataset.inteiro === '1';
+            var permitido = inteiro ? /\d/.test(e.key) : /[\d,]/.test(e.key);
+            if (!permitido && !e.ctrlKey && !e.metaKey) e.preventDefault();
         });
-    }
-    bindMascaras();
-
-    /* ── Adicionar linha de avaliação ───────────────────────────────── */
-    var anoAtual = new Date().getFullYear();
-    function buildAnoOptions(selecionado) {
-        var opts = '';
-        for (var a = 1990; a <= 2035; a++) {
-            var sel = (a === (selecionado || anoAtual)) ? ' selected' : '';
-            opts += '<option value="' + a + '"' + sel + '>' + a + '</option>';
-        }
-        return opts;
-    }
-
-    document.getElementById('btn-add-aval').addEventListener('click', function () {
-        var container = document.getElementById('aval-container');
-        var row = document.createElement('div');
-        row.className = 'aval-row flex gap-3 items-center';
-        row.innerHTML =
-            '<select name="aval_ano[]" ' +
-            'class="w-28 p-3 border-2 border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50/50 text-center font-semibold">' +
-            buildAnoOptions() + '</select>' +
-            '<input type="text" name="aval_mercado[]" placeholder="Ex: 1.234,56" data-decimais="2" ' +
-            'class="num-br flex-1 p-3 border-2 border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50/50">' +
-            '<input type="text" name="aval_subsidiado[]" placeholder="Ex: 123,45" data-decimais="2" ' +
-            'class="num-br flex-1 p-3 border-2 border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50/50">' +
-            '<button type="button" onclick="this.closest(\'.aval-row\').remove()" ' +
-            'class="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all">' +
-            '<i data-lucide="trash-2" class="w-4 h-4"></i></button>';
-        container.appendChild(row);
-        lucide.createIcons();
-        bindMascaras(row);
-        row.querySelector('select[name="aval_ano[]"]').focus();
+        inp.addEventListener('paste', function() {
+            setTimeout(function() { aplicarMascaraBR(inp); }, 0);
+        });
     });
-    </script>
-    <script>
-    (function () {
-        var selectMunicipio = document.getElementById('select-municipio');
-        var novaMunicipioBox = document.getElementById('novo-municipio-box');
-        var novaMunicipioInput = document.getElementById('novo-municipio-input');
-        var btnAdicionar = document.getElementById('btn-adicionar-municipio');
-        if (!selectMunicipio) return;
+}
+bindMascaras();
 
-        selectMunicipio.addEventListener('change', function () {
-            if (this.value === '__outro__') {
-                novaMunicipioBox.style.display = 'flex';
-                novaMunicipioInput.focus();
-            } else {
+/* ── Avaliações de Mercado ──────────────────────────────────────── */
+var anoAtual = new Date().getFullYear();
+function buildAnoOptions(selecionado) {
+    var opts = '';
+    for (var a = 1990; a <= 2035; a++) {
+        var sel = (a === (selecionado || anoAtual)) ? ' selected' : '';
+        opts += '<option value="' + a + '"' + sel + '>' + a + '</option>';
+    }
+    return opts;
+}
+
+document.getElementById('btn-add-aval').addEventListener('click', function () {
+    var emptyMsg = document.getElementById('aval-empty-msg');
+    if (emptyMsg) emptyMsg.remove();
+    var container = document.getElementById('aval-container');
+    var row = document.createElement('div');
+    row.className = 'aval-row flex gap-3 items-center';
+    row.innerHTML =
+        '<select name="aval_ano[]" ' +
+        'class="w-28 p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 outline-none bg-white text-center font-semibold">' +
+        buildAnoOptions() + '</select>' +
+        '<input type="text" name="aval_mercado[]" placeholder="Ex: 7.925.979,25" data-decimais="2" ' +
+        'class="num-br flex-1 p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 outline-none bg-white">' +
+        '<input type="text" name="aval_subsidiado[]" placeholder="Ex: 792.597,93" data-decimais="2" ' +
+        'class="num-br flex-1 p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 outline-none bg-white">' +
+        '<button type="button" onclick="this.closest(\'.aval-row\').remove()" title="Remover avaliação" ' +
+        'class="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all">' +
+        '<i data-lucide="trash-2" class="w-4 h-4"></i></button>';
+    container.appendChild(row);
+    lucide.createIcons();
+    bindMascaras(row);
+    row.querySelector('select[name="aval_ano[]"]').focus();
+});
+</script>
+<script>
+/* ── Adicionar município ─────────────────────────────────────────── */
+(function () {
+    var selectMunicipio = document.getElementById('select-municipio');
+    var novaMunicipioBox = document.getElementById('novo-municipio-box');
+    var novaMunicipioInput = document.getElementById('novo-municipio-input');
+    var btnAdicionar = document.getElementById('btn-adicionar-municipio');
+    if (!selectMunicipio) return;
+
+    selectMunicipio.addEventListener('change', function () {
+        if (this.value === '__outro__') {
+            novaMunicipioBox.style.display = 'flex';
+            novaMunicipioInput.focus();
+        } else {
+            novaMunicipioBox.style.display = 'none';
+        }
+    });
+
+    btnAdicionar.addEventListener('click', function () {
+        var nome = novaMunicipioInput.value.trim().toUpperCase();
+        if (!nome) return;
+        fetch('{{ url_for("cadastro.adicionar_municipio") }}', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({municipio: nome})
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            if (data.ok) {
+                var opt = document.createElement('option');
+                opt.value = data.municipio;
+                opt.textContent = data.municipio;
+                selectMunicipio.insertBefore(opt, selectMunicipio.querySelector('option[value="__outro__"]'));
+                selectMunicipio.value = data.municipio;
                 novaMunicipioBox.style.display = 'none';
+                novaMunicipioInput.value = '';
             }
         });
+    });
 
-        btnAdicionar.addEventListener('click', function () {
-            var nome = novaMunicipioInput.value.trim().toUpperCase();
-            if (!nome) return;
-            fetch('{{ url_for("cadastro.adicionar_municipio") }}', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({municipio: nome})
-            })
-            .then(function (r) { return r.json(); })
-            .then(function (data) {
-                if (data.ok) {
-                    var opt = document.createElement('option');
-                    opt.value = data.municipio;
-                    opt.textContent = data.municipio;
-                    selectMunicipio.insertBefore(opt, selectMunicipio.querySelector('option[value="__outro__"]'));
-                    selectMunicipio.value = data.municipio;
-                    novaMunicipioBox.style.display = 'none';
-                    novaMunicipioInput.value = '';
-                }
-            });
-        });
-
-        novaMunicipioInput.addEventListener('keydown', function (e) {
-            if (e.key === 'Enter') { e.preventDefault(); btnAdicionar.click(); }
-        });
-    })();
-    </script>
+    novaMunicipioInput.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') { e.preventDefault(); btnAdicionar.click(); }
+    });
+})();
+</script>
 </body>
 </html>
