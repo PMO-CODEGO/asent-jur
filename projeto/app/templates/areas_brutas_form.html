@@ -64,7 +64,8 @@
                                     <option value="Ncz$" {% if moeda_val == 'Ncz$' %}selected{% endif %}>Ncz$</option>
                                 </select>
                                 <input type="text" name="{{ field }}" value="{{ val }}" placeholder="Ex: 1.234,56"
-                                    class="flex-1 p-3 border-2 border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all shadow-sm bg-gray-50/50">
+                                    data-decimais="2"
+                                    class="num-br flex-1 p-3 border-2 border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all shadow-sm bg-gray-50/50">
                             </div>
 
                             {% elif field in ['area_util_m2', 'area_total_m2', 'valor_mercado_2021',
@@ -72,7 +73,7 @@
                                 'valor_mercado_2023', 'valor_subsidiado_2023', 'valor_mercado_2024',
                                 'valor_subsidiado_2024'] %}
                             <input type="text" name="{{ field }}" value="{{ val }}" placeholder="Ex: 1.234,56"
-                                class="w-full p-3 border-2 border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all shadow-sm bg-gray-50/50">
+                                class="num-br w-full p-3 border-2 border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all shadow-sm bg-gray-50/50">
 
                             {% elif field == 'ano_aquisicao' %}
                             <input type="number" name="{{ field }}" value="{{ val }}" min="1900" max="2100" step="1"
@@ -108,7 +109,8 @@
 
                             {% else %}
                             <input type="text" name="{{ field }}" value="{{ val }}"
-                                class="w-full p-3 border-2 border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all shadow-sm bg-gray-50/50">
+                                {% if field == 'valor_imovel' %}data-decimais="2"{% endif %}
+                                class="{{ 'num-br ' if field in ['valor_imovel', 'reserva_legal_m2'] else '' }}w-full p-3 border-2 border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all shadow-sm bg-gray-50/50">
                             {% endif %}
                         </div>
                         {% endif %}
@@ -134,12 +136,16 @@
                     <div id="aval-container" class="flex flex-col gap-3">
                         {% for av in avaliacoes %}
                         <div class="aval-row flex gap-3 items-center">
-                            <input type="number" name="aval_ano[]" value="{{ av.ano }}" placeholder="Ano" min="1900" max="2100"
-                                class="w-24 p-3 border-2 border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50/50 text-center font-semibold">
-                            <input type="text" name="aval_mercado[]" value="{{ av.valor_mercado }}" placeholder="V. Mercado (Ex: 1.234,56)"
-                                class="flex-1 p-3 border-2 border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50/50">
-                            <input type="text" name="aval_subsidiado[]" value="{{ av.valor_subsidiado }}" placeholder="V. Subsidiado (Ex: 123,45)"
-                                class="flex-1 p-3 border-2 border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50/50">
+                            <select name="aval_ano[]"
+                                class="w-28 p-3 border-2 border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50/50 text-center font-semibold">
+                                {% for ano in range(1990, 2036) %}
+                                <option value="{{ ano }}" {% if av.ano == ano %}selected{% endif %}>{{ ano }}</option>
+                                {% endfor %}
+                            </select>
+                            <input type="text" name="aval_mercado[]" value="{{ av.valor_mercado }}" placeholder="Ex: 1.234,56"
+                                data-decimais="2" class="num-br flex-1 p-3 border-2 border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50/50">
+                            <input type="text" name="aval_subsidiado[]" value="{{ av.valor_subsidiado }}" placeholder="Ex: 123,45"
+                                data-decimais="2" class="num-br flex-1 p-3 border-2 border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50/50">
                             <button type="button" onclick="this.closest('.aval-row').remove()"
                                 class="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all">
                                 <i data-lucide="trash-2" class="w-4 h-4"></i>
@@ -167,23 +173,88 @@
 
     <script>lucide.createIcons();</script>
     <script>
+    /* ── Máscara numérica BR ─────────────────────────────────────────── */
+    function aplicarMascaraBR(input) {
+        var raw = input.value;
+        var pos = input.selectionStart;
+        var pontosPre = (raw.substring(0, pos).match(/\./g) || []).length;
+
+        // mantém apenas dígitos e a primeira vírgula
+        raw = raw.replace(/[^\d,]/g, '');
+        var idx = raw.indexOf(',');
+        if (idx !== -1) {
+            raw = raw.substring(0, idx + 1) + raw.substring(idx + 1).replace(/,/g, '');
+        }
+
+        var partes = raw.split(',');
+        var intPart = partes[0].replace(/^0+(\d)/, '$1') || '';
+        var decPart = partes.length > 1 ? partes[1] : null;
+
+        // limita casas decimais conforme data-decimais
+        var maxDec = input.dataset.decimais ? parseInt(input.dataset.decimais) : null;
+        if (maxDec !== null && decPart !== null) {
+            decPart = decPart.substring(0, maxDec);
+        }
+
+        // insere pontos de milhar
+        var intFmt = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+
+        var resultado = decPart !== null ? intFmt + ',' + decPart : intFmt;
+
+        if (input.value !== resultado) {
+            input.value = resultado;
+            // reposiciona cursor compensando pontos adicionados/removidos
+            var pontosPos = (resultado.substring(0, pos).match(/\./g) || []).length;
+            var novaPosicao = Math.min(pos + (pontosPos - pontosPre), resultado.length);
+            input.setSelectionRange(novaPosicao, novaPosicao);
+        }
+    }
+
+    function bindMascaras(raiz) {
+        (raiz || document).querySelectorAll('input.num-br').forEach(function(inp) {
+            if (inp.dataset.maskBound) return;
+            inp.dataset.maskBound = '1';
+            inp.addEventListener('input', function() { aplicarMascaraBR(this); });
+            inp.addEventListener('keypress', function(e) {
+                if (!/[\d,]/.test(e.key) && !e.ctrlKey && !e.metaKey) e.preventDefault();
+            });
+            inp.addEventListener('paste', function() {
+                setTimeout(function() { aplicarMascaraBR(inp); }, 0);
+            });
+        });
+    }
+    bindMascaras();
+
+    /* ── Adicionar linha de avaliação ───────────────────────────────── */
+    var anoAtual = new Date().getFullYear();
+    function buildAnoOptions(selecionado) {
+        var opts = '';
+        for (var a = 1990; a <= 2035; a++) {
+            var sel = (a === (selecionado || anoAtual)) ? ' selected' : '';
+            opts += '<option value="' + a + '"' + sel + '>' + a + '</option>';
+        }
+        return opts;
+    }
+
     document.getElementById('btn-add-aval').addEventListener('click', function () {
         var container = document.getElementById('aval-container');
         var row = document.createElement('div');
         row.className = 'aval-row flex gap-3 items-center';
         row.innerHTML =
-            '<input type="number" name="aval_ano[]" placeholder="Ano" min="1900" max="2100" ' +
-            'class="w-24 p-3 border-2 border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50/50 text-center font-semibold">' +
-            '<input type="text" name="aval_mercado[]" placeholder="Ex: 1.234,56" ' +
-            'class="flex-1 p-3 border-2 border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50/50">' +
-            '<input type="text" name="aval_subsidiado[]" placeholder="Ex: 123,45" ' +
-            'class="flex-1 p-3 border-2 border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50/50">' +
+            '<select name="aval_ano[]" ' +
+            'class="w-28 p-3 border-2 border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50/50 text-center font-semibold">' +
+            buildAnoOptions() + '</select>' +
+            '<input type="text" name="aval_mercado[]" placeholder="Ex: 1.234,56" data-decimais="2" ' +
+            'class="num-br flex-1 p-3 border-2 border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50/50">' +
+            '<input type="text" name="aval_subsidiado[]" placeholder="Ex: 123,45" data-decimais="2" ' +
+            'class="num-br flex-1 p-3 border-2 border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50/50">' +
             '<button type="button" onclick="this.closest(\'.aval-row\').remove()" ' +
             'class="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all">' +
             '<i data-lucide="trash-2" class="w-4 h-4"></i></button>';
         container.appendChild(row);
         lucide.createIcons();
-        row.querySelector('input[name="aval_ano[]"]').focus();
+        bindMascaras(row);
+        row.querySelector('select[name="aval_ano[]"]').focus();
     });
     </script>
     <script>

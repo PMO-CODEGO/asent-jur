@@ -1,5 +1,6 @@
 import io
 import re
+from decimal import Decimal, InvalidOperation
 from flask import Blueprint, render_template, request, redirect, url_for, send_file, abort
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
@@ -56,21 +57,25 @@ def _parse_decimal_str(s):
 
 
 def _fmt_decimal_br(val):
-    """Formata número decimal para exibição BR sem zeros finais desnecessários."""
+    """Formata número decimal para exibição BR sem zeros finais desnecessários.
+    Usa Decimal para evitar imprecisão de ponto flutuante."""
     if val is None:
         return ''
     try:
-        n = float(val)
-    except (ValueError, TypeError):
+        d = Decimal(str(val)).normalize()
+        s = format(d, 'f')  # evita notação científica
+    except (InvalidOperation, ValueError, TypeError):
         return str(val) if val else ''
-    formatted = '{:,.10f}'.format(n)
-    int_part, dec_part = formatted.split('.')
-    dec_part = dec_part.rstrip('0')
-    if dec_part:
-        result = int_part + ',' + dec_part
+    if '.' in s:
+        int_part, dec_part = s.split('.')
     else:
-        result = int_part
-    return result.replace(',', 'X').replace('.', ',').replace('X', '.')
+        int_part, dec_part = s, ''
+    neg = int_part.startswith('-')
+    # formata separador de milhar diretamente com ponto
+    int_formatted = '{:,}'.format(abs(int(int_part))).replace(',', '.')
+    if neg:
+        int_formatted = '-' + int_formatted
+    return (int_formatted + ',' + dec_part) if dec_part else int_formatted
 
 
 def _parse(field, value):
@@ -196,6 +201,12 @@ def editar(registro_id):
     for field in DECIMAIS:
         if registro_display.get(field) is not None:
             registro_display[field] = _fmt_decimal_br(registro_display[field])
+    # valor_imovel é varchar — tenta formatar se for numérico
+    vi = registro_display.get('valor_imovel')
+    if vi:
+        vi_parsed = _parse_decimal_str(str(vi))
+        if vi_parsed is not None:
+            registro_display['valor_imovel'] = _fmt_decimal_br(vi_parsed)
     # pré-formata avaliações para exibição BR
     avaliacoes_display = [
         {

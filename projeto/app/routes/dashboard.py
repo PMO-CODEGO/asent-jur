@@ -66,23 +66,25 @@ def areas_brutas():
         return 'R$ {:,.2f}'.format(n).replace(',', 'X').replace('.', ',').replace('X', '.')
 
     def _fmt_m2_br(val):
-        """Formata valor numérico de área em m² com separador BR e até 3 casas decimais sem zeros finais."""
+        """Formata valor numérico de área em m² com separador BR e sem zeros finais."""
         if val is None:
             return '-'
         try:
-            n = float(val)
-        except (ValueError, TypeError):
+            from decimal import Decimal, InvalidOperation
+            d = Decimal(str(val)).normalize()
+            s = format(d, 'f')
+        except Exception:
             s = str(val).strip()
             return s if s else '-'
-        formatted = '{:,.3f}'.format(n)
-        # remove zeros finais após o decimal
-        intpart, decpart = formatted.split('.')
-        decpart = decpart.rstrip('0')
-        if decpart:
-            result = intpart + ',' + decpart
+        if '.' in s:
+            int_part, dec_part = s.split('.')
         else:
-            result = intpart
-        return result.replace(',', 'X').replace('.', ',').replace('X', '.')
+            int_part, dec_part = s, ''
+        neg = s.startswith('-')
+        int_formatted = '{:,}'.format(abs(int(int_part))).replace(',', '.')
+        if neg:
+            int_formatted = '-' + int_formatted
+        return (int_formatted + ',' + dec_part) if dec_part else int_formatted
 
     for r in registros:
         # formata ocupacao se for valor numérico
