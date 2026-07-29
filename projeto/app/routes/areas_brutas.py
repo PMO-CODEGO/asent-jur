@@ -170,11 +170,9 @@ def nova():
         placeholders = ', '.join('%s' for _ in CAMPOS)
         with get_db() as db:
             with db.cursor() as cursor:
-                cursor.execute('SELECT COALESCE(MAX(qtd), 0) + 1 FROM areas_brutas')
-                proximo_qtd = cursor.fetchone()[0]
                 cursor.execute(
-                    f'INSERT INTO areas_brutas (qtd, {cols}) VALUES (%s, {placeholders})',
-                    (proximo_qtd,) + _insert_values(request.form)
+                    f'INSERT INTO areas_brutas ({cols}) VALUES ({placeholders})',
+                    _insert_values(request.form)
                 )
                 area_id = cursor.lastrowid
                 _save_avaliacoes(cursor, area_id, request.form)

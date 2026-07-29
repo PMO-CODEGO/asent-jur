@@ -214,7 +214,7 @@
                                 <td class="col-fix col-fix-0">
                                     <span class="row-toggle">
                                         <i data-lucide="chevron-right" style="width:14px;height:14px;"></i>
-                                        {{ r.qtd }}
+                                        {{ loop.index }}
                                     </span>
                                 </td>
                                 <td class="col-fix col-fix-1"><span class="municipio-badge">{{ r.municipio or '' }}</span></td>
@@ -354,7 +354,7 @@
                         <tbody>
                             {% for r in judiciais %}
                             <tr class="data-row">
-                                <td class="col-fix col-fix-0">{{ r.qtd }}</td>
+                                <td class="col-fix col-fix-0">{{ loop.index }}</td>
                                 <td class="col-fix col-fix-1"><span class="municipio-badge">{{ r.municipio or '' }}</span></td>
                                 <td>{{ r.num_matricula_fmt or '' }}</td>
                                 <td class="num">{{ r.area_total_m2_fmt }}</td>
