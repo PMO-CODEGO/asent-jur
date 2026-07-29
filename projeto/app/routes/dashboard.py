@@ -25,7 +25,7 @@ def areas_brutas():
     from app.db import get_db
     with get_db() as db:
         with db.cursor(dictionary=True) as cursor:
-            cursor.execute("SELECT * FROM areas_brutas ORDER BY tipo, municipio, qtd")
+            cursor.execute("SELECT * FROM areas_brutas ORDER BY tipo, municipio, descricao_area")
             registros = cursor.fetchall()
             # busca avaliações agrupadas por registro
             cursor.execute("""
