@@ -1,13 +1,14 @@
 import io
 import re
+import datetime
 from decimal import Decimal, InvalidOperation
-from flask import Blueprint, render_template, request, redirect, url_for, send_file, abort
+from flask import Blueprint, render_template, request, redirect, url_for, send_file, abort, session
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
 from reportlab.lib.units import cm
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, HRFlowable
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.enums import TA_CENTER, TA_LEFT
+from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
 from app.utils.decorators import role_required
 from app.db import get_db
 from app.services.log_service import gravar_log
@@ -299,6 +300,56 @@ def _fmt_m2(val):
         return str(val) if val else '-'
 
 
+def _pdf_header_footer(canvas, doc, codigo_doc, revisao, data_emissao, usuario):
+    """Desenha cabeçalho e rodapé ISO 9001 em todas as páginas."""
+    canvas.saveState()
+    width, height = A4
+
+    _AZUL      = colors.HexColor('#002b5c')
+    _CINZA_BG  = colors.HexColor('#f3f4f6')
+    _CINZA_TXT = colors.HexColor('#6b7280')
+    _BORDA     = colors.HexColor('#e5e7eb')
+
+    # --- Cabeçalho ---
+    canvas.setFillColor(_AZUL)
+    canvas.rect(0, height - 2.8*cm, width, 2.8*cm, fill=1, stroke=0)
+
+    canvas.setFillColor(colors.white)
+    canvas.setFont('Helvetica-Bold', 15)
+    canvas.drawString(2*cm, height - 1.15*cm, 'CODEGO')
+    canvas.setFont('Helvetica', 7.5)
+    canvas.drawString(2*cm, height - 1.65*cm, 'Companhia de Desenvolvimento Econômico de Goiás')
+    canvas.setFont('Helvetica', 7)
+    canvas.drawString(2*cm, height - 2.1*cm, 'Relatório de Área Bruta — Informação Documentada')
+
+    canvas.setFont('Helvetica', 7)
+    canvas.drawRightString(width - 2*cm, height - 0.95*cm, f'Código: {codigo_doc}')
+    canvas.drawRightString(width - 2*cm, height - 1.35*cm, f'Revisão: {revisao}')
+    canvas.drawRightString(width - 2*cm, height - 1.75*cm, f'Emissão: {data_emissao}')
+    canvas.drawRightString(width - 2*cm, height - 2.15*cm, f'Página {doc.page}')
+
+    # linha separadora sob o cabeçalho
+    canvas.setStrokeColor(_BORDA)
+    canvas.setLineWidth(0.5)
+    canvas.line(2*cm, height - 2.8*cm, width - 2*cm, height - 2.8*cm)
+
+    # --- Rodapé ---
+    canvas.setFillColor(_CINZA_BG)
+    canvas.rect(0, 0, width, 1.6*cm, fill=1, stroke=0)
+
+    canvas.setStrokeColor(_BORDA)
+    canvas.line(2*cm, 1.6*cm, width - 2*cm, 1.6*cm)
+
+    canvas.setFillColor(_CINZA_TXT)
+    canvas.setFont('Helvetica', 7)
+    canvas.drawString(2*cm, 1.05*cm, f'Elaborado por: {usuario}')
+    canvas.drawString(2*cm, 0.6*cm,  'Gerado automaticamente pelo sistema ASSENTJUR — CODEGO')
+    canvas.drawRightString(width - 2*cm, 1.05*cm, 'Classificação: Uso Interno')
+    canvas.drawRightString(width - 2*cm, 0.6*cm,  f'{codigo_doc} | {revisao} | {data_emissao}')
+
+    canvas.restoreState()
+
+
 @areas_brutas_bp.route('/assent/areas-brutas/<int:registro_id>/relatorio')
 @role_required('assent', 'admin', 'assent_gestor')
 def relatorio(registro_id):
@@ -310,36 +361,35 @@ def relatorio(registro_id):
     if not r:
         abort(404)
 
+    # --- Metadados ISO 9001 ---
+    codigo_doc   = f'CODEGO/ASSENT/AB/{registro_id:04d}'
+    revisao      = 'Rev. 00'
+    data_emissao = datetime.date.today().strftime('%d/%m/%Y')
+    usuario      = session.get('username') or 'Sistema'
+
     buf = io.BytesIO()
     doc = SimpleDocTemplate(
         buf, pagesize=A4,
-        leftMargin=2*cm, rightMargin=2*cm, topMargin=2*cm, bottomMargin=2*cm
+        leftMargin=2*cm, rightMargin=2*cm,
+        topMargin=3.4*cm,    # espaço para o cabeçalho
+        bottomMargin=2.2*cm, # espaço para o rodapé
     )
 
-    AZUL = colors.HexColor('#002b5c')
+    AZUL       = colors.HexColor('#002b5c')
     AZUL_CLARO = colors.HexColor('#eff6ff')
-    CINZA = colors.HexColor('#f3f4f6')
+    CINZA      = colors.HexColor('#f3f4f6')
     CINZA_TEXT = colors.HexColor('#6b7280')
 
-    styles = getSampleStyleSheet()
-    titulo_style = ParagraphStyle('titulo', fontSize=18, textColor=AZUL, fontName='Helvetica-Bold', spaceAfter=4)
-    sub_style = ParagraphStyle('sub', fontSize=9, textColor=CINZA_TEXT, fontName='Helvetica', spaceAfter=2)
     secao_style = ParagraphStyle('secao', fontSize=10, textColor=AZUL, fontName='Helvetica-Bold', spaceBefore=12, spaceAfter=6)
     label_style = ParagraphStyle('label', fontSize=8, textColor=CINZA_TEXT, fontName='Helvetica')
     valor_style = ParagraphStyle('valor', fontSize=9, textColor=colors.HexColor('#111827'), fontName='Helvetica')
+    titulo_doc_style = ParagraphStyle('titdoc', fontSize=13, textColor=AZUL, fontName='Helvetica-Bold', spaceAfter=2)
+    sub_doc_style = ParagraphStyle('subdoc', fontSize=8, textColor=CINZA_TEXT, fontName='Helvetica', spaceAfter=10)
 
     tipo_label = r.get('tipo') or 'Área bruta'
-    municipio = r.get('municipio') or ''
-    matricula = r.get('num_matricula') or ''
-    descricao = r.get('descricao_area') or ''
-
-    story = []
-
-    story.append(Paragraph('CODEGO', titulo_style))
-    story.append(Paragraph(f'Relatório de Área Bruta — {tipo_label}', sub_style))
-    story.append(HRFlowable(width='100%', thickness=2, color=AZUL, spaceAfter=10))
-
-    story.append(Paragraph('Identificação', secao_style))
+    municipio  = r.get('municipio') or ''
+    matricula  = r.get('num_matricula') or ''
+    descricao  = r.get('descricao_area') or ''
 
     def campo(label, valor):
         return [Paragraph(label, label_style), Paragraph(str(valor) if valor else '-', valor_style)]
@@ -348,6 +398,15 @@ def relatorio(registro_id):
     if r.get('grupo') and r.get('valor_conjunto'):
         valor_imovel_display += f'  (Grupo: {r["grupo"]})'
 
+    story = []
+
+    # Título do documento (abaixo do cabeçalho)
+    story.append(Paragraph(f'Relatório de Área Bruta', titulo_doc_style))
+    story.append(Paragraph(f'{tipo_label} — {municipio}', sub_doc_style))
+    story.append(HRFlowable(width='100%', thickness=1.5, color=AZUL, spaceAfter=10))
+
+    # Identificação
+    story.append(Paragraph('Identificação', secao_style))
     ident_data = [
         campo('Nº', str(r.get('qtd') or '-')),
         campo('Município', municipio),
@@ -356,9 +415,8 @@ def relatorio(registro_id):
         campo('Tipo', tipo_label),
         campo('Registro de Propriedade', r.get('registro_propriedade') or '-'),
     ]
-
     for i in range(0, len(ident_data), 2):
-        row_left = ident_data[i]
+        row_left  = ident_data[i]
         row_right = ident_data[i+1] if i+1 < len(ident_data) else [Paragraph('', label_style), Paragraph('', valor_style)]
         t = Table([[row_left[0], row_right[0]], [row_left[1], row_right[1]]], colWidths=[8.5*cm, 8.5*cm])
         t.setStyle(TableStyle([
@@ -369,10 +427,12 @@ def relatorio(registro_id):
         ]))
         story.append(t)
 
+    # Descrição
     story.append(Paragraph('Descrição da Área', secao_style))
     story.append(Paragraph(descricao or '-', valor_style))
     story.append(Spacer(1, 6))
 
+    # Áreas
     story.append(Paragraph('Áreas', secao_style))
     area_rows = [
         [Paragraph('Área Útil (m²)', label_style), Paragraph('Reserva Legal (m²)', label_style), Paragraph('Área Total (m²)', label_style)],
@@ -387,6 +447,7 @@ def relatorio(registro_id):
     ]))
     story.append(t)
 
+    # Valor
     story.append(Paragraph('Valor', secao_style))
     val_rows = [
         [Paragraph('Valor do Imóvel / Conjunto', label_style), Paragraph('Ocupação', label_style)],
@@ -401,6 +462,7 @@ def relatorio(registro_id):
     ]))
     story.append(t)
 
+    # Avaliações
     if avaliacoes:
         story.append(Paragraph('Avaliações de Mercado', secao_style))
         aval_header = [Paragraph('Ano', label_style), Paragraph('V. Mercado', label_style), Paragraph('V. Subsidiado', label_style)]
@@ -421,6 +483,7 @@ def relatorio(registro_id):
         ]))
         story.append(t)
 
+    # Aquisição e Processo
     story.append(Paragraph('Aquisição e Processo', secao_style))
     aq_data = [
         campo('Tipo de Aquisição', r.get('tipo_aquisicao') or '-'),
@@ -429,7 +492,7 @@ def relatorio(registro_id):
         campo('Link GEO', r.get('link_geo') or '-'),
     ]
     for i in range(0, len(aq_data), 2):
-        row_left = aq_data[i]
+        row_left  = aq_data[i]
         row_right = aq_data[i+1] if i+1 < len(aq_data) else [Paragraph('', label_style), Paragraph('', valor_style)]
         t = Table([[row_left[0], row_right[0]], [row_left[1], row_right[1]]], colWidths=[8.5*cm, 8.5*cm])
         t.setStyle(TableStyle([
@@ -440,7 +503,8 @@ def relatorio(registro_id):
         ]))
         story.append(t)
 
-    doc.build(story)
+    cb = lambda c, d: _pdf_header_footer(c, d, codigo_doc, revisao, data_emissao, usuario)
+    doc.build(story, onFirstPage=cb, onLaterPages=cb)
     buf.seek(0)
 
     nome_arquivo = f'area_bruta_{municipio.replace(" ", "_")}_{matricula or registro_id}.pdf'
