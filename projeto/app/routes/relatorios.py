@@ -65,6 +65,26 @@ RELATORIO_PROCESSO_LABELS = [
 ]
 
 
+def obter_usuario_logado():
+    """Busca o nome/login do usuário autenticado no Flask-Login ou Session."""
+    try:
+        from flask_login import current_user
+        if current_user and current_user.is_authenticated:
+            nome = getattr(current_user, 'nome', None) or getattr(current_user, 'username', None)
+            if nome:
+                return nome
+    except Exception:
+        pass
+
+    return (
+        session.get('username') or
+        session.get('usuario') or
+        session.get('nome') or
+        session.get('user') or
+        'SISTEMA'
+    )
+
+
 def valor_pdf(valor):
     if valor in (None, ''):
         return '-'
@@ -76,6 +96,7 @@ def valor_pdf(valor):
 
 
 IMAGEM_PADRAO = '/static/imagens_empresas/empresa_default.png'
+
 
 def caminho_imagem_empresa(empresa_id):
     static_dir = Path(current_app.root_path) / 'static'
@@ -260,12 +281,14 @@ def gerar_pdf_processo(processo, partes, eventos, documentos):
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=A4, leftMargin=54, rightMargin=54, topMargin=90, bottomMargin=72)
 
-    emitido_por = session.get('username', 'sistema')
+    emitido_por = obter_usuario_logado()
     data_emissao = datetime.now().strftime('%d/%m/%Y')
     doc_code = f"CODEGO-JUR-{processo.get('id', '000'):04}" if isinstance(processo.get('id'), int) else 'CODEGO-JUR'
+    
     doc._iso_doc_code = doc_code
     doc._iso_rev = 'Rev. 00'
     doc._iso_data = data_emissao
+    doc._iso_emitido_por = emitido_por
 
     styles = getSampleStyleSheet()
     title_style = ParagraphStyle('ProcessoTitle', parent=styles['Heading1'],
@@ -325,11 +348,12 @@ def gerar_pdf_geral_processos(processos):
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=A4, leftMargin=54, rightMargin=54, topMargin=90, bottomMargin=72)
 
-    emitido_por = session.get('username', 'sistema')
+    emitido_por = obter_usuario_logado()
     data_emissao = datetime.now().strftime('%d/%m/%Y')
     doc._iso_doc_code = 'CODEGO-JUR-GERAL'
     doc._iso_rev = 'Rev. 00'
     doc._iso_data = data_emissao
+    doc._iso_emitido_por = emitido_por
 
     styles = getSampleStyleSheet()
     subtitle_style = ParagraphStyle('GeralSubtitle', parent=styles['Normal'],
@@ -514,12 +538,14 @@ def relatorios():
                 leftMargin=54, rightMargin=54, topMargin=90, bottomMargin=72
             )
 
-            emitido_por = session.get('username', 'sistema')
+            emitido_por = obter_usuario_logado()
             data_emissao = datetime.now().strftime('%d/%m/%Y')
-            doc_code = f"CODEGO-ASS-{empresa_id.zfill(4)}"
+            doc_code = f"CODEGO-ASS-{str(empresa_id).zfill(4)}"
+            
             doc._iso_doc_code = doc_code
             doc._iso_rev = 'Rev. 00'
             doc._iso_data = data_emissao
+            doc._iso_emitido_por = emitido_por
 
             styles = getSampleStyleSheet()
             cell_style = ParagraphStyle('AssCell', parent=styles['Normal'],
