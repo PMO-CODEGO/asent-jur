@@ -14,9 +14,9 @@ def inicio_assent():
 def controle_area():
     return render_template('controle_area.html')
 
-@dashboard_bp.route('/assent/areas-parceladas')
+@dashboard_bp.route('/assent/areas-brutas-parceladas')
 @role_required('assent', 'admin', 'assent_gestor')
-def areas_parceladas():
+def areas_brutas_parceladas():
     from app.db import get_db
     with get_db() as db:
         with db.cursor(dictionary=True) as cursor:

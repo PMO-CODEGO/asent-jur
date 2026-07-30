@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ titulo }} - CODEGO</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='imagens_empresas/asentjur.png') }}" type="image/png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .section-card { border-left: 4px solid; }
+        input:focus, select:focus, textarea:focus { background: #fff !important; }
+    </style>
+</head>
+<body class="min-h-screen bg-[#002b5c] p-3 sm:p-4 md:p-8">
+
+{% macro fval(field) %}{{ registro[field] if registro and registro[field] is not none else '' }}{% endmacro %}
+
+<div class="max-w-4xl mx-auto">
+    <div class="bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-200">
+
+        <!-- Cabeçalho -->
+        <div class="bg-[#002b5c] p-6 text-white flex justify-between items-center">
+            <div>
+                <h2 class="text-2xl font-bold flex items-center gap-2">
+                    <i data-lucide="{% if registro %}edit{% else %}plus-circle{% endif %}"></i>
+                    {{ titulo }}
+                </h2>
+                <p class="text-blue-100 text-sm italic">Controle de Áreas Brutas Parceladas — CODEGO</p>
+            </div>
+            <a href="{{ url_for('dashboard.areas_brutas_parceladas') }}"
+               class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition-all text-sm font-bold">
+                VOLTAR
+            </a>
+        </div>
+
+        <form action="{{ url_for('areas_brutas_parceladas.editar', registro_id=registro.id) if registro else url_for('areas_brutas_parceladas.nova') }}"
+              method="POST" class="p-5 md:p-8 space-y-8">
+
+            <!-- IDENTIFICAÇÃO -->
+            <div class="section-card border-blue-600 bg-blue-50/40 rounded-xl p-5 shadow-sm">
+                <div class="flex items-center gap-2 mb-5">
+                    <span class="bg-blue-600 text-white p-2 rounded-lg"><i data-lucide="file-text" class="w-4 h-4"></i></span>
+                    <div>
+                        <h3 class="font-bold text-blue-900 text-base">Identificação do Imóvel</h3>
+                        <p class="text-xs text-blue-600">Dados básicos de classificação e localização.</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+                    <!-- Tipo -->
+                    <div class="md:col-span-2 space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Tipo</label>
+                        <select name="tipo"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl bg-white focus:ring-2 focus:ring-blue-500 outline-none">
+                            {% for t in tipos %}
+                            <option value="{{ t }}" {% if registro and registro.tipo == t %}selected{% endif %}>{{ t }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Município -->
+                    <div class="md:col-span-2 space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Município</label>
+                        <input type="text" name="municipio" value="{{ fval('municipio') }}"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                            placeholder="Ex: ANÁPOLIS">
+                    </div>
+
+                    <!-- Descrição da Área -->
+                    <div class="md:col-span-2 space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Descrição da Área</label>
+                        <textarea name="descricao_area" rows="2"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+                            placeholder="Ex: FAZENDA BARREIRO DO MEIO">{{ fval('descricao_area') }}</textarea>
+                    </div>
+
+                    <!-- Ocupação / Distrito -->
+                    <div class="md:col-span-2 space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Ocupação / Distrito</label>
+                        <textarea name="ocupacao" rows="2"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+                            placeholder="Ex: DISTRITO AGROINDUSTRIAL DE ANÁPOLIS - DAIA">{{ fval('ocupacao') }}</textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DADOS DO IMÓVEL -->
+            <div class="section-card border-amber-500 bg-amber-50/40 rounded-xl p-5 shadow-sm">
+                <div class="flex items-center gap-2 mb-5">
+                    <span class="bg-amber-500 text-white p-2 rounded-lg"><i data-lucide="landmark" class="w-4 h-4"></i></span>
+                    <div>
+                        <h3 class="font-bold text-amber-900 text-base">Dados do Imóvel</h3>
+                        <p class="text-xs text-amber-700">Matrícula, área, valor e ano de aquisição.</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Nº Matrícula</label>
+                        <input type="text" name="num_matricula" value="{{ fval('num_matricula') }}"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none"
+                            placeholder="Ex: 3808">
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Ano de Aquisição</label>
+                        <input type="text" name="ano_aquisicao" value="{{ fval('ano_aquisicao') }}"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none"
+                            placeholder="Ex: 2002">
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Área Total (m²)</label>
+                        <input type="text" name="area_total_m2" value="{{ fval('area_total_m2') }}"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none"
+                            placeholder="Ex: 227.370,00">
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Valor do Imóvel</label>
+                        <input type="text" name="valor_imovel" value="{{ fval('valor_imovel') }}"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none"
+                            placeholder="Ex: R$ 23.488,00">
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Registro de Propriedade</label>
+                        <input type="text" name="registro_propriedade" value="{{ fval('registro_propriedade') }}"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none"
+                            placeholder="Ex: CODEGO">
+                    </div>
+                </div>
+            </div>
+
+            <!-- PARCELAMENTO -->
+            <div class="section-card border-green-600 bg-green-50/40 rounded-xl p-5 shadow-sm">
+                <div class="flex items-center gap-2 mb-5">
+                    <span class="bg-green-600 text-white p-2 rounded-lg"><i data-lucide="layout-grid" class="w-4 h-4"></i></span>
+                    <div>
+                        <h3 class="font-bold text-green-900 text-base">Parcelamento</h3>
+                        <p class="text-xs text-green-700">Matrícula e registro de loteamento.</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Matrícula do Parcelamento</label>
+                        <input type="text" name="matricula_parcelamento" value="{{ fval('matricula_parcelamento') }}"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none"
+                            placeholder="Ex: 3808">
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Registro de Loteamento</label>
+                        <input type="text" name="registro_loteamento" value="{{ fval('registro_loteamento') }}"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none"
+                            placeholder="Ex: SIM / NÃO">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botões -->
+            <div class="flex gap-3 pt-2">
+                <button type="submit"
+                    class="flex-1 bg-[#002b5c] hover:bg-blue-900 text-white font-bold py-3 px-6 rounded-xl transition-all flex items-center justify-center gap-2">
+                    <i data-lucide="save" class="w-4 h-4"></i>
+                    {% if registro %}Salvar Alterações{% else %}Criar Registro{% endif %}
+                </button>
+                <a href="{{ url_for('dashboard.areas_brutas_parceladas') }}"
+                    class="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl transition-all flex items-center gap-2">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                    Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>lucide.createIcons();</script>
+</body>
+</html>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Áreas Parceladas - CODEGO</title>
+    <title>Áreas Brutas Parceladas - CODEGO</title>
     <link rel="shortcut icon" href="{{ url_for('static', filename='imagens_empresas/asentjur.png') }}" type="image/png">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -83,7 +83,7 @@
     <div class="topbar">
         <div class="topbar-left">
             <img src="{{ url_for('static', filename='logo_codego.png') }}" alt="Logo CodeGO">
-            <span class="topbar-title">Áreas Parceladas</span>
+            <span class="topbar-title">Áreas Brutas Parceladas</span>
         </div>
         <div class="topbar-actions">
             <a href="{{ url_for('dashboard.controle_area') }}" class="btn-topbar btn-back">
@@ -99,7 +99,7 @@
 
     <div class="page-body">
         <div class="page-header">
-            <h1>Controle de Áreas Parceladas</h1>
+            <h1>Controle de Áreas Brutas Parceladas</h1>
             <p>Glebas parceladas (loteadas) de propriedade da CODEGO — Ref. Jan/2026</p>
         </div>
 
@@ -150,6 +150,11 @@
                 <i data-lucide="search" style="width:16px;height:16px;color:#9ca3af;"></i>
                 <input type="text" id="busca" placeholder="Buscar por município, descrição...">
             </div>
+            <a href="{{ url_for('areas_brutas_parceladas.nova') }}"
+               style="display:flex;align-items:center;gap:7px;padding:8px 18px;background:#002b5c;color:white;border-radius:8px;text-decoration:none;font-size:0.85rem;font-weight:600;transition:all 0.2s;">
+                <i data-lucide="plus" style="width:16px;height:16px;"></i>
+                Nova Área
+            </a>
         </div>
 
         {% macro tabela_secao(lista) %}
@@ -169,6 +174,7 @@
                             <th>Ocupação / Distrito</th>
                             <th>Descrição da Área</th>
                             <th>Reg. Propriedade</th>
+                            <th>Ações</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -196,9 +202,22 @@
                             <td class="ocupacao-cell" title="{{ r.ocupacao or '' }}">{{ r.ocupacao or '-' }}</td>
                             <td class="descricao" title="{{ r.descricao_area or '' }}">{{ r.descricao_area or '-' }}</td>
                             <td>{{ r.registro_propriedade or '-' }}</td>
+                            <td style="white-space:nowrap;">
+                                <a href="{{ url_for('areas_brutas_parceladas.editar', registro_id=r.id) }}"
+                                   style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:#dbeafe;color:#1e40af;border-radius:6px;font-size:0.72rem;font-weight:600;text-decoration:none;margin-right:4px;">
+                                    <i data-lucide="pencil" style="width:12px;height:12px;"></i> Editar
+                                </a>
+                                <form method="POST" action="{{ url_for('areas_brutas_parceladas.excluir', registro_id=r.id) }}"
+                                      style="display:inline;" onsubmit="return confirm('Excluir este registro?')">
+                                    <button type="submit"
+                                        style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:#fee2e2;color:#991b1b;border:none;border-radius:6px;font-size:0.72rem;font-weight:600;cursor:pointer;">
+                                        <i data-lucide="trash-2" style="width:12px;height:12px;"></i> Excluir
+                                    </button>
+                                </form>
+                            </td>
                         </tr>
                         {% else %}
-                        <tr><td colspan="11" class="empty">Nenhum registro encontrado.</td></tr>
+                        <tr><td colspan="12" class="empty">Nenhum registro encontrado.</td></tr>
                         {% endfor %}
                     </tbody>
                 </table>

@@ -73,11 +73,13 @@
             justify-content: center;
             min-height: calc(100vh - 68px);
             padding: 40px 20px;
+            padding-top: 0;
         }
 
         .welcome {
             text-align: center;
             margin-bottom: 48px;
+            margin-top: -60px;
         }
 
         .welcome h1 {
@@ -103,8 +105,8 @@
             background: white;
             border-radius: 16px;
             box-shadow: 0 4px 24px rgba(0,0,0,0.08);
-            padding: 48px 40px;
-            width: 280px;
+            padding: 88px 48px;
+            width: 340px;
             text-align: center;
             text-decoration: none;
             color: inherit;
@@ -133,6 +135,7 @@
 
         .card-icon-blue  { background-color: #dbeafe; color: #002b5c; }
         .card-icon-amber { background-color: #fef3c7; color: #92400e; }
+        .card-icon-green { background-color: #d1fae5; color: #065f46; }
 
         .card-icon svg { width: 36px; height: 36px; }
 
@@ -156,6 +159,52 @@
         }
 
         .card:hover .card-arrow { color: #002b5c; transform: translateX(4px); }
+
+        /* Card com sub-opções (sem link no card inteiro) */
+        .card-multi {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+            padding: 72px 48px 64px;
+            width: 340px;
+            text-align: center;
+            border: 2px solid transparent;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            transition: box-shadow 0.25s ease;
+        }
+
+        .card-multi:hover {
+            box-shadow: 0 8px 32px rgba(0,43,92,0.12);
+        }
+
+        .sub-links {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+            margin-top: 4px;
+        }
+
+        .sub-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: space-between;
+            padding: 10px 14px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.18s ease;
+        }
+
+        .sub-link-amber { background-color: #fef3c7; color: #92400e; }
+        .sub-link-amber:hover { background-color: #fde68a; }
+        .sub-link-green { background-color: #d1fae5; color: #065f46; }
+        .sub-link-green:hover { background-color: #a7f3d0; }
 
         @media (max-width: 640px) {
             .cards { flex-direction: column; align-items: center; }
@@ -192,27 +241,40 @@
         </div>
 
         <div class="cards">
-            <a href="{{ url_for('dashboard.areas_brutas') }}" class="card">
+            <div class="card-multi">
                 <div class="card-icon card-icon-amber">
                     <i data-lucide="trees"></i>
                 </div>
                 <h2>Áreas Brutas</h2>
-                <p>Gerencie as áreas ainda não parceladas disponíveis nos distritos.</p>
-                <div class="card-arrow">
-                    <i data-lucide="arrow-right" style="width:20px;height:20px;"></i>
+                <p style="font-size:0.85rem;color:#6b7280;">Gerencie as áreas de propriedade da CODEGO nos distritos industriais.</p>
+                <div class="sub-links">
+                    <a href="{{ url_for('dashboard.areas_brutas') }}" class="sub-link sub-link-amber">
+                        <i data-lucide="trees" style="width:15px;height:15px;flex-shrink:0;"></i>
+                        <span>Sem parcelamento</span>
+                        <i data-lucide="arrow-right" style="width:15px;height:15px;margin-left:auto;"></i>
+                    </a>
+                    <a href="{{ url_for('dashboard.areas_brutas_parceladas') }}" class="sub-link sub-link-green">
+                        <i data-lucide="layout-grid" style="width:15px;height:15px;flex-shrink:0;"></i>
+                        <span>Brutas Parceladas</span>
+                        <i data-lucide="arrow-right" style="width:15px;height:15px;margin-left:auto;"></i>
+                    </a>
                 </div>
-            </a>
+            </div>
 
-            <a href="{{ url_for('dashboard.areas_parceladas') }}" class="card">
-                <div class="card-icon card-icon-blue">
+            <div class="card-multi">
+                <div class="card-icon card-icon-green">
                     <i data-lucide="layout-grid"></i>
                 </div>
                 <h2>Áreas Parceladas</h2>
-                <p>Gerencie os lotes e parcelas já demarcadas nos distritos industriais.</p>
-                <div class="card-arrow">
-                    <i data-lucide="arrow-right" style="width:20px;height:20px;"></i>
+                <p style="font-size:0.85rem;color:#6b7280;">Gerencie os lotes e parcelas já demarcadas nos distritos industriais.</p>
+                <div class="sub-links">
+                    <a href="{{ url_for('dashboard.menu', modo='assent') }}" class="sub-link sub-link-amber">
+                        <i data-lucide="package" style="width:15px;height:15px;flex-shrink:0;"></i>
+                        <span>Cadastro de Módulos</span>
+                        <i data-lucide="arrow-right" style="width:15px;height:15px;margin-left:auto;"></i>
+                    </a>
                 </div>
-            </a>
+            </div>
         </div>
     </div>
 
