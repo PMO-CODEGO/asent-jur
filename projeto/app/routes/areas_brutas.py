@@ -299,7 +299,6 @@ def _fmt_m2(val):
     except (ValueError, TypeError):
         return str(val) if val else '-'
 
-
 def _pdf_header_footer(canvas, doc, codigo_doc, revisao, data_emissao, usuario):
     """Desenha cabeçalho e rodapé ISO 9001 em todas as páginas."""
     canvas.saveState()
@@ -314,6 +313,7 @@ def _pdf_header_footer(canvas, doc, codigo_doc, revisao, data_emissao, usuario):
     canvas.setFillColor(_AZUL)
     canvas.rect(0, height - 2.8*cm, width, 2.8*cm, fill=1, stroke=0)
 
+    # Esquerda do Cabeçalho
     canvas.setFillColor(colors.white)
     canvas.setFont('Helvetica-Bold', 15)
     canvas.drawString(2*cm, height - 1.15*cm, 'CODEGO')
@@ -322,13 +322,15 @@ def _pdf_header_footer(canvas, doc, codigo_doc, revisao, data_emissao, usuario):
     canvas.setFont('Helvetica', 7)
     canvas.drawString(2*cm, height - 2.1*cm, 'Relatório de Área Bruta — Informação Documentada')
 
+    # Direita do Cabeçalho (com "Elaborado por" incluído)
     canvas.setFont('Helvetica', 7)
-    canvas.drawRightString(width - 2*cm, height - 0.95*cm, f'Código: {codigo_doc}')
-    canvas.drawRightString(width - 2*cm, height - 1.35*cm, f'Revisão: {revisao}')
-    canvas.drawRightString(width - 2*cm, height - 1.75*cm, f'Emissão: {data_emissao}')
-    canvas.drawRightString(width - 2*cm, height - 2.15*cm, f'Página {doc.page}')
+    canvas.drawRightString(width - 2*cm, height - 0.75*cm, f'Código: {codigo_doc}')
+    canvas.drawRightString(width - 2*cm, height - 1.15*cm, f'Revisão: {revisao}')
+    canvas.drawRightString(width - 2*cm, height - 1.55*cm, f'Emissão: {data_emissao}')
+    canvas.drawRightString(width - 2*cm, height - 1.95*cm, f'Elaborado por: {usuario}')
+    canvas.drawRightString(width - 2*cm, height - 2.35*cm, f'Página {doc.page}')
 
-    # linha separadora sob o cabeçalho
+    # Linha separadora sob o cabeçalho
     canvas.setStrokeColor(_BORDA)
     canvas.setLineWidth(0.5)
     canvas.line(2*cm, height - 2.8*cm, width - 2*cm, height - 2.8*cm)
@@ -340,12 +342,14 @@ def _pdf_header_footer(canvas, doc, codigo_doc, revisao, data_emissao, usuario):
     canvas.setStrokeColor(_BORDA)
     canvas.line(2*cm, 1.6*cm, width - 2*cm, 1.6*cm)
 
+    # Normalização no padrão pdf_service.py: remove espaços, pontos, barras e hífens
+    raw_footer = f"{codigo_doc}{revisao}"
+    footer_code = re.sub(r'[\s./\-]', '', raw_footer).upper()
+
+    # Exibe concentrado no canto esquerdo do rodapé
     canvas.setFillColor(_CINZA_TXT)
     canvas.setFont('Helvetica', 7)
-    canvas.drawString(2*cm, 1.05*cm, f'Elaborado por: {usuario}')
-    canvas.drawString(2*cm, 0.6*cm,  'Gerado automaticamente pelo sistema ASSENTJUR — CODEGO')
-    canvas.drawRightString(width - 2*cm, 1.05*cm, 'Classificação: Uso Interno')
-    canvas.drawRightString(width - 2*cm, 0.6*cm,  f'{codigo_doc} | {revisao} | {data_emissao}')
+    canvas.drawString(2*cm, 0.8*cm, footer_code)
 
     canvas.restoreState()
 
