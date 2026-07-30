@@ -1,39 +1,82 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Áreas Parceladas - CODEGO</title>
     <link rel="shortcut icon" href="{{ url_for('static', filename='imagens_empresas/asentjur.png') }}" type="image/png">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body, html { height: 100%; font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
-        .topbar { background-color: #002b5c; color: white; padding: 0 32px; height: 68px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+
+        .topbar { background-color: #002b5c; color: white; padding: 0 32px; height: 68px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); position: sticky; top: 0; z-index: 100; }
         .topbar-left { display: flex; align-items: center; gap: 16px; }
         .topbar img { height: 56px; }
         .topbar-title { font-size: 1rem; font-weight: 600; opacity: 0.9; }
         .topbar-actions { display: flex; gap: 10px; align-items: center; }
         .btn-topbar { text-decoration: none; padding: 9px 18px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; display: flex; align-items: center; gap: 7px; transition: all 0.2s ease; color: white; }
         .btn-back { background-color: #4b5563; }
-        .btn-back:hover { background-color: #374151; transform: translateY(-1px); }
+        .btn-back:hover { background-color: #374151; }
         .btn-logout { background-color: #ef4444; }
-        .btn-logout:hover { background-color: #dc2626; transform: translateY(-1px); }
-        .page-body { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: calc(100vh - 68px); padding: 40px 20px; }
-        .empty-state { background: white; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.07); padding: 64px 48px; text-align: center; max-width: 480px; width: 100%; }
-        .empty-icon { width: 80px; height: 80px; background-color: #dbeafe; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; color: #002b5c; }
-        .empty-icon svg { width: 40px; height: 40px; }
-        .empty-state h1 { font-size: 1.5rem; font-weight: 800; color: #002b5c; margin-bottom: 12px; }
-        .empty-state p { font-size: 0.95rem; color: #6b7280; line-height: 1.6; }
-        .card { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; margin-top: 32px; background: white; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.07); padding: 40px 48px; text-decoration: none; color: inherit; transition: box-shadow 0.2s, transform 0.2s; max-width: 360px; width: 100%; }
-        .card:hover { box-shadow: 0 8px 32px rgba(0,43,92,0.13); transform: translateY(-2px); }
-        .card-icon { width: 64px; height: 64px; border-radius: 16px; display: flex; align-items: center; justify-content: center; }
-        .card-icon svg { width: 32px; height: 32px; }
-        .card-icon-blue { background-color: #dbeafe; color: #002b5c; }
-        .card h2 { font-size: 1.2rem; font-weight: 800; color: #002b5c; }
-        .card p { font-size: 0.9rem; color: #6b7280; text-align: center; line-height: 1.5; }
-        .card-arrow { background-color: #002b5c; color: white; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; }
+        .btn-logout:hover { background-color: #dc2626; }
+
+        .page-body { padding: 32px; max-width: 1600px; margin: 0 auto; }
+
+        .page-header { margin-bottom: 24px; }
+        .page-header h1 { font-size: 1.6rem; font-weight: 800; color: #002b5c; }
+        .page-header p { color: #6b7280; font-size: 0.9rem; margin-top: 4px; }
+
+        .stats-row { display: flex; gap: 16px; margin-bottom: 28px; flex-wrap: wrap; }
+        .stat-card { background: white; border-radius: 12px; padding: 16px 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); display: flex; align-items: center; gap: 14px; min-width: 180px; }
+        .stat-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+        .stat-icon-green  { background-color: #d1fae5; color: #065f46; }
+        .stat-icon-blue   { background-color: #dbeafe; color: #002b5c; }
+        .stat-icon-amber  { background-color: #fef3c7; color: #92400e; }
+        .stat-icon-red    { background-color: #fee2e2; color: #991b1b; }
+        .stat-value { font-size: 1.4rem; font-weight: 800; color: #111827; }
+        .stat-label { font-size: 0.78rem; color: #6b7280; font-weight: 500; }
+
+        .controls { display: flex; gap: 12px; margin-bottom: 20px; align-items: center; flex-wrap: wrap; }
+        .search-box { display: flex; align-items: center; gap: 8px; background: white; border: 1.5px solid #e5e7eb; border-radius: 8px; padding: 8px 14px; flex: 1; min-width: 220px; max-width: 360px; }
+        .search-box input { border: none; outline: none; font-size: 0.88rem; width: 100%; background: transparent; }
+
+        .section { margin-bottom: 40px; }
+        .section-title { font-size: 1rem; font-weight: 700; color: #002b5c; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; padding-bottom: 8px; border-bottom: 2px solid #e5e7eb; }
+        .badge { font-size: 0.72rem; border-radius: 20px; padding: 2px 10px; font-weight: 600; white-space: nowrap; }
+        .badge-green { background-color: #d1fae5; color: #065f46; }
+        .badge-blue  { background-color: #dbeafe; color: #1e40af; }
+        .badge-amber { background-color: #fef3c7; color: #92400e; }
+
+        .table-wrap { background: white; border-radius: 14px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); overflow: hidden; }
+        .table-scroll { overflow-x: auto; overflow-y: auto; max-height: 65vh; border-radius: 14px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+        thead tr { background-color: #002b5c; color: white; }
+        thead th { padding: 11px 14px; text-align: left; font-weight: 600; white-space: nowrap; font-size: 0.75rem; letter-spacing: 0.02em; position: sticky; top: 0; z-index: 10; background-color: #002b5c; }
+        tbody tr { border-bottom: 1px solid #f3f4f6; transition: background 0.12s; }
+        tbody tr:hover { background-color: #f8faff; }
+        tbody tr:last-child { border-bottom: none; }
+        td { padding: 10px 14px; color: #374151; vertical-align: middle; }
+        th.col-fix, td.col-fix { position: sticky; z-index: 5; background-color: white; }
+        thead th.col-fix { background-color: #002b5c; z-index: 11; }
+        th.col-fix-0, td.col-fix-0 { left: 0; }
+        th.col-fix-1, td.col-fix-1 { left: 44px; }
+        td.col-fix::after, th.col-fix-1::after { content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 3px; background: linear-gradient(to right, rgba(0,0,0,0.08), transparent); pointer-events: none; }
+        tbody tr:hover td.col-fix { background-color: #f8faff; }
+        .municipio-badge { display: inline-block; background-color: #eff6ff; color: #1e40af; border-radius: 6px; padding: 2px 8px; font-size: 0.75rem; font-weight: 600; white-space: nowrap; }
+        .lote-sim { display: inline-block; background-color: #d1fae5; color: #065f46; border-radius: 6px; padding: 2px 8px; font-size: 0.73rem; font-weight: 700; }
+        .lote-nao { display: inline-block; background-color: #fee2e2; color: #991b1b; border-radius: 6px; padding: 2px 8px; font-size: 0.73rem; font-weight: 700; }
+        .lote-outro { font-size: 0.73rem; color: #6b7280; }
+        .descricao { max-width: 240px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .ocupacao-cell { max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.75rem; color: #6b7280; }
+        .empty { padding: 48px; text-align: center; color: #9ca3af; }
+
+        @media (max-width: 768px) {
+            .page-body { padding: 16px; }
+            .topbar { padding: 0 16px; }
+            .topbar-title { display: none; }
+        }
     </style>
 </head>
 <body>
@@ -53,18 +96,153 @@
             </a>
         </div>
     </div>
+
     <div class="page-body">
-        <a href="{{ url_for('dashboard.menu', modo='assent') }}" class="card">
-            <div class="card-icon card-icon-blue">
-                <i data-lucide="building-2"></i>
+        <div class="page-header">
+            <h1>Controle de Áreas Parceladas</h1>
+            <p>Glebas parceladas (loteadas) de propriedade da CODEGO — Ref. Jan/2026</p>
+        </div>
+
+        {% set regularizadas = registros | selectattr('tipo', 'equalto', 'Parcelada Regularizada') | list %}
+        {% set galerias      = registros | selectattr('tipo', 'equalto', 'Galerias/Condomínio')    | list %}
+        {% set irregulares   = registros | selectattr('tipo', 'equalto', 'Loteamento Irregular')    | list %}
+
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-icon stat-icon-blue"><i data-lucide="layout-grid" style="width:22px;height:22px;"></i></div>
+                <div>
+                    <div class="stat-value">{{ registros | length }}</div>
+                    <div class="stat-label">Total de imóveis</div>
+                </div>
             </div>
-            <h2>Cadastro de Módulos</h2>
-            <p>Consulte, cadastre e gerencie empresas e assentamentos industriais.</p>
-            <div class="card-arrow">
-                <i data-lucide="arrow-right" style="width:18px;height:18px;"></i>
+            <div class="stat-card">
+                <div class="stat-icon stat-icon-green"><i data-lucide="check-circle" style="width:22px;height:22px;"></i></div>
+                <div>
+                    <div class="stat-value">{{ regularizadas | length }}</div>
+                    <div class="stat-label">Parceladas regularizadas</div>
+                </div>
             </div>
-        </a>
+            <div class="stat-card">
+                <div class="stat-icon stat-icon-blue"><i data-lucide="building-2" style="width:22px;height:22px;"></i></div>
+                <div>
+                    <div class="stat-value">{{ galerias | length }}</div>
+                    <div class="stat-label">Galerias / Condomínios</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon stat-icon-amber"><i data-lucide="alert-triangle" style="width:22px;height:22px;"></i></div>
+                <div>
+                    <div class="stat-value">{{ irregulares | length }}</div>
+                    <div class="stat-label">Loteamento irregular</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon stat-icon-red"><i data-lucide="map" style="width:22px;height:22px;"></i></div>
+                <div>
+                    <div class="stat-value">{{ registros | map(attribute='municipio') | select | unique | list | length }}</div>
+                    <div class="stat-label">Municípios</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="search-box">
+                <i data-lucide="search" style="width:16px;height:16px;color:#9ca3af;"></i>
+                <input type="text" id="busca" placeholder="Buscar por município, descrição...">
+            </div>
+        </div>
+
+        {% macro tabela_secao(lista) %}
+        <div class="table-wrap">
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="col-fix col-fix-0">#</th>
+                            <th class="col-fix col-fix-1">Município</th>
+                            <th>Nº Matrícula</th>
+                            <th>Ano Aquis.</th>
+                            <th>Área Total (m²)</th>
+                            <th>Valor do Imóvel</th>
+                            <th>Matr. Parcelamento</th>
+                            <th>Reg. Loteamento</th>
+                            <th>Ocupação / Distrito</th>
+                            <th>Descrição da Área</th>
+                            <th>Reg. Propriedade</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in lista %}
+                        <tr class="data-row">
+                            <td class="col-fix col-fix-0">{{ loop.index }}</td>
+                            <td class="col-fix col-fix-1"><span class="municipio-badge">{{ r.municipio or '' }}</span></td>
+                            <td>{{ r.num_matricula or '-' }}</td>
+                            <td>{{ r.ano_aquisicao or '-' }}</td>
+                            <td>{{ r.area_total_m2 or '-' }}</td>
+                            <td>{{ r.valor_imovel or '-' }}</td>
+                            <td>{{ r.matricula_parcelamento or '-' }}</td>
+                            <td>
+                                {% set rl = r.registro_loteamento or '' %}
+                                {% if rl == 'SIM' %}
+                                    <span class="lote-sim">SIM</span>
+                                {% elif rl in ('NÃO', 'NÃO', 'NAO') %}
+                                    <span class="lote-nao">NÃO</span>
+                                {% elif rl %}
+                                    <span class="lote-outro" title="{{ rl }}">{{ rl[:30] }}{% if rl|length > 30 %}…{% endif %}</span>
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td class="ocupacao-cell" title="{{ r.ocupacao or '' }}">{{ r.ocupacao or '-' }}</td>
+                            <td class="descricao" title="{{ r.descricao_area or '' }}">{{ r.descricao_area or '-' }}</td>
+                            <td>{{ r.registro_propriedade or '-' }}</td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="11" class="empty">Nenhum registro encontrado.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endmacro %}
+
+        <div class="section">
+            <div class="section-title">
+                <i data-lucide="check-circle" style="width:18px;height:18px;color:#059669;"></i>
+                Parceladas com Loteamento Regularizado
+                <span class="badge badge-green">{{ regularizadas | length }} registros</span>
+            </div>
+            {{ tabela_secao(regularizadas) }}
+        </div>
+
+        <div class="section">
+            <div class="section-title">
+                <i data-lucide="building-2" style="width:18px;height:18px;color:#1d4ed8;"></i>
+                Galerias / Condomínio
+                <span class="badge badge-blue">{{ galerias | length }} registros</span>
+            </div>
+            {{ tabela_secao(galerias) }}
+        </div>
+
+        <div class="section">
+            <div class="section-title">
+                <i data-lucide="alert-triangle" style="width:18px;height:18px;color:#d97706;"></i>
+                Loteamento Irregular
+                <span class="badge badge-amber">{{ irregulares | length }} registros</span>
+            </div>
+            {{ tabela_secao(irregulares) }}
+        </div>
     </div>
-    <script>lucide.createIcons();</script>
+
+    <script>
+        lucide.createIcons();
+
+        document.getElementById('busca').addEventListener('input', function() {
+            const q = this.value.toLowerCase();
+            document.querySelectorAll('.data-row').forEach(function(row) {
+                row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+            });
+        });
+    </script>
 </body>
 </html>

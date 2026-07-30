@@ -17,7 +17,12 @@ def controle_area():
 @dashboard_bp.route('/assent/areas-parceladas')
 @role_required('assent', 'admin', 'assent_gestor')
 def areas_parceladas():
-    return render_template('areas_parceladas.html')
+    from app.db import get_db
+    with get_db() as db:
+        with db.cursor(dictionary=True) as cursor:
+            cursor.execute("SELECT * FROM areas_parceladas ORDER BY tipo, municipio, descricao_area")
+            registros = cursor.fetchall()
+    return render_template('areas_parceladas.html', registros=registros)
 
 @dashboard_bp.route('/assent/areas-brutas')
 @role_required('assent', 'admin', 'assent_gestor')
