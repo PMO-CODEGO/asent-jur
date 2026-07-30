@@ -17,11 +17,72 @@ def controle_area():
 @dashboard_bp.route('/assent/areas-brutas-parceladas')
 @role_required('assent', 'admin', 'assent_gestor')
 def areas_brutas_parceladas():
+    import re
     from app.db import get_db
+
+    def _parse_brl(val):
+        if not val:
+            return None
+        s = str(val).strip()
+        s = re.sub(r'^[A-Za-z$\s]+', '', s).strip()
+        if not s:
+            return None
+        if re.match(r'^\d{1,3}(\.\d{3})+(,\d+)?$', s):
+            s = s.replace('.', '').replace(',', '.')
+        else:
+            s = s.replace(',', '.')
+        try:
+            return float(s)
+        except ValueError:
+            return None
+
+    def _fmt_brl(n):
+        if n is None:
+            return None
+        return 'R$ {:,.2f}'.format(n).replace(',', 'X').replace('.', ',').replace('X', '.')
+
+    def _fmt_int_br(val):
+        if not val:
+            return val
+        s = str(val).strip().replace('.', '')
+        try:
+            return '{:,}'.format(int(s)).replace(',', '.')
+        except ValueError:
+            return val
+
+    def _fmt_m2_br(val):
+        if val is None:
+            return '-'
+        try:
+            from decimal import Decimal
+            d = Decimal(str(val)).normalize()
+            s = format(d, 'f')
+        except Exception:
+            s = str(val).strip()
+            return s if s else '-'
+        if '.' in s:
+            int_part, dec_part = s.split('.')
+        else:
+            int_part, dec_part = s, ''
+        neg = s.startswith('-')
+        int_formatted = '{:,}'.format(abs(int(int_part))).replace(',', '.')
+        if neg:
+            int_formatted = '-' + int_formatted
+        return (int_formatted + ',' + dec_part) if dec_part else int_formatted
+
     with get_db() as db:
         with db.cursor(dictionary=True) as cursor:
             cursor.execute("SELECT * FROM areas_parceladas ORDER BY tipo, municipio, descricao_area")
             registros = cursor.fetchall()
+
+    for r in registros:
+        r['area_total_m2_fmt'] = _fmt_m2_br(_parse_brl(r.get('area_total_m2'))) if r.get('area_total_m2') else '-'
+        vi = r.get('valor_imovel')
+        n = _parse_brl(vi) if vi else None
+        r['valor_imovel_fmt'] = _fmt_brl(n) if n is not None else (vi or '-')
+        r['num_matricula_fmt'] = _fmt_int_br(r.get('num_matricula')) or '-'
+        r['matricula_parcelamento_fmt'] = _fmt_int_br(r.get('matricula_parcelamento')) or '-'
+
     return render_template('areas_parceladas.html', registros=registros)
 
 @dashboard_bp.route('/assent/areas-brutas')

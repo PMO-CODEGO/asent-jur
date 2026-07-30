@@ -182,11 +182,11 @@
                         <tr class="data-row">
                             <td class="col-fix col-fix-0">{{ loop.index }}</td>
                             <td class="col-fix col-fix-1"><span class="municipio-badge">{{ r.municipio or '' }}</span></td>
-                            <td>{{ r.num_matricula or '-' }}</td>
+                            <td>{{ r.num_matricula_fmt or '-' }}</td>
                             <td>{{ r.ano_aquisicao or '-' }}</td>
-                            <td>{{ r.area_total_m2 or '-' }}</td>
-                            <td>{{ r.valor_imovel or '-' }}</td>
-                            <td>{{ r.matricula_parcelamento or '-' }}</td>
+                            <td>{{ r.area_total_m2_fmt or '-' }}</td>
+                            <td>{{ r.valor_imovel_fmt or '-' }}</td>
+                            <td>{{ r.matricula_parcelamento_fmt or '-' }}</td>
                             <td>
                                 {% set rl = r.registro_loteamento or '' %}
                                 {% if rl == 'SIM' %}

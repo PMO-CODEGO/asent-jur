@@ -11,6 +11,42 @@
         .section-card { border-left: 4px solid; }
         input:focus, select:focus, textarea:focus { background: #fff !important; }
     </style>
+    <script>
+    function aplicarMascaraBR(input) {
+        var raw = input.value;
+        var pos = input.selectionStart;
+        var pontosPre = (raw.substring(0, pos).match(/\./g) || []).length;
+        raw = raw.replace(/[^\d,]/g, '');
+        var idx = raw.indexOf(',');
+        if (idx !== -1) {
+            raw = raw.substring(0, idx + 1) + raw.substring(idx + 1).replace(/,/g, '');
+        }
+        var partes = raw.split(',');
+        var intPart = partes[0].replace(/^0+(\d)/, '$1') || '';
+        var decPart = partes.length > 1 ? partes[1] : null;
+        var maxDec = input.dataset.decimais ? parseInt(input.dataset.decimais) : null;
+        if (maxDec !== null && decPart !== null) { decPart = decPart.substring(0, maxDec); }
+        var intFmt = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        var resultado = decPart !== null ? intFmt + ',' + decPart : intFmt;
+        if (input.value !== resultado) {
+            input.value = resultado;
+            var pontosPos = (resultado.substring(0, pos).match(/\./g) || []).length;
+            input.setSelectionRange(Math.min(pos + (pontosPos - pontosPre), resultado.length),
+                                    Math.min(pos + (pontosPos - pontosPre), resultado.length));
+        }
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('input.num-br').forEach(function(inp) {
+            inp.addEventListener('input', function() { aplicarMascaraBR(this); });
+            inp.addEventListener('keypress', function(e) {
+                var inteiro = inp.dataset.inteiro === '1';
+                var permitido = inteiro ? /\d/.test(e.key) : /[\d,]/.test(e.key);
+                if (!permitido && !e.ctrlKey && !e.metaKey) e.preventDefault();
+            });
+            inp.addEventListener('paste', function() { setTimeout(function() { aplicarMascaraBR(inp); }, 0); });
+        });
+    });
+    </script>
 </head>
 <body class="min-h-screen bg-[#002b5c] p-3 sm:p-4 md:p-8">
 
@@ -99,29 +135,33 @@
                     <div class="space-y-1">
                         <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Nº Matrícula</label>
                         <input type="text" name="num_matricula" value="{{ fval('num_matricula') }}"
-                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none"
-                            placeholder="Ex: 3808">
+                            class="num-br w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none"
+                            data-inteiro="1" placeholder="Ex: 3.808">
                     </div>
 
                     <div class="space-y-1">
                         <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Ano de Aquisição</label>
-                        <input type="text" name="ano_aquisicao" value="{{ fval('ano_aquisicao') }}"
-                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none"
-                            placeholder="Ex: 2002">
+                        <select name="ano_aquisicao"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl bg-white focus:ring-2 focus:ring-amber-400 outline-none">
+                            <option value="">Não informado</option>
+                            {% for ano in range(1960, 2026) | reverse %}
+                            <option value="{{ ano }}" {% if fval('ano_aquisicao') | string == ano | string %}selected{% endif %}>{{ ano }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
 
                     <div class="space-y-1">
                         <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Área Total (m²)</label>
                         <input type="text" name="area_total_m2" value="{{ fval('area_total_m2') }}"
-                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none"
+                            class="num-br w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none"
                             placeholder="Ex: 227.370,00">
                     </div>
 
                     <div class="space-y-1">
                         <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Valor do Imóvel</label>
                         <input type="text" name="valor_imovel" value="{{ fval('valor_imovel') }}"
-                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none"
-                            placeholder="Ex: R$ 23.488,00">
+                            class="num-br w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none"
+                            data-decimais="2" placeholder="Ex: 23.488,00">
                     </div>
 
                     <div class="space-y-1">
@@ -147,8 +187,8 @@
                     <div class="space-y-1">
                         <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Matrícula do Parcelamento</label>
                         <input type="text" name="matricula_parcelamento" value="{{ fval('matricula_parcelamento') }}"
-                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none"
-                            placeholder="Ex: 3808">
+                            class="num-br w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none"
+                            data-inteiro="1" placeholder="Ex: 3.808">
                     </div>
 
                     <div class="space-y-1">
