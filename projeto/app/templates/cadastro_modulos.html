@@ -211,6 +211,14 @@
                                    style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:#eff6ff;color:#1e40af;border-radius:6px;font-size:0.75rem;font-weight:600;text-decoration:none;margin-right:4px;">
                                     <i data-lucide="pencil" style="width:13px;height:13px;"></i> Editar
                                 </a>
+                                <form method="POST" action="{{ url_for('relatorio.relatorios', modo='assent') }}"
+                                      style="display:inline;" target="_blank">
+                                    <input type="hidden" name="empresa" value="{{ r.id }}">
+                                    <button type="submit"
+                                        style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:#d1fae5;color:#065f46;border:none;border-radius:6px;font-size:0.75rem;font-weight:600;cursor:pointer;margin-right:4px;">
+                                        <i data-lucide="file-text" style="width:13px;height:13px;"></i> PDF
+                                    </button>
+                                </form>
                                 <form method="POST" action="{{ url_for('cadastro_modulos.excluir', registro_id=r.id) }}"
                                       style="display:inline;" onsubmit="return confirm('Excluir este módulo?')">
                                     <button type="submit"
