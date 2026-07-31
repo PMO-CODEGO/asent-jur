@@ -352,6 +352,16 @@ TIPO_LABELS = {
     "tecnologico": "Parque Tecnológico",
 }
 
+@dashboard_bp.route('/assent/cadastro-modulos')
+@role_required('assent', 'admin', 'assent_gestor')
+def cadastro_modulos():
+    from app.db import get_db
+    with get_db() as db:
+        with db.cursor(dictionary=True) as cursor:
+            cursor.execute("SELECT * FROM municipal_lots ORDER BY municipio, distrito, quadra, modulo_s")
+            registros = cursor.fetchall()
+    return render_template('cadastro_modulos.html', registros=registros)
+
 @dashboard_bp.route('/mapa-distritos')
 @role_required('assent', 'jur', 'admin', 'assent_gestor', 'jur_gestor')
 def mapa_distritos():

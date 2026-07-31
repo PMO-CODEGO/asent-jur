@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Módulos - CODEGO</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='imagens_empresas/asentjur.png') }}" type="image/png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body, html { height: 100%; font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+
+        .topbar { background-color: #002b5c; color: white; padding: 0 32px; height: 68px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); position: sticky; top: 0; z-index: 100; }
+        .topbar-left { display: flex; align-items: center; gap: 16px; }
+        .topbar img { height: 56px; }
+        .topbar-title { font-size: 1rem; font-weight: 600; opacity: 0.9; }
+        .topbar-actions { display: flex; gap: 10px; align-items: center; }
+        .btn-topbar { text-decoration: none; padding: 9px 18px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; display: flex; align-items: center; gap: 7px; transition: all 0.2s ease; color: white; }
+        .btn-back { background-color: #4b5563; }
+        .btn-back:hover { background-color: #374151; }
+        .btn-logout { background-color: #ef4444; }
+        .btn-logout:hover { background-color: #dc2626; }
+
+        .page-body { padding: 32px; max-width: 1600px; margin: 0 auto; }
+
+        .page-header { margin-bottom: 24px; }
+        .page-header h1 { font-size: 1.6rem; font-weight: 800; color: #002b5c; }
+        .page-header p { color: #6b7280; font-size: 0.9rem; margin-top: 4px; }
+
+        .stats-row { display: flex; gap: 16px; margin-bottom: 28px; flex-wrap: wrap; }
+        .stat-card { background: white; border-radius: 12px; padding: 16px 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); display: flex; align-items: center; gap: 14px; min-width: 180px; }
+        .stat-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+        .stat-icon-blue   { background-color: #dbeafe; color: #002b5c; }
+        .stat-icon-green  { background-color: #d1fae5; color: #065f46; }
+        .stat-icon-amber  { background-color: #fef3c7; color: #92400e; }
+        .stat-icon-red    { background-color: #fee2e2; color: #991b1b; }
+        .stat-icon-purple { background-color: #ede9fe; color: #4c1d95; }
+        .stat-value { font-size: 1.4rem; font-weight: 800; color: #111827; }
+        .stat-label { font-size: 0.78rem; color: #6b7280; font-weight: 500; }
+
+        .controls { display: flex; gap: 12px; margin-bottom: 20px; align-items: center; flex-wrap: wrap; }
+        .search-box { display: flex; align-items: center; gap: 8px; background: white; border: 1.5px solid #e5e7eb; border-radius: 8px; padding: 8px 14px; flex: 1; min-width: 220px; max-width: 360px; }
+        .search-box input { border: none; outline: none; font-size: 0.88rem; width: 100%; background: transparent; }
+        .filter-select { background: white; border: 1.5px solid #e5e7eb; border-radius: 8px; padding: 9px 14px; font-size: 0.88rem; outline: none; cursor: pointer; }
+
+        .table-wrap { background: white; border-radius: 14px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); overflow: hidden; }
+        .table-scroll { overflow-x: auto; overflow-y: auto; max-height: 70vh; border-radius: 14px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+        thead tr { background-color: #002b5c; color: white; }
+        thead th { padding: 11px 14px; text-align: left; font-weight: 600; white-space: nowrap; font-size: 0.75rem; letter-spacing: 0.02em; position: sticky; top: 0; z-index: 10; background-color: #002b5c; }
+        tbody tr { border-bottom: 1px solid #f3f4f6; transition: background 0.12s; }
+        tbody tr:hover { background-color: #f8faff; }
+        tbody tr:last-child { border-bottom: none; }
+        td { padding: 10px 14px; color: #374151; vertical-align: middle; }
+        th.col-fix, td.col-fix { position: sticky; z-index: 5; background-color: white; }
+        thead th.col-fix { background-color: #002b5c; z-index: 11; }
+        th.col-fix-0, td.col-fix-0 { left: 0; }
+        th.col-fix-1, td.col-fix-1 { left: 44px; }
+        td.col-fix::after, th.col-fix-1::after { content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 3px; background: linear-gradient(to right, rgba(0,0,0,0.08), transparent); pointer-events: none; }
+        tbody tr:hover td.col-fix { background-color: #f8faff; }
+        .municipio-badge { display: inline-block; background-color: #eff6ff; color: #1e40af; border-radius: 6px; padding: 2px 8px; font-size: 0.75rem; font-weight: 600; white-space: nowrap; }
+        .status-badge { display: inline-block; border-radius: 6px; padding: 2px 8px; font-size: 0.73rem; font-weight: 700; white-space: nowrap; }
+        .status-regular   { background-color: #d1fae5; color: #065f46; }
+        .status-irregular { background-color: #fee2e2; color: #991b1b; }
+        .status-outro     { background-color: #f3f4f6; color: #6b7280; }
+        .empresa-cell { max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .obs-cell { max-width: 160px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.75rem; color: #6b7280; }
+        .empty { padding: 48px; text-align: center; color: #9ca3af; }
+        td.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+        @media (max-width: 768px) {
+            .page-body { padding: 16px; }
+            .topbar { padding: 0 16px; }
+            .topbar-title { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="topbar">
+        <div class="topbar-left">
+            <img src="{{ url_for('static', filename='logo_codego.png') }}" alt="Logo CodeGO">
+            <span class="topbar-title">Cadastro de Módulos</span>
+        </div>
+        <div class="topbar-actions">
+            <a href="{{ url_for('dashboard.controle_area') }}" class="btn-topbar btn-back">
+                <i data-lucide="arrow-left" style="width:16px;height:16px;"></i>
+                Voltar
+            </a>
+            <a href="{{ url_for('auth_login.logout') }}" class="btn-topbar btn-logout">
+                <i data-lucide="log-out" style="width:16px;height:16px;"></i>
+                Sair
+            </a>
+        </div>
+    </div>
+
+    <div class="page-body">
+        <div class="page-header">
+            <h1>Cadastro de Módulos</h1>
+            <p>Módulos e lotes nos distritos industriais de propriedade da CODEGO</p>
+        </div>
+
+        {% set total = registros | length %}
+        {% set municipios_unicos = registros | map(attribute='municipio') | select | unique | list | length %}
+        {% set com_empresa = registros | selectattr('empresa') | list | length %}
+        {% set regulares = registros | selectattr('imovel_regular_irregular', 'equalto', 'Regular') | list | length %}
+        {% set irregulares = registros | selectattr('imovel_regular_irregular', 'equalto', 'Irregular') | list | length %}
+
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-icon stat-icon-blue"><i data-lucide="package" style="width:22px;height:22px;"></i></div>
+                <div><div class="stat-value">{{ total }}</div><div class="stat-label">Total de módulos</div></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon stat-icon-amber"><i data-lucide="map-pin" style="width:22px;height:22px;"></i></div>
+                <div><div class="stat-value">{{ municipios_unicos }}</div><div class="stat-label">Municípios</div></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon stat-icon-purple"><i data-lucide="building-2" style="width:22px;height:22px;"></i></div>
+                <div><div class="stat-value">{{ com_empresa }}</div><div class="stat-label">Com empresa</div></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon stat-icon-green"><i data-lucide="check-circle" style="width:22px;height:22px;"></i></div>
+                <div><div class="stat-value">{{ regulares }}</div><div class="stat-label">Regulares</div></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon stat-icon-red"><i data-lucide="alert-triangle" style="width:22px;height:22px;"></i></div>
+                <div><div class="stat-value">{{ irregulares }}</div><div class="stat-label">Irregulares</div></div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="search-box">
+                <i data-lucide="search" style="width:16px;height:16px;color:#9ca3af;"></i>
+                <input type="text" id="busca" placeholder="Buscar por município, empresa, distrito...">
+            </div>
+            <select class="filter-select" id="filtro-municipio">
+                <option value="">Todos os municípios</option>
+                {% for m in registros | map(attribute='municipio') | select | unique | sort %}
+                <option value="{{ m }}">{{ m }}</option>
+                {% endfor %}
+            </select>
+            <select class="filter-select" id="filtro-status">
+                <option value="">Todos os status</option>
+                <option value="Regular">Regular</option>
+                <option value="Irregular">Irregular</option>
+            </select>
+        </div>
+
+        <div class="table-wrap">
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="col-fix col-fix-0">#</th>
+                            <th class="col-fix col-fix-1">Município</th>
+                            <th>Distrito</th>
+                            <th>Quadra</th>
+                            <th>Módulo(s)</th>
+                            <th>Qtd. Módulos</th>
+                            <th>Tamanho (m²)</th>
+                            <th>Empresa</th>
+                            <th>CNPJ</th>
+                            <th>Status Assent.</th>
+                            <th>Ramo de Atividade</th>
+                            <th>Empregos</th>
+                            <th>Regular/Irregular</th>
+                            <th>Ação Judicial</th>
+                            <th>Matrícula(s)</th>
+                            <th>Data Escrituração</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in registros %}
+                        <tr class="data-row">
+                            <td class="col-fix col-fix-0">{{ loop.index }}</td>
+                            <td class="col-fix col-fix-1"><span class="municipio-badge">{{ r.municipio or '' }}</span></td>
+                            <td>{{ r.distrito or '-' }}</td>
+                            <td class="num">{{ r.quadra or '-' }}</td>
+                            <td>{{ r.modulo_s or '-' }}</td>
+                            <td class="num">{{ r.qtd_modulos or '-' }}</td>
+                            <td class="num">{{ '{:,.2f}'.format(r.tamanho_m2).replace(',','X').replace('.',',').replace('X','.') if r.tamanho_m2 else '-' }}</td>
+                            <td class="empresa-cell" title="{{ r.empresa or '' }}">{{ r.empresa or '-' }}</td>
+                            <td>{{ r.cnpj or '-' }}</td>
+                            <td>{{ r.status_de_assentamento or '-' }}</td>
+                            <td class="obs-cell" title="{{ r.ramo_de_atividade or '' }}">{{ r.ramo_de_atividade or '-' }}</td>
+                            <td class="num">{{ r.empregos_gerados or '-' }}</td>
+                            <td>
+                                {% set ri = r.imovel_regular_irregular or '' %}
+                                {% if ri == 'Regular' %}
+                                    <span class="status-badge status-regular">Regular</span>
+                                {% elif ri == 'Irregular' %}
+                                    <span class="status-badge status-irregular">Irregular</span>
+                                {% elif ri %}
+                                    <span class="status-badge status-outro">{{ ri }}</span>
+                                {% else %}-{% endif %}
+                            </td>
+                            <td>{{ r.acao_judicial or '-' }}</td>
+                            <td>{{ r.matricula_s or '-' }}</td>
+                            <td>{{ r.data_escrituracao or '-' }}</td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="16" class="empty">Nenhum registro encontrado.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        const busca = document.getElementById('busca');
+        const filtroMun = document.getElementById('filtro-municipio');
+        const filtroStatus = document.getElementById('filtro-status');
+
+        function filtrar() {
+            const q = busca.value.toLowerCase();
+            const mun = filtroMun.value.toLowerCase();
+            const st = filtroStatus.value.toLowerCase();
+            document.querySelectorAll('.data-row').forEach(function(row) {
+                const txt = row.textContent.toLowerCase();
+                const munMatch = !mun || txt.includes(mun);
+                const stMatch = !st || txt.includes(st);
+                const qMatch = !q || txt.includes(q);
+                row.style.display = (munMatch && stMatch && qMatch) ? '' : 'none';
+            });
+        }
+
+        busca.addEventListener('input', filtrar);
+        filtroMun.addEventListener('change', filtrar);
+        filtroStatus.addEventListener('change', filtrar);
+    </script>
+</body>
+</html>

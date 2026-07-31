@@ -3,376 +3,114 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema ASSENTJUR</title>
+    <title>Cadastro de Módulos - CODEGO</title>
     <link rel="shortcut icon" href="{{ url_for('static', filename='imagens_empresas/asentjur.png') }}" type="image/png">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
-    
     <style>
-        :root {
-            --sidebar-bg: #ffffff;
-            --accent-blue: #002b5c; /* Azul Cobalto */
-            --button-blue: #7a97bb;
-            --text-white: #ffffff;
-            --logout-red: #ef4444;
-            --logout-red-hover: #dc2626;
-            --admin-amber: #f59e0b; /* Cor para o botão de Logs */
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body, html { height: 100%; font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
 
-        body, html {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            width: 100%;
-            font-family: 'Inter', sans-serif;
-            overflow: hidden;
-        }
+        .topbar { background-color: #002b5c; color: white; padding: 0 32px; height: 68px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .topbar-left { display: flex; align-items: center; gap: 16px; }
+        .topbar img { height: 56px; }
+        .topbar-title { font-size: 1rem; font-weight: 600; opacity: 0.9; }
+        .topbar-actions { display: flex; gap: 10px; align-items: center; }
+        .btn-topbar { text-decoration: none; padding: 9px 18px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; display: flex; align-items: center; gap: 7px; transition: all 0.2s ease; color: white; }
+        .btn-back { background-color: #4b5563; }
+        .btn-back:hover { background-color: #374151; transform: translateY(-1px); }
+        .btn-logout { background-color: #ef4444; }
+        .btn-logout:hover { background-color: #dc2626; transform: translateY(-1px); }
 
-        .wrapper {
-            display: flex;
-            height: 100vh;
-            width: 100vw;
-        }
+        .nav-bar { background: white; border-bottom: 1px solid #e5e7eb; padding: 0 32px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; min-height: 52px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); }
+        .nav-btn { text-decoration: none; padding: 7px 16px; border-radius: 8px; font-size: 0.82rem; font-weight: 600; display: flex; align-items: center; gap: 7px; transition: all 0.18s ease; background-color: #eff6ff; color: #1e40af; }
+        .nav-btn:hover { background-color: #dbeafe; transform: translateY(-1px); }
+        .nav-btn-admin { background-color: #fef3c7; color: #92400e; }
+        .nav-btn-admin:hover { background-color: #fde68a; }
 
-        /* --- SIDEBAR --- */
-        .sidebar {
-            width: 230px;
-            min-width: 230px;
-            background-color: var(--sidebar-bg);
-            border-right: 1px solid #ddd;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 20px;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.05);
-            z-index: 10;
-        }
+        .main-content { height: calc(100vh - 120px); width: 100%; }
+        .main-content iframe { width: 100%; height: 100%; border: none; display: block; }
 
-        .logo-container {
-            margin-bottom: 30px;
-            text-align: center;
-        }
-
-        .logo-link {
-            display: inline-block;
-            cursor: pointer;
-        }
-
-        .logo-container img {
-            width: 200px;
-            display: block;
-        }
-
-        .nav-menu {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .nav-button {
-            background-color: var(--button-blue);
-            color: white;
-            text-decoration: none;
-            padding: 13px 16px;
-            border-radius: 10px;
-            font-size: 13px;
-            font-weight: 600;
-            text-align: left;
-            transition: all 0.25s ease;
-            border: none;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            letter-spacing: 0.01em;
-        }
-
-        .nav-button svg {
-            flex-shrink: 0;
-            opacity: 0.9;
-        }
-
-        .nav-button:hover {
-            background-color: var(--accent-blue);
-            transform: translateX(6px);
-            box-shadow: 0 4px 12px rgba(0,43,92,0.25);
-        }
-
-        /* --- CONTEÚDO PRINCIPAL --- */
-        .main-content {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            background-color: #f3f4f6;
-        }
-
-        /* --- TOPBAR --- */
-        .topbar {
-            background-color: var(--accent-blue);
-            color: var(--text-white);
-            padding: 15px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            height: 70px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            z-index: 5;
-        }
-
-        .topbar-actions {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-        }
-
-        .welcome-text {
-            font-size: 1.6rem;
-            font-weight: 700;
-            color: var(--text-white);
-            letter-spacing: -0.025em;
-        }
-
-        .welcome-text span {
-            font-weight: 400;
-            opacity: 0.9;
-        }
-
-        /* Estilo comum para botões da Topbar */
-        .btn-topbar {
-            text-decoration: none;
-            padding: 10px 22px;
-            border-radius: 10px;
-            font-weight: 600;
-            font-size: 0.875rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
-            border: 2px solid rgba(255, 255, 255, 0.1);
-            color: white;
-        }
-
-        .btn-logout { background-color: var(--logout-red); }
-        .btn-logout:hover { background-color: var(--logout-red-hover); transform: translateY(-2px); }
-
-        .btn-switch-menu {
-            background: linear-gradient(135deg, #f7cf63, #e7a73a);
-            color: #1a202c;
-            border: none;
-        }
-
-        .btn-switch-menu:hover {
-            background: linear-gradient(135deg, #efbe49, #d78f1d);
-            transform: translateY(-2px);
-        }
-
-        /* Botão de Logs exclusivo Admin */
-        .btn-logs { background-color: var(--admin-amber); color: #1a202c; border: none; }
-        .btn-logs:hover { background-color: #d97706; transform: translateY(-2px); }
-
-        .dashboard-container {
-            flex-grow: 1;
-            width: 100%;
-            height: calc(100vh - 70px);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .dashboard-img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-        }
-
-        .dashboard-container iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-            display: block;
-        }
-
-        @media (max-width: 900px) {
-            body, html {
-                height: auto;
-                min-height: 100%;
-                overflow: auto;
-            }
-
-            .wrapper {
-                width: 100%;
-                min-height: 100vh;
-                height: auto;
-                flex-direction: column;
-            }
-
-            .sidebar {
-                width: 100%;
-                min-width: 0;
-                box-sizing: border-box;
-                border-right: none;
-                border-bottom: 1px solid #ddd;
-                padding: 14px;
-            }
-
-            .logo-container {
-                margin-bottom: 14px;
-            }
-
-            .logo-container img {
-                width: min(170px, 70vw);
-            }
-
-            .nav-menu {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-                gap: 8px;
-            }
-
-            .nav-button {
-                padding: 11px 10px;
-                font-size: 11px;
-                line-height: 1.25;
-            }
-
-            .nav-button:hover {
-                transform: none;
-            }
-
-            .main-content {
-                min-height: 0;
-            }
-
-            .topbar {
-                height: auto;
-                min-height: 64px;
-                padding: 12px 14px;
-                flex-direction: column;
-                align-items: stretch;
-                gap: 10px;
-            }
-
-            .welcome-text {
-                font-size: 1.1rem;
-                overflow-wrap: anywhere;
-            }
-
-            .topbar-actions {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-                gap: 8px;
-            }
-
-            .btn-topbar {
-                justify-content: center;
-                padding: 10px 12px;
-                font-size: 0.8rem;
-            }
-
-            .dashboard-container {
-                height: 65vh;
-                min-height: 420px;
-            }
+        @media (max-width: 768px) {
+            .topbar { padding: 0 16px; }
+            .topbar-title { display: none; }
+            .nav-bar { padding: 8px 16px; }
+            .main-content { height: calc(100vh - 136px); }
         }
     </style>
 </head>
 <body>
 
-    <div class="wrapper">
-        <div class="sidebar">
-            <div class="logo-container">
-                <a href="{{ url_for('dashboard.inicio_assent') }}" class="logo-link" aria-label="Voltar ao início">
-                    <img src="{{ url_for('static', filename='logo_codego.png') }}" alt="Logo CodeGO">
-                </a>
-            </div>
-
-            <div class="nav-menu">
-    {% if session.get('role') in ['admin', 'assent_gestor'] %}
-    <a href="{{ url_for('cadastro.cadastro') }}" class="nav-button">
-        <i data-lucide="building-2" class="w-5 h-5"></i>
-        Cadastrar Nova Empresa
-    </a>
-    <a href="{{ url_for('edicao.selecionar_edicao', modo='assent') }}" class="nav-button">
-        <i data-lucide="file-pen" class="w-5 h-5"></i>
-        Editar Cadastro
-    </a>
-    {% endif %}
-    <a href="{{ url_for('juridico.consultar_assentamento') }}" class="nav-button">
-        <i data-lucide="search" class="w-5 h-5"></i>
-        Consultar Assentamento
-    </a>
-    <a href="{{ url_for('relatorio.relatorios', modo='assent') }}" class="nav-button">
-        <i data-lucide="file-bar-chart" class="w-5 h-5"></i>
-        Gerar Relatório
-    </a>
-    <a href="{{ url_for('dashboard.mapa_distritos') }}" class="nav-button">
-        <i data-lucide="map" class="w-5 h-5"></i>
-        Mapa de Distritos
-    </a>
-
-    {% if session.get('role') == 'admin' %}
-    <a href="{{ url_for('auth_user.registrar_usuario') }}" class="nav-button" style="background-color: #bfdbfe; color: #1e3a5f; margin-top: 10px;">
-        <i data-lucide="user-plus" class="w-5 h-5"></i>
-        Registrar Usuário
-    </a>
-    <a href="{{ url_for('logs.logs') }}" class="nav-button" style="background-color: #bfdbfe; color: #1e3a5f;">
-        <i data-lucide="database-zap" class="w-5 h-5"></i>
-        Logs do Sistema
-    </a>
-    {% endif %}
-    {% if session.get('role') == 'assent_gestor' %}
-    <a href="{{ url_for('auth_user.registrar_colaborador') }}" class="nav-button" style="background-color: #bfdbfe; color: #1e3a5f; margin-top: 10px;">
-        <i data-lucide="user-plus" class="w-5 h-5"></i>
-        Registrar Usuário
-    </a>
-    {% endif %}
-
-    {% if session.get('role') == 'admin' %}
-    <a href="{{ url_for('dashboard.menu', modo='jur') }}" class="nav-button" style="background-color: #bfdbfe; color: #1e3a5f;">
-        <i data-lucide="arrow-left-right" class="w-5 h-5"></i>
-        Alternar Menu
-    </a>
-    {% endif %}
-</div>
+    <div class="topbar">
+        <div class="topbar-left">
+            <img src="{{ url_for('static', filename='logo_codego.png') }}" alt="Logo CodeGO">
+            <span class="topbar-title">Cadastro de Módulos</span>
         </div>
-        
-        <div class="main-content">
-            <div class="topbar">
-                <div class="welcome-text">
-                    <span>Bem-vindo,</span> {{ session['username'] }}
-                </div>
-                
-                <div class="topbar-actions">
-                    {% if session.get('role') in ['assent', 'assent_gestor', 'admin'] %}
-                    <a href="{{ url_for('dashboard.inicio_assent') }}" class="btn-topbar" style="background-color:#4b5563;">
-                        <i data-lucide="arrow-left" class="w-4 h-4"></i>
-                        Início
-                    </a>
-                    {% endif %}
-                    <a href="{{ url_for('auth_login.logout') }}" class="btn-topbar btn-logout">
-                        <i data-lucide="log-out" class="w-4 h-4"></i>
-                        Sair do Sistema
-                    </a>
-                </div>
-            </div>
-
-            <div class="dashboard-container">
-                <iframe 
-                    title="Projeto PBI infra Distrito" 
-                    src="https://app.powerbi.com/view?r=eyJrIjoiYjM2Njg4YzMtZGJjMi00NTM4LTk4NDMtYTJiMTNjOTk3YTY3IiwidCI6ImZmY2UxNmU0LTFmZTUtNDlhMS1iOWUxLTEwNzQ4YzFlZWRjNSJ9&navContentPaneEnabled=false&filterPaneEnabled=false" 
-                    allowFullScreen>
-                </iframe>
-
-                <!-- <img src="{{ url_for('static', filename='dashboard_estatico.jpg') }}" class="dashboard-img"> !-->
-            </div>
+        <div class="topbar-actions">
+            <a href="{{ url_for('dashboard.inicio_assent') }}" class="btn-topbar btn-back">
+                <i data-lucide="arrow-left" style="width:16px;height:16px;"></i>
+                Voltar
+            </a>
+            <a href="{{ url_for('auth_login.logout') }}" class="btn-topbar btn-logout">
+                <i data-lucide="log-out" style="width:16px;height:16px;"></i>
+                Sair
+            </a>
         </div>
     </div>
 
-    <script>
-        lucide.createIcons();
-    </script>
+    <div class="nav-bar">
+        {% if session.get('role') in ['admin', 'assent_gestor'] %}
+        <a href="{{ url_for('cadastro.cadastro') }}" class="nav-btn">
+            <i data-lucide="building-2" style="width:15px;height:15px;"></i>
+            Cadastrar Nova Empresa
+        </a>
+        <a href="{{ url_for('edicao.selecionar_edicao', modo='assent') }}" class="nav-btn">
+            <i data-lucide="file-pen" style="width:15px;height:15px;"></i>
+            Editar Cadastro
+        </a>
+        {% endif %}
+        <a href="{{ url_for('juridico.consultar_assentamento') }}" class="nav-btn">
+            <i data-lucide="search" style="width:15px;height:15px;"></i>
+            Consultar Assentamento
+        </a>
+        <a href="{{ url_for('relatorio.relatorios', modo='assent') }}" class="nav-btn">
+            <i data-lucide="file-bar-chart" style="width:15px;height:15px;"></i>
+            Gerar Relatório
+        </a>
+        <a href="{{ url_for('dashboard.mapa_distritos') }}" class="nav-btn">
+            <i data-lucide="map" style="width:15px;height:15px;"></i>
+            Mapa de Distritos
+        </a>
+        {% if session.get('role') == 'admin' %}
+        <a href="{{ url_for('auth_user.registrar_usuario') }}" class="nav-btn nav-btn-admin">
+            <i data-lucide="user-plus" style="width:15px;height:15px;"></i>
+            Registrar Usuário
+        </a>
+        <a href="{{ url_for('logs.logs') }}" class="nav-btn nav-btn-admin">
+            <i data-lucide="database-zap" style="width:15px;height:15px;"></i>
+            Logs do Sistema
+        </a>
+        <a href="{{ url_for('dashboard.menu', modo='jur') }}" class="nav-btn nav-btn-admin">
+            <i data-lucide="arrow-left-right" style="width:15px;height:15px;"></i>
+            Alternar Menu
+        </a>
+        {% endif %}
+        {% if session.get('role') == 'assent_gestor' %}
+        <a href="{{ url_for('auth_user.registrar_colaborador') }}" class="nav-btn nav-btn-admin">
+            <i data-lucide="user-plus" style="width:15px;height:15px;"></i>
+            Registrar Usuário
+        </a>
+        {% endif %}
+    </div>
+
+    <div class="main-content">
+        <iframe
+            title="Projeto PBI infra Distrito"
+            src="https://app.powerbi.com/view?r=eyJrIjoiYjM2Njg4YzMtZGJjMi00NTM4LTk4NDMtYTJiMTNjOTk3YTY3IiwidCI6ImZmY2UxNmU0LTFmZTUtNDlhMS1iOWUxLTEwNzQ4YzFlZWRjNSJ9&navContentPaneEnabled=false&filterPaneEnabled=false"
+            allowFullScreen>
+        </iframe>
+    </div>
+
+    <script>lucide.createIcons();</script>
 </body>
 </html>
