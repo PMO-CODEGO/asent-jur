@@ -129,6 +129,13 @@
             </div>
         </div>
 
+        <div style="margin-bottom:20px;">
+            <a href="{{ url_for('cadastro_modulos.novo') }}" class="btn-topbar btn-back" style="display:inline-flex;background-color:#002b5c;text-decoration:none;padding:10px 20px;border-radius:8px;font-weight:700;font-size:0.88rem;color:white;gap:8px;align-items:center;">
+                <i data-lucide="plus" style="width:16px;height:16px;"></i>
+                Novo Módulo
+            </a>
+        </div>
+
         <div class="controls">
             <div class="search-box">
                 <i data-lucide="search" style="width:16px;height:16px;color:#9ca3af;"></i>
@@ -168,6 +175,7 @@
                             <th>Ação Judicial</th>
                             <th>Matrícula(s)</th>
                             <th>Data Escrituração</th>
+                            <th>Ações</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -198,9 +206,22 @@
                             <td>{{ r.acao_judicial or '-' }}</td>
                             <td>{{ r.matricula_s or '-' }}</td>
                             <td>{{ r.data_escrituracao or '-' }}</td>
+                            <td style="white-space:nowrap;">
+                                <a href="{{ url_for('cadastro_modulos.editar', registro_id=r.id) }}"
+                                   style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:#eff6ff;color:#1e40af;border-radius:6px;font-size:0.75rem;font-weight:600;text-decoration:none;margin-right:4px;">
+                                    <i data-lucide="pencil" style="width:13px;height:13px;"></i> Editar
+                                </a>
+                                <form method="POST" action="{{ url_for('cadastro_modulos.excluir', registro_id=r.id) }}"
+                                      style="display:inline;" onsubmit="return confirm('Excluir este módulo?')">
+                                    <button type="submit"
+                                        style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:#fee2e2;color:#991b1b;border:none;border-radius:6px;font-size:0.75rem;font-weight:600;cursor:pointer;">
+                                        <i data-lucide="trash-2" style="width:13px;height:13px;"></i> Excluir
+                                    </button>
+                                </form>
+                            </td>
                         </tr>
                         {% else %}
-                        <tr><td colspan="16" class="empty">Nenhum registro encontrado.</td></tr>
+                        <tr><td colspan="17" class="empty">Nenhum registro encontrado.</td></tr>
                         {% endfor %}
                     </tbody>
                 </table>

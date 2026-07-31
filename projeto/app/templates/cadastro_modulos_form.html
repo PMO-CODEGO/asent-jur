@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ titulo }} - CODEGO</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='imagens_empresas/asentjur.png') }}" type="image/png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .section-card { border-left: 4px solid; }
+        input:focus, select:focus, textarea:focus { background: #fff !important; }
+    </style>
+</head>
+<body class="min-h-screen bg-[#002b5c] p-3 sm:p-4 md:p-8">
+
+{% macro fval(field) %}{{ registro[field] if registro and registro[field] is not none else '' }}{% endmacro %}
+
+<div class="max-w-4xl mx-auto">
+    <div class="bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-200">
+
+        <!-- Cabeçalho -->
+        <div class="bg-[#002b5c] p-6 text-white flex justify-between items-center">
+            <div>
+                <h2 class="text-2xl font-bold flex items-center gap-2">
+                    <i data-lucide="{% if registro %}edit{% else %}plus-circle{% endif %}"></i>
+                    {{ titulo }}
+                </h2>
+                <p class="text-blue-100 text-sm italic">Cadastro de Módulos — CODEGO</p>
+            </div>
+            <a href="{{ url_for('dashboard.cadastro_modulos') }}"
+               class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition-all text-sm font-bold">
+                VOLTAR
+            </a>
+        </div>
+
+        <form action="{{ url_for('cadastro_modulos.editar', registro_id=registro.id) if registro else url_for('cadastro_modulos.novo') }}"
+              method="POST" class="p-5 md:p-8 space-y-8">
+
+            <!-- LOCALIZAÇÃO -->
+            <div class="section-card border-blue-600 bg-blue-50/40 rounded-xl p-5 shadow-sm">
+                <div class="flex items-center gap-2 mb-5">
+                    <span class="bg-blue-600 text-white p-2 rounded-lg"><i data-lucide="map-pin" class="w-4 h-4"></i></span>
+                    <div>
+                        <h3 class="font-bold text-blue-900 text-base">Localização</h3>
+                        <p class="text-xs text-blue-600">Município, distrito, quadra e módulo.</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Município</label>
+                        <input type="text" name="municipio" value="{{ fval('municipio') }}"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                            placeholder="Ex: ANÁPOLIS">
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Distrito</label>
+                        <input type="text" name="distrito" value="{{ fval('distrito') }}"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                            placeholder="Ex: DAIA">
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Quadra</label>
+                        <input type="text" name="quadra" value="{{ fval('quadra') }}"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                            placeholder="Ex: 5">
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Módulo(s)</label>
+                        <input type="text" name="modulo_s" value="{{ fval('modulo_s') }}"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                            placeholder="Ex: 12">
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Qtd. Módulos</label>
+                        <input type="number" name="qtd_modulos" value="{{ fval('qtd_modulos') }}"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                            placeholder="Ex: 1">
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Tamanho (m²)</label>
+                        <input type="text" name="tamanho_m2" value="{{ fval('tamanho_m2') }}"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                            placeholder="Ex: 5000.00">
+                    </div>
+                </div>
+            </div>
+
+            <!-- EMPRESA -->
+            <div class="section-card border-amber-500 bg-amber-50/40 rounded-xl p-5 shadow-sm">
+                <div class="flex items-center gap-2 mb-5">
+                    <span class="bg-amber-500 text-white p-2 rounded-lg"><i data-lucide="building-2" class="w-4 h-4"></i></span>
+                    <div>
+                        <h3 class="font-bold text-amber-900 text-base">Empresa</h3>
+                        <p class="text-xs text-amber-700">Dados do locatário ou ocupante do módulo.</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+                    <div class="md:col-span-2 space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Empresa</label>
+                        <input type="text" name="empresa" value="{{ fval('empresa') }}"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none"
+                            placeholder="Razão social">
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">CNPJ</label>
+                        <input type="text" name="cnpj" value="{{ fval('cnpj') }}"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none"
+                            placeholder="Ex: 00.000.000/0001-00">
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Ramo de Atividade</label>
+                        <input type="text" name="ramo_de_atividade" value="{{ fval('ramo_de_atividade') }}"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none"
+                            placeholder="Ex: Alimentício">
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Status de Assentamento</label>
+                        <input type="text" name="status_de_assentamento" value="{{ fval('status_de_assentamento') }}"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none"
+                            placeholder="Ex: Ativo">
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Empregos Gerados</label>
+                        <input type="number" name="empregos_gerados" value="{{ fval('empregos_gerados') }}"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none"
+                            placeholder="Ex: 50">
+                    </div>
+                </div>
+            </div>
+
+            <!-- SITUAÇÃO JURÍDICA -->
+            <div class="section-card border-green-600 bg-green-50/40 rounded-xl p-5 shadow-sm">
+                <div class="flex items-center gap-2 mb-5">
+                    <span class="bg-green-600 text-white p-2 rounded-lg"><i data-lucide="file-text" class="w-4 h-4"></i></span>
+                    <div>
+                        <h3 class="font-bold text-green-900 text-base">Situação Jurídica e Documental</h3>
+                        <p class="text-xs text-green-700">Regularidade, matrícula e escrituração.</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Regular / Irregular</label>
+                        <select name="imovel_regular_irregular"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl bg-white focus:ring-2 focus:ring-green-500 outline-none">
+                            <option value="">Não informado</option>
+                            <option value="Regular" {% if fval('imovel_regular_irregular') == 'Regular' %}selected{% endif %}>Regular</option>
+                            <option value="Irregular" {% if fval('imovel_regular_irregular') == 'Irregular' %}selected{% endif %}>Irregular</option>
+                        </select>
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Ação Judicial</label>
+                        <input type="text" name="acao_judicial" value="{{ fval('acao_judicial') }}"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none"
+                            placeholder="Ex: Sim / Não">
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Matrícula(s)</label>
+                        <input type="text" name="matricula_s" value="{{ fval('matricula_s') }}"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none"
+                            placeholder="Ex: 12345">
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Data de Escrituração</label>
+                        <input type="text" name="data_escrituracao" value="{{ fval('data_escrituracao') }}"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none"
+                            placeholder="Ex: 01/01/2000">
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Processo SEI</label>
+                        <input type="text" name="processo_sei" value="{{ fval('processo_sei') }}"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none"
+                            placeholder="Ex: 202300000012345">
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Status</label>
+                        <input type="text" name="status" value="{{ fval('status') }}"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none"
+                            placeholder="Ex: Ativo">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botões -->
+            <div class="flex gap-3 pt-2">
+                <button type="submit"
+                    class="flex-1 bg-[#002b5c] hover:bg-blue-900 text-white font-bold py-3 px-6 rounded-xl transition-all flex items-center justify-center gap-2">
+                    <i data-lucide="save" class="w-4 h-4"></i>
+                    {% if registro %}Salvar Alterações{% else %}Criar Registro{% endif %}
+                </button>
+                <a href="{{ url_for('dashboard.cadastro_modulos') }}"
+                    class="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl transition-all flex items-center gap-2">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                    Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>lucide.createIcons();</script>
+</body>
+</html>
