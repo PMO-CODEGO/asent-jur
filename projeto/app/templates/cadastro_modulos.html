@@ -180,7 +180,7 @@
                     </thead>
                     <tbody>
                         {% for r in registros %}
-                        <tr class="data-row">
+                        <tr class="data-row" data-status="{{ r.imovel_regular_irregular or '' }}">
                             <td class="col-fix col-fix-0">{{ loop.index }}</td>
                             <td class="col-fix col-fix-1"><span class="municipio-badge">{{ r.municipio or '' }}</span></td>
                             <td>{{ r.distrito or '-' }}</td>
@@ -247,11 +247,11 @@
         function filtrar() {
             const q = busca.value.toLowerCase();
             const mun = filtroMun.value.toLowerCase();
-            const st = filtroStatus.value.toLowerCase();
+            const st = filtroStatus.value;
             document.querySelectorAll('.data-row').forEach(function(row) {
                 const txt = row.textContent.toLowerCase();
                 const munMatch = !mun || txt.includes(mun);
-                const stMatch = !st || txt.includes(st);
+                const stMatch = !st || row.dataset.status === st;
                 const qMatch = !q || txt.includes(q);
                 row.style.display = (munMatch && stMatch && qMatch) ? '' : 'none';
             });
