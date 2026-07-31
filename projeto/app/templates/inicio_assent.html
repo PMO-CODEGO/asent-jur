@@ -233,6 +233,23 @@
         </div>
 
         <div class="cards">
+            {% if session.get('role') == 'admin' %}
+            <a href="{{ url_for('dashboard.menu', modo='jur') }}" class="card">
+                <div class="card-icon" style="background-color:#ede9fe;color:#4c1d95;">
+                    <i data-lucide="scale"></i>
+                </div>
+                <h2>Módulo Jurídico</h2>
+                <p>Acesse o sistema jurídico da CODEGO — processos judiciais, prazos, partes e documentos.</p>
+                <div class="card-features">
+                    <div class="card-feature"><span class="card-feature-dot" style="background:#4c1d95;"></span>Consulta e gestão de processos</div>
+                    <div class="card-feature"><span class="card-feature-dot" style="background:#4c1d95;"></span>Controle de prazos e eventos</div>
+                    <div class="card-feature"><span class="card-feature-dot" style="background:#4c1d95;"></span>Relatórios jurídicos em PDF</div>
+                </div>
+                <div class="card-arrow">
+                    <i data-lucide="arrow-right" style="width:22px;height:22px;"></i>
+                </div>
+            </a>
+            {% endif %}
             <a href="{{ url_for('dashboard.controle_area') }}" class="card">
                 <div class="card-icon card-icon-green">
                     <i data-lucide="map"></i>
