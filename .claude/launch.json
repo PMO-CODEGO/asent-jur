@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "asent-jur (Docker Compose)",
+      "runtimeExecutable": "docker",
+      "runtimeArgs": ["compose", "-f", "projeto/docker-compose.yml", "up", "--build"],
+      "port": 80
+    }
+  ]
+}

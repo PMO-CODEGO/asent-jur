@@ -379,9 +379,5 @@ def distrito_detalhe(slug):
 @dashboard_bp.route('/menu/<modo>')
 @role_required('assent', 'jur', 'admin','assent_gestor','jur_gestor')
 def menu(modo):
-
-    if modo == "jur" or modo == "jur_gestor":
-        return render_template('menu_jur.html')
-
-    return render_template('menu.html')
+    return render_template('menu_jur.html')
 

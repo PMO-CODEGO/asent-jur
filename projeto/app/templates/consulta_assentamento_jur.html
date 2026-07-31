@@ -46,7 +46,7 @@
                 </button>
             </div>
 
-            <a href="{{ url_for('dashboard.menu', modo='jur' if session.get('role') in ['jur', 'jur_gestor'] else 'assent') }}"
+            <a href="{{ url_for('dashboard.menu', modo='jur') if session.get('role') in ['jur', 'jur_gestor'] else url_for('dashboard.inicio_assent') }}"
                 class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-bold flex items-center gap-2 transition-all">
                 <i data-lucide="corner-up-left" class="w-4 h-4"></i> VOLTAR AO MENU
             </a>
