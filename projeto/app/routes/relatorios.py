@@ -464,9 +464,13 @@ def relatorios():
                             processos = cursor.fetchall()
 
                     buffer = gerar_pdf_geral_processos(processos)
+                    
+                    # Nome formatado igual ao rodapé/cabeçalho: CODEGO-JUR-GERAL_Rev_00.pdf
+                    filename = "CODEGO-JUR-GERAL_Rev_00.pdf"
+                    
                     response = make_response(buffer.getvalue())
                     response.headers['Content-Type'] = 'application/pdf'
-                    response.headers['Content-Disposition'] = 'inline; filename="relatorio_geral_processos.pdf"'
+                    response.headers['Content-Disposition'] = f'inline; filename="{filename}"'
                     return response
                 except Exception as e:
                     return f"Erro PDF: {e}"
@@ -511,9 +515,13 @@ def relatorios():
                         documentos = cursor.fetchall()
 
                 buffer = gerar_pdf_processo(processo, partes, eventos, documentos)
+                
+                # Nome formatado igual ao rodapé/cabeçalho: CODEGO-JUR-XXXX_Rev_00.pdf
+                filename = f"CODEGO-JUR-{int(processo_id):04d}_Rev_00.pdf"
+                
                 response = make_response(buffer.getvalue())
                 response.headers['Content-Type'] = 'application/pdf'
-                response.headers['Content-Disposition'] = f'inline; filename="relatorio_processo_{processo_id}.pdf"'
+                response.headers['Content-Disposition'] = f'inline; filename="{filename}"'
                 return response
             except Exception as e:
                 return f"Erro PDF: {e}"
@@ -540,7 +548,9 @@ def relatorios():
 
             emitido_por = obter_usuario_logado()
             data_emissao = datetime.now().strftime('%d/%m/%Y')
-            doc_code = f"CODEGO-ASS-{str(empresa_id).zfill(4)}"
+            
+            prefixo_doc = "CODEGO-JUR" if modo == 'jur' else "CODEGO-ASS"
+            doc_code = f"{prefixo_doc}-{str(empresa_id).zfill(4)}"
             
             doc._iso_doc_code = doc_code
             doc._iso_rev = 'Rev. 00'
@@ -610,9 +620,13 @@ def relatorios():
             doc.build(story, onFirstPage=add_header_footer, onLaterPages=add_header_footer)
 
             buffer.seek(0)
+            
+            # Nome formatado igual ao rodapé/cabeçalho: CODEGO-ASS-0012_Rev_00.pdf ou CODEGO-JUR-0012_Rev_00.pdf
+            filename = f"{doc_code}_Rev_00.pdf"
+            
             response = make_response(buffer.getvalue())
             response.headers['Content-Type'] = 'application/pdf'
-            response.headers['Content-Disposition'] = f'inline; filename="relatorio_{empresa_id}.pdf"'
+            response.headers['Content-Disposition'] = f'inline; filename="{filename}"'
             return response
         except Exception as e:
             return f"Erro PDF: {e}"
