@@ -33,71 +33,9 @@
 
         .wrapper {
             display: flex;
+            flex-direction: column;
             height: 100vh;
             width: 100vw;
-        }
-
-        .sidebar {
-            width: 230px;
-            min-width: 230px;
-            background-color: var(--sidebar-bg);
-            border-right: 1px solid #ddd;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 20px;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.05);
-            z-index: 10;
-            overflow-y: auto;
-        }
-
-        .logo-container {
-            margin-bottom: 30px;
-            text-align: center;
-        }
-
-        .logo-link { display: inline-block; cursor: pointer; }
-
-        .logo-container img { width: 200px; display: block; }
-
-        .nav-menu {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-                .nav-button {
-            background-color: var(--button-blue);
-            color: white;
-            text-decoration: none;
-            padding: 13px 16px;
-            border-radius: 10px;
-            font-size: 13px;
-            font-weight: 600;
-            text-align: left;
-            transition: all 0.25s ease;
-            border: none;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            letter-spacing: 0.01em;
-        }
-
-        .nav-button svg {
-            flex-shrink: 0;
-            opacity: 0.9;
-        }
-
-        .nav-button:hover {
-            background-color: var(--accent-blue);
-            transform: translateX(6px);
-            box-shadow: 0 4px 12px rgba(0,43,92,0.25);
-        }
-
-        .nav-button.active {
-            background-color: var(--accent-blue);
         }
 
         .main-content {
@@ -105,6 +43,8 @@
             display: flex;
             flex-direction: column;
             background-color: #f3f4f6;
+            height: 100%;
+            width: 100%;
         }
 
         .topbar {
@@ -118,6 +58,7 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
             z-index: 5;
             flex-shrink: 0;
+            box-sizing: border-box;
         }
 
         .topbar-actions { display: flex; gap: 12px; align-items: center; }
@@ -153,6 +94,7 @@
             flex-grow: 1;
             position: relative;
             overflow: hidden;
+            width: 100%;
         }
 
         #map {
@@ -250,19 +192,10 @@
         }
 
         @media (max-width: 900px) {
-            body, html { height: auto; min-height: 100%; overflow: auto; }
-            .wrapper { flex-direction: column; min-height: 100vh; height: auto; }
-            .sidebar { width: 100%; min-width: 0; box-sizing: border-box; border-right: none; border-bottom: 1px solid #ddd; padding: 14px; }
-            .logo-container { margin-bottom: 14px; }
-            .logo-container img { width: min(170px, 70vw); }
-            .nav-menu { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
-            .nav-button { padding: 11px 10px; font-size: 11px; }
-            .nav-button:hover { transform: none; }
             .topbar { height: auto; min-height: 64px; padding: 12px 14px; flex-direction: column; align-items: stretch; gap: 10px; }
             .welcome-text { font-size: 1rem; }
             .topbar-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
             .btn-topbar { justify-content: center; padding: 10px 12px; font-size: 0.8rem; }
-            .map-container { height: 65vh; min-height: 420px; }
             .map-legend { bottom: 12px; right: 8px; }
             .map-counter { top: 8px; right: 8px; }
         }
@@ -271,52 +204,6 @@
 <body>
 
 <div class="wrapper">
-    <div class="sidebar">
-        <div class="logo-container">
-            <a href="{{ url_for('dashboard.inicio_assent') }}" class="logo-link" aria-label="Voltar ao menu principal">
-                <img src="{{ url_for('static', filename='logo_codego.png') }}" alt="Logo CodeGO">
-            </a>
-        </div>
-
-        <div class="nav-menu">
-                        {%- if session.get('role') in ['admin', 'assent_gestor'] %}
-            <a href="{{ url_for('cadastro.cadastro') }}" class="nav-button">
-                <i data-lucide="building-2" class="w-5 h-5"></i>
-                Cadastrar Nova Empresa
-            </a>
-            <a href="{{ url_for('edicao.selecionar_edicao', modo='assent') }}" class="nav-button">
-                <i data-lucide="file-pen" class="w-5 h-5"></i>
-                Editar Cadastro
-            </a>
-            {%- endif %}
-            <a href="{{ url_for('juridico.consultar_assentamento') }}" class="nav-button">
-                <i data-lucide="search" class="w-5 h-5"></i>
-                Consultar Assentamento
-            </a>
-            <a href="{{ url_for('relatorio.relatorios', modo='assent') }}" class="nav-button">
-                <i data-lucide="file-bar-chart" class="w-5 h-5"></i>
-                Gerar Relatório
-            </a>
-            <a href="{{ url_for('dashboard.mapa_distritos') }}" class="nav-button active">
-                <i data-lucide="map" class="w-5 h-5"></i>
-                Mapa de Distritos
-            </a>
-
-            {%- if session.get('role') == 'admin' %}
-            <a href="{{ url_for('auth_user.registrar_usuario') }}" class="nav-button" style="background-color: #bfdbfe; color: #1e3a5f; margin-top: 10px;">
-                <i data-lucide="user-plus" class="w-5 h-5"></i>
-                Registrar Usuário
-            </a>
-            {%- endif %}
-            {%- if session.get('role') == 'assent_gestor' %}
-            <a href="{{ url_for('auth_user.registrar_colaborador') }}" class="nav-button" style="background-color: #bfdbfe; color: #1e3a5f; margin-top: 10px;">
-                <i data-lucide="user-plus" class="w-5 h-5"></i>
-                Registrar Usuário
-            </a>
-            {%- endif %}
-        </div>
-    </div>
-
     <div class="main-content">
         <div class="topbar">
             <div class="welcome-text">
