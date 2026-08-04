@@ -61,8 +61,7 @@
         /* Colunas fixas à esquerda */
         th.col-fix, td.col-fix { position: sticky; z-index: 5; background-color: white; }
         thead th.col-fix { background-color: #002b5c; z-index: 11; }
-        th.col-fix-0, td.col-fix-0 { left: 0; }
-        th.col-fix-1, td.col-fix-1 { left: 44px; }
+        th.col-fix-1, td.col-fix-1 { left: 0; }
         td.col-fix::after, th.col-fix-1::after { content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 3px; background: linear-gradient(to right, rgba(0,0,0,0.08), transparent); pointer-events: none; }
         tbody tr:hover td.col-fix { background-color: #f8faff; }
         td.num { text-align: right; font-variant-numeric: tabular-nums; }
@@ -194,7 +193,6 @@
                     <table id="tabela-imovel">
                         <thead>
                             <tr>
-                                <th class="col-fix col-fix-0">#</th>
                                 <th class="col-fix col-fix-1">Município</th>
                                 <th>Matrícula</th>
                                 <th>Área Útil (m²)</th>
@@ -211,13 +209,12 @@
                         <tbody>
                             {% for r in imoveis %}
                             <tr class="data-row" onclick="toggleDetalhe('d{{ r.id }}')" style="cursor:pointer;">
-                                <td class="col-fix col-fix-0">
+                                <td class="col-fix col-fix-1">
                                     <span class="row-toggle">
                                         <i data-lucide="chevron-right" style="width:14px;height:14px;"></i>
-                                        {{ loop.index }}
+                                        <span class="municipio-badge">{{ r.municipio or '' }}</span>
                                     </span>
                                 </td>
-                                <td class="col-fix col-fix-1"><span class="municipio-badge">{{ r.municipio or '' }}</span></td>
                                 <td>{{ r.num_matricula_fmt or '' }}</td>
                                 <td class="num">{{ r.area_util_m2_fmt }}</td>
                                 <td class="num">{{ r.reserva_legal_m2_fmt }}</td>
@@ -242,7 +239,7 @@
                                 </td>
                             </tr>
                             <tr id="d{{ r.id }}" class="detail-row" style="display:none;">
-                                <td colspan="12">
+                                <td colspan="11">
                                     <div class="detail-grid">
                                         <div class="detail-item">
                                             <span class="detail-label">Ano da Aquisição</span>
@@ -316,7 +313,7 @@
                                 </td>
                             </tr>
                             {% else %}
-                            <tr><td colspan="12" class="empty">Nenhum registro encontrado.</td></tr>
+                            <tr><td colspan="11" class="empty">Nenhum registro encontrado.</td></tr>
                             {% endfor %}
                         </tbody>
                     </table>
@@ -336,43 +333,28 @@
                     <table id="tabela-judicial">
                         <thead>
                             <tr>
-                                <th class="col-fix col-fix-0">#</th>
                                 <th class="col-fix col-fix-1">Município</th>
                                 <th>Matrícula</th>
                                 <th>Área Total (m²)</th>
                                 <th>V. Mercado 2024</th>
                                 <th>V. Subsidiado 2024</th>
-                                <th>Matrícula Parcelamento</th>
-                                <th>Subsídio</th>
-                                <th>Descrição</th>
-                                <th>Nº Processo</th>
-                                <th>Geo</th>
-                                <th>Link da Matrícula</th>
                                 <th>Ações</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for r in judiciais %}
-                            <tr class="data-row">
-                                <td class="col-fix col-fix-0">{{ loop.index }}</td>
-                                <td class="col-fix col-fix-1"><span class="municipio-badge">{{ r.municipio or '' }}</span></td>
+                            <tr class="data-row" onclick="toggleDetalhe('j{{ r.id }}')" style="cursor:pointer;">
+                                <td class="col-fix col-fix-1">
+                                    <span class="row-toggle">
+                                        <i data-lucide="chevron-right" style="width:14px;height:14px;"></i>
+                                        <span class="municipio-badge">{{ r.municipio or '' }}</span>
+                                    </span>
+                                </td>
                                 <td>{{ r.num_matricula_fmt or '' }}</td>
                                 <td class="num">{{ r.area_total_m2_fmt }}</td>
                                 <td class="num">{{ 'R$ {:,.2f}'.format(r.ultima_aval_mercado).replace(',', 'X').replace('.', ',').replace('X', '.') if r.ultima_aval_mercado else '-' }}<br><small style="color:#9ca3af;font-size:0.68rem;">{{ r.ultima_aval_ano or '' }}</small></td>
                                 <td class="num">{{ 'R$ {:,.2f}'.format(r.ultima_aval_subsidiado).replace(',', 'X').replace('.', ',').replace('X', '.') if r.ultima_aval_subsidiado else '-' }}</td>
-                                <td>{{ r.matricula_parcelamento_fmt or '-' }}</td>
-                                <td class="obs-cell" title="{{ r.ocupacao or '' }}">
-                                    {% if r.ocupacao_fmt %}
-                                    <span style="font-weight:600;color:#065f46;">{{ r.ocupacao_fmt }}</span>
-                                    {% else %}
-                                    {{ r.ocupacao or '-' }}
-                                    {% endif %}
-                                </td>
-                                <td class="descricao" title="{{ r.descricao_area or '' }}">{{ r.descricao_area or '-' }}</td>
-                                <td class="obs-cell" title="{{ r.numero_processo or '' }}">{{ r.numero_processo or '-' }}</td>
-                                <td class="link-cell">{% if r.link_geo %}<a href="{{ r.link_geo }}" target="_blank">Ver</a>{% else %}-{% endif %}</td>
-                                <td class="link-cell">{% if r.link_matricula %}<a href="{{ r.link_matricula }}" target="_blank">Ver</a>{% else %}-{% endif %}</td>
-                                <td class="actions-col">
+                                <td class="actions-col" onclick="event.stopPropagation()">
                                     <a href="{{ url_for('areas_brutas.editar', registro_id=r.id) }}" class="btn-action btn-edit">
                                         <i data-lucide="pencil" style="width:12px;height:12px;"></i> Editar
                                     </a>
@@ -386,8 +368,44 @@
                                     {% endif %}
                                 </td>
                             </tr>
+                            <tr id="j{{ r.id }}" class="detail-row" style="display:none;">
+                                <td colspan="6">
+                                    <div class="detail-grid">
+                                        <div class="detail-item">
+                                            <span class="detail-label">Matrícula Parcelamento</span>
+                                            <span class="detail-value">{{ r.matricula_parcelamento_fmt or '-' }}</span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="detail-label">Subsídio</span>
+                                            <span class="detail-value">
+                                                {% if r.ocupacao_fmt %}
+                                                <span style="font-weight:600;color:#065f46;">{{ r.ocupacao_fmt }}</span>
+                                                {% else %}
+                                                {{ r.ocupacao or '-' }}
+                                                {% endif %}
+                                            </span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="detail-label">Nº Processo</span>
+                                            <span class="detail-value">{{ r.numero_processo or '-' }}</span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="detail-label">Geo</span>
+                                            <span class="detail-value">{% if r.link_geo %}<a href="{{ r.link_geo }}" target="_blank">Ver</a>{% else %}-{% endif %}</span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="detail-label">Link da Matrícula</span>
+                                            <span class="detail-value">{% if r.link_matricula %}<a href="{{ r.link_matricula }}" target="_blank">Ver</a>{% else %}-{% endif %}</span>
+                                        </div>
+                                        <div class="detail-item detail-item-wide">
+                                            <span class="detail-label">Descrição</span>
+                                            <span class="detail-value">{{ r.descricao_area or '-' }}</span>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
                             {% else %}
-                            <tr><td colspan="13" class="empty">Nenhum registro encontrado.</td></tr>
+                            <tr><td colspan="6" class="empty">Nenhum registro encontrado.</td></tr>
                             {% endfor %}
                         </tbody>
                     </table>
