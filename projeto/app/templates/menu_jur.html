@@ -152,6 +152,16 @@
             border: 2px solid rgba(255, 255, 255, 0.1);
         }
 
+        .btn-back {
+            background-color: #4b5563;
+        }
+
+        .btn-back:hover {
+            background-color: #374151;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
+        }
+
         /* Botão de Logout Sólido */
         .btn-logout {
             background-color: var(--logout-red);
@@ -315,12 +325,6 @@
                 </a>
                 {% endif %}
 
-                {% if session.get('role') == 'admin' %}
-                <a href="{{ url_for('dashboard.inicio_assent') }}" class="nav-button" style="background-color: #fecdd3; color: #9f1239;">
-                    <i data-lucide="home" class="w-5 h-5"></i>
-                    Voltar ao Início
-                </a>
-                {% endif %}
             </div>
         </div>
 
@@ -331,6 +335,12 @@
                 </div>
 
                 <div class="topbar-actions">
+                    {% if session.get('role') == 'admin' %}
+                    <a href="{{ url_for('dashboard.inicio_assent') }}" class="btn-topbar btn-back">
+                        <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                        Voltar
+                    </a>
+                    {% endif %}
                     <a href="{{ url_for('auth_login.logout') }}" class="btn-topbar btn-logout">
                         <i data-lucide="log-out" class="w-4 h-4"></i>
                         Sair do Sistema
