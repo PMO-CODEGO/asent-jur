@@ -15,6 +15,33 @@ from app.services.log_service import gravar_log
 
 areas_brutas_bp = Blueprint('areas_brutas', __name__)
 
+FAMILIAS = {
+    'brutas': {
+        'tabela': 'areas_brutas',
+        'label': 'Área bruta',
+        'titulo_base': 'Área Bruta',
+        'codigo_prefixo': 'AB',
+        'endpoint_lista': 'dashboard.areas_brutas',
+    },
+    'judicial': {
+        'tabela': 'areas_brutas_judicial',
+        'label': 'Área bruta - Processo judicial',
+        'titulo_base': 'Área Bruta - Processo Judicial',
+        'codigo_prefixo': 'ABJ',
+        'endpoint_lista': 'dashboard.areas_brutas',
+    },
+}
+
+ANOS_AVALIACAO = [2021, 2022, 2023, 2024]
+
+
+def _familia_config(familia):
+    config = FAMILIAS.get(familia)
+    if not config:
+        abort(404)
+    return config
+
+
 CAMPOS = [
     ('municipio',              'Município'),
     ('num_matricula',          'Nº Matrícula do Imóvel'),
@@ -28,6 +55,14 @@ CAMPOS = [
     ('moeda_conjunto',         'Moeda do Conjunto'),
     ('descricao_area',         'Descrição da Área'),
     ('matricula_parcelamento',  'Matrícula do Parcelamento'),
+    ('valor_mercado_2021',     'V. Mercado 2021'),
+    ('valor_subsidiado_2021',  'V. Subsidiado 2021'),
+    ('valor_mercado_2022',     'V. Mercado 2022'),
+    ('valor_subsidiado_2022',  'V. Subsidiado 2022'),
+    ('valor_mercado_2023',     'V. Mercado 2023'),
+    ('valor_subsidiado_2023',  'V. Subsidiado 2023'),
+    ('valor_mercado_2024',     'V. Mercado 2024'),
+    ('valor_subsidiado_2024',  'V. Subsidiado 2024'),
     ('ocupacao',               'Ocupação'),
     ('tipo_aquisicao',         'Tipo de Aquisição'),
     ('registro_propriedade',   'Registro de Propriedade'),
@@ -35,12 +70,15 @@ CAMPOS = [
     ('link_matricula',         'Link Matrícula'),
     ('numero_processo',        'Número de Processo'),
     ('loteamento',             'Loteamento'),
-    ('tipo',                   'Tipo'),
 ]
 
-TIPOS = [('Área bruta', 'Área bruta'), ('Área bruta - Processo judicial', 'Área bruta - Processo judicial')]
-
-DECIMAIS = {'area_util_m2', 'area_total_m2', 'valor_conjunto'}
+DECIMAIS = {
+    'area_util_m2', 'area_total_m2', 'valor_conjunto',
+    'valor_mercado_2021', 'valor_subsidiado_2021',
+    'valor_mercado_2022', 'valor_subsidiado_2022',
+    'valor_mercado_2023', 'valor_subsidiado_2023',
+    'valor_mercado_2024', 'valor_subsidiado_2024',
+}
 INTEIROS = {'ano_aquisicao', 'qtd'}
 MATRICULAS = {'num_matricula', 'matricula_parcelamento'}
 
@@ -117,37 +155,7 @@ def _update_set(form):
     return set_clause, tuple(_parse(f, form.get(f)) for f in fields)
 
 
-def _save_avaliacoes(cursor, area_bruta_id, form):
-    """Apaga e reinsere avaliações vindas do formulário."""
-    cursor.execute('DELETE FROM areas_brutas_avaliacoes WHERE area_bruta_id=%s', (area_bruta_id,))
-    anos     = form.getlist('aval_ano[]')
-    mercados = form.getlist('aval_mercado[]')
-    subs     = form.getlist('aval_subsidiado[]')
-    for ano, vm, vs in zip(anos, mercados, subs):
-        ano = ano.strip()
-        if not ano:
-            continue
-        try:
-            ano_int = int(ano)
-        except ValueError:
-            continue
-        vm_val = _parse_decimal_str(vm) if vm.strip() else None
-        vs_val = _parse_decimal_str(vs) if vs.strip() else None
-        cursor.execute(
-            'INSERT INTO areas_brutas_avaliacoes (area_bruta_id, ano, valor_mercado, valor_subsidiado) VALUES (%s,%s,%s,%s)',
-            (area_bruta_id, ano_int, vm_val, vs_val)
-        )
-
-
-def _fetch_avaliacoes(cursor, area_bruta_id):
-    cursor.execute(
-        'SELECT ano, valor_mercado, valor_subsidiado FROM areas_brutas_avaliacoes WHERE area_bruta_id=%s ORDER BY ano',
-        (area_bruta_id,)
-    )
-    return cursor.fetchall()
-
-
-def _propagar_valor_grupo(cursor, form):
+def _propagar_valor_grupo(cursor, tabela, form):
     """Se o registro pertence a um grupo, aplica moeda e valor a todos do grupo."""
     grupo = (form.get('grupo') or '').strip()
     if not grupo:
@@ -157,44 +165,44 @@ def _propagar_valor_grupo(cursor, form):
     if valor is None:
         return
     cursor.execute(
-        'UPDATE areas_brutas SET valor_conjunto=%s, moeda_conjunto=%s WHERE grupo=%s',
+        f'UPDATE {tabela} SET valor_conjunto=%s, moeda_conjunto=%s WHERE grupo=%s',
         (valor, moeda, grupo)
     )
 
 
-@areas_brutas_bp.route('/assent/areas-brutas/nova', methods=['GET', 'POST'])
+@areas_brutas_bp.route('/assent/areas-brutas/<familia>/nova', methods=['GET', 'POST'])
 @role_required('assent', 'admin', 'assent_gestor')
-def nova():
+def nova(familia):
+    config = _familia_config(familia)
+    tabela = config['tabela']
     if request.method == 'POST':
         cols = ', '.join(f for f, _ in CAMPOS)
         placeholders = ', '.join('%s' for _ in CAMPOS)
         with get_db() as db:
             with db.cursor() as cursor:
                 cursor.execute(
-                    f'INSERT INTO areas_brutas ({cols}) VALUES ({placeholders})',
+                    f'INSERT INTO {tabela} ({cols}) VALUES ({placeholders})',
                     _insert_values(request.form)
                 )
-                area_id = cursor.lastrowid
-                _save_avaliacoes(cursor, area_id, request.form)
-                _propagar_valor_grupo(cursor, request.form)
+                _propagar_valor_grupo(cursor, tabela, request.form)
                 db.commit()
         f = request.form
         gravar_log('AREA_BRUTA_CRIADA', (
             f"Município: {f.get('municipio') or '-'} | "
             f"Matrícula: {f.get('num_matricula') or '-'} | "
-            f"Tipo: {f.get('tipo') or '-'} | "
+            f"Tipo: {config['label']} | "
             f"Área total (m²): {f.get('area_total_m2') or '-'} | "
             f"Ano aquisição: {f.get('ano_aquisicao') or '-'} | "
             f"Descrição: {f.get('descricao_area') or '-'}"
         ))
-        return redirect(url_for('dashboard.areas_brutas'))
+        return redirect(url_for(config['endpoint_lista']))
     with get_db() as db:
         with db.cursor() as cursor:
             cursor.execute("SELECT DISTINCT municipio FROM municipal_lots WHERE municipio IS NOT NULL AND municipio != '' ORDER BY municipio")
             municipios = [r[0] for r in cursor.fetchall()]
-            cursor.execute("""
+            cursor.execute(f"""
                 SELECT grupo, MAX(moeda_conjunto) AS moeda_conjunto, MAX(valor_conjunto) AS valor_conjunto
-                FROM areas_brutas
+                FROM {tabela}
                 WHERE grupo IS NOT NULL AND grupo != ''
                   AND valor_conjunto IS NOT NULL
                 GROUP BY grupo
@@ -203,47 +211,48 @@ def nova():
             grupos_rows = cursor.fetchall()
     grupos = [r[0] for r in grupos_rows]
     grupos_valores = {r[0]: {'moeda': r[1] or 'R$', 'valor': _fmt_decimal_br(r[2])} for r in grupos_rows}
-    return render_template('areas_brutas_form.html', registro=None, avaliacoes=[], campos=CAMPOS, tipos=TIPOS,
-                           titulo='Nova Área Bruta', municipios=municipios, grupos=grupos, grupos_valores=grupos_valores)
+    return render_template('areas_brutas_form.html', registro=None, campos=CAMPOS,
+                           familia=familia, familia_label=config['label'],
+                           titulo=f"Nova {config['titulo_base']}", municipios=municipios, grupos=grupos, grupos_valores=grupos_valores)
 
 
-@areas_brutas_bp.route('/assent/areas-brutas/<int:registro_id>/editar', methods=['GET', 'POST'])
+@areas_brutas_bp.route('/assent/areas-brutas/<familia>/<int:registro_id>/editar', methods=['GET', 'POST'])
 @role_required('assent', 'admin', 'assent_gestor')
-def editar(registro_id):
+def editar(familia, registro_id):
+    config = _familia_config(familia)
+    tabela = config['tabela']
     with get_db() as db:
         with db.cursor(dictionary=True) as cursor:
             if request.method == 'POST':
                 set_clause, values = _update_set(request.form)
                 cursor.execute(
-                    f'UPDATE areas_brutas SET {set_clause} WHERE id=%s',
+                    f'UPDATE {tabela} SET {set_clause} WHERE id=%s',
                     values + (registro_id,)
                 )
-                _save_avaliacoes(cursor, registro_id, request.form)
-                _propagar_valor_grupo(cursor, request.form)
+                _propagar_valor_grupo(cursor, tabela, request.form)
                 db.commit()
                 f = request.form
                 gravar_log('AREA_BRUTA_EDITADA', (
                     f"ID: {registro_id} | "
                     f"Município: {f.get('municipio') or '-'} | "
                     f"Matrícula: {f.get('num_matricula') or '-'} | "
-                    f"Tipo: {f.get('tipo') or '-'} | "
+                    f"Tipo: {config['label']} | "
                     f"Área total (m²): {f.get('area_total_m2') or '-'} | "
                     f"Ano aquisição: {f.get('ano_aquisicao') or '-'} | "
                     f"Descrição: {f.get('descricao_area') or '-'}"
                 ))
-                return redirect(url_for('dashboard.areas_brutas'))
-            cursor.execute('SELECT * FROM areas_brutas WHERE id=%s', (registro_id,))
+                return redirect(url_for(config['endpoint_lista']))
+            cursor.execute(f'SELECT * FROM {tabela} WHERE id=%s', (registro_id,))
             registro = cursor.fetchone()
-            avaliacoes = _fetch_avaliacoes(cursor, registro_id)
     if not registro:
-        return redirect(url_for('dashboard.areas_brutas'))
+        return redirect(url_for(config['endpoint_lista']))
     with get_db() as db:
         with db.cursor() as cursor:
             cursor.execute("SELECT DISTINCT municipio FROM municipal_lots WHERE municipio IS NOT NULL AND municipio != '' ORDER BY municipio")
             municipios = [r[0] for r in cursor.fetchall()]
-            cursor.execute("""
+            cursor.execute(f"""
                 SELECT grupo, MAX(moeda_conjunto) AS moeda_conjunto, MAX(valor_conjunto) AS valor_conjunto
-                FROM areas_brutas
+                FROM {tabela}
                 WHERE grupo IS NOT NULL AND grupo != ''
                   AND valor_conjunto IS NOT NULL
                 GROUP BY grupo
@@ -266,18 +275,9 @@ def editar(registro_id):
         vi_parsed = _parse_decimal_str(str(vi))
         if vi_parsed is not None:
             registro_display['valor_imovel'] = _fmt_decimal_br(vi_parsed)
-    # pré-formata avaliações para exibição BR
-    avaliacoes_display = [
-        {
-            'ano': a['ano'],
-            'valor_mercado': _fmt_decimal_br(a['valor_mercado']),
-            'valor_subsidiado': _fmt_decimal_br(a['valor_subsidiado']),
-        }
-        for a in avaliacoes
-    ]
-    return render_template('areas_brutas_form.html', registro=registro_display,
-                           avaliacoes=avaliacoes_display, campos=CAMPOS, tipos=TIPOS,
-                           titulo='Editar Área Bruta', municipios=municipios,
+    return render_template('areas_brutas_form.html', registro=registro_display, campos=CAMPOS,
+                           familia=familia, familia_label=config['label'],
+                           titulo=f"Editar {config['titulo_base']}", municipios=municipios,
                            grupos=grupos, grupos_valores=grupos_valores)
 
 
@@ -354,19 +354,26 @@ def _pdf_header_footer(canvas, doc, codigo_doc, revisao, data_emissao, usuario):
     canvas.restoreState()
 
 
-@areas_brutas_bp.route('/assent/areas-brutas/<int:registro_id>/relatorio')
+@areas_brutas_bp.route('/assent/areas-brutas/<familia>/<int:registro_id>/relatorio')
 @role_required('assent', 'admin', 'assent_gestor')
-def relatorio(registro_id):
+def relatorio(familia, registro_id):
+    config = _familia_config(familia)
+    tabela = config['tabela']
     with get_db() as db:
         with db.cursor(dictionary=True) as cursor:
-            cursor.execute('SELECT * FROM areas_brutas WHERE id=%s', (registro_id,))
+            cursor.execute(f'SELECT * FROM {tabela} WHERE id=%s', (registro_id,))
             r = cursor.fetchone()
-            avaliacoes = _fetch_avaliacoes(cursor, registro_id)
     if not r:
         abort(404)
 
+    avaliacoes = [
+        {'ano': ano, 'valor_mercado': r.get(f'valor_mercado_{ano}'), 'valor_subsidiado': r.get(f'valor_subsidiado_{ano}')}
+        for ano in ANOS_AVALIACAO
+        if r.get(f'valor_mercado_{ano}') is not None or r.get(f'valor_subsidiado_{ano}') is not None
+    ]
+
     # --- Metadados ISO 9001 ---
-    codigo_doc   = f'CODEGO/ASSENT/AB/{registro_id:04d}'
+    codigo_doc   = f"CODEGO/ASSENT/{config['codigo_prefixo']}/{registro_id:04d}"
     revisao      = 'Rev. 00'
     data_emissao = datetime.date.today().strftime('%d/%m/%Y')
     usuario      = session.get('username') or 'Sistema'
@@ -390,7 +397,7 @@ def relatorio(registro_id):
     titulo_doc_style = ParagraphStyle('titdoc', fontSize=13, textColor=AZUL, fontName='Helvetica-Bold', spaceAfter=2)
     sub_doc_style = ParagraphStyle('subdoc', fontSize=8, textColor=CINZA_TEXT, fontName='Helvetica', spaceAfter=10)
 
-    tipo_label = r.get('tipo') or 'Área bruta'
+    tipo_label = config['label']
     municipio  = r.get('municipio') or ''
     matricula  = r.get('num_matricula') or ''
     descricao  = r.get('descricao_area') or ''
@@ -516,21 +523,23 @@ def relatorio(registro_id):
         f"ID: {registro_id} | "
         f"Município: {r.get('municipio') or '-'} | "
         f"Matrícula: {r.get('num_matricula') or '-'} | "
-        f"Tipo: {r.get('tipo') or '-'} | "
+        f"Tipo: {config['label']} | "
         f"Arquivo: {nome_arquivo}"
     ))
     return send_file(buf, mimetype='application/pdf', as_attachment=True, download_name=nome_arquivo)
 
 
-@areas_brutas_bp.route('/assent/areas-brutas/<int:registro_id>/excluir', methods=['POST'])
+@areas_brutas_bp.route('/assent/areas-brutas/<familia>/<int:registro_id>/excluir', methods=['POST'])
 @role_required('admin')
-def excluir(registro_id):
+def excluir(familia, registro_id):
+    config = _familia_config(familia)
+    tabela = config['tabela']
     with get_db() as db:
         with db.cursor(dictionary=True) as cursor:
-            cursor.execute('SELECT municipio, num_matricula FROM areas_brutas WHERE id=%s', (registro_id,))
+            cursor.execute(f'SELECT municipio, num_matricula FROM {tabela} WHERE id=%s', (registro_id,))
             r = cursor.fetchone()
-            cursor.execute('DELETE FROM areas_brutas WHERE id=%s', (registro_id,))
+            cursor.execute(f'DELETE FROM {tabela} WHERE id=%s', (registro_id,))
             db.commit()
     if r:
         gravar_log('AREA_BRUTA_EXCLUIDA', f"ID: {registro_id} | Município: {r.get('municipio') or '-'} | Matrícula: {r.get('num_matricula') or '-'}")
-    return redirect(url_for('dashboard.areas_brutas'))
+    return redirect(url_for(config['endpoint_lista']))

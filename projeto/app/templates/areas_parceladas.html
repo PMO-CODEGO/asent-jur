@@ -120,9 +120,7 @@
             <p>Glebas parceladas (loteadas) de propriedade da CODEGO — Ref. Jan/2026</p>
         </div>
 
-        {% set regularizadas = registros | selectattr('tipo', 'equalto', 'Parcelada Regularizada') | list %}
-        {% set galerias      = registros | selectattr('tipo', 'equalto', 'Galerias/Condomínio')    | list %}
-        {% set irregulares   = registros | selectattr('tipo', 'equalto', 'Loteamento Irregular')    | list %}
+        {% set registros = regularizadas + galerias + irregulares %}
 
         <div class="stats-row">
             <div class="stat-card">
@@ -167,14 +165,9 @@
                 <i data-lucide="search" style="width:16px;height:16px;color:#9ca3af;"></i>
                 <input type="text" id="busca" placeholder="Buscar por município, descrição...">
             </div>
-            <a href="/assent/areas-brutas-parceladas/nova"
-               style="display:flex;align-items:center;gap:7px;padding:8px 18px;background:#002b5c;color:white;border-radius:8px;text-decoration:none;font-size:0.85rem;font-weight:600;transition:all 0.2s;">
-                <i data-lucide="plus" style="width:16px;height:16px;"></i>
-                Nova Área
-            </a>
         </div>
 
-        {% macro tabela_secao(lista) %}
+        {% macro tabela_secao(lista, familia) %}
         <div class="table-wrap">
             <div class="table-scroll">
                 <table>
@@ -202,11 +195,11 @@
                             <td>{{ r.area_total_m2_fmt or '-' }}</td>
                             <td>{{ r.valor_imovel_fmt or '-' }}</td>
                             <td style="white-space:nowrap;" onclick="event.stopPropagation()">
-                                <a href="/assent/areas-brutas-parceladas/{{ r.id }}/editar"
+                                <a href="/assent/areas-brutas-parceladas/{{ familia }}/{{ r.id }}/editar"
                                    style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:#dbeafe;color:#1e40af;border-radius:6px;font-size:0.72rem;font-weight:600;text-decoration:none;margin-right:4px;">
                                     <i data-lucide="pencil" style="width:12px;height:12px;"></i> Editar
                                 </a>
-                                <form method="POST" action="/assent/areas-brutas-parceladas/{{ r.id }}/excluir"
+                                <form method="POST" action="/assent/areas-brutas-parceladas/{{ familia }}/{{ r.id }}/excluir"
                                       style="display:inline;" onsubmit="return confirm('Excluir este registro?')">
                                     <button type="submit"
                                         style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:#fee2e2;color:#991b1b;border:none;border-radius:6px;font-size:0.72rem;font-weight:600;cursor:pointer;">
@@ -266,8 +259,11 @@
                 <i data-lucide="check-circle" style="width:18px;height:18px;color:#059669;"></i>
                 Parceladas com Loteamento Regularizado
                 <span class="badge badge-green">{{ regularizadas | length }} registros</span>
+                <a href="/assent/areas-brutas-parceladas/regularizadas/nova" style="margin-left:auto;display:flex;align-items:center;gap:6px;padding:6px 14px;background:#059669;color:white;border-radius:8px;font-size:0.78rem;font-weight:600;text-decoration:none;">
+                    <i data-lucide="plus" style="width:14px;height:14px;"></i> Nova Área
+                </a>
             </div>
-            {{ tabela_secao(regularizadas) }}
+            {{ tabela_secao(regularizadas, 'regularizadas') }}
         </div>
 
         <div class="section">
@@ -275,8 +271,11 @@
                 <i data-lucide="building-2" style="width:18px;height:18px;color:#1d4ed8;"></i>
                 Galerias / Condomínio
                 <span class="badge badge-blue">{{ galerias | length }} registros</span>
+                <a href="/assent/areas-brutas-parceladas/galerias/nova" style="margin-left:auto;display:flex;align-items:center;gap:6px;padding:6px 14px;background:#1d4ed8;color:white;border-radius:8px;font-size:0.78rem;font-weight:600;text-decoration:none;">
+                    <i data-lucide="plus" style="width:14px;height:14px;"></i> Nova Área
+                </a>
             </div>
-            {{ tabela_secao(galerias) }}
+            {{ tabela_secao(galerias, 'galerias') }}
         </div>
 
         <div class="section">
@@ -284,8 +283,11 @@
                 <i data-lucide="alert-triangle" style="width:18px;height:18px;color:#d97706;"></i>
                 Loteamento Irregular
                 <span class="badge badge-amber">{{ irregulares | length }} registros</span>
+                <a href="/assent/areas-brutas-parceladas/irregulares/nova" style="margin-left:auto;display:flex;align-items:center;gap:6px;padding:6px 14px;background:#d97706;color:white;border-radius:8px;font-size:0.78rem;font-weight:600;text-decoration:none;">
+                    <i data-lucide="plus" style="width:14px;height:14px;"></i> Nova Área
+                </a>
             </div>
-            {{ tabela_secao(irregulares) }}
+            {{ tabela_secao(irregulares, 'irregulares') }}
         </div>
     </div>
 

@@ -70,41 +70,31 @@ def areas_brutas_parceladas():
             int_formatted = '-' + int_formatted
         return (int_formatted + ',' + dec_part) if dec_part else int_formatted
 
-    with get_db() as db:
-        with db.cursor(dictionary=True) as cursor:
-            cursor.execute("SELECT * FROM areas_parceladas ORDER BY tipo, municipio, descricao_area")
-            registros = cursor.fetchall()
+    def _carregar(tabela):
+        with get_db() as db:
+            with db.cursor(dictionary=True) as cursor:
+                cursor.execute(f"SELECT * FROM {tabela} ORDER BY municipio, descricao_area")
+                registros = cursor.fetchall()
+        for r in registros:
+            r['area_total_m2_fmt'] = _fmt_m2_br(_parse_brl(r.get('area_total_m2'))) if r.get('area_total_m2') else '-'
+            vi = r.get('valor_imovel')
+            n = _parse_brl(vi) if vi else None
+            r['valor_imovel_fmt'] = _fmt_brl(n) if n is not None else (vi or '-')
+            r['num_matricula_fmt'] = _fmt_int_br(r.get('num_matricula')) or '-'
+            r['matricula_parcelamento_fmt'] = _fmt_int_br(r.get('matricula_parcelamento')) or '-'
+        return registros
 
-    for r in registros:
-        r['area_total_m2_fmt'] = _fmt_m2_br(_parse_brl(r.get('area_total_m2'))) if r.get('area_total_m2') else '-'
-        vi = r.get('valor_imovel')
-        n = _parse_brl(vi) if vi else None
-        r['valor_imovel_fmt'] = _fmt_brl(n) if n is not None else (vi or '-')
-        r['num_matricula_fmt'] = _fmt_int_br(r.get('num_matricula')) or '-'
-        r['matricula_parcelamento_fmt'] = _fmt_int_br(r.get('matricula_parcelamento')) or '-'
+    regularizadas = _carregar('areas_parceladas_regularizadas')
+    galerias = _carregar('galerias_condominios')
+    irregulares = _carregar('loteamentos_irregulares')
 
-    return render_template('areas_parceladas.html', registros=registros)
+    return render_template('areas_parceladas.html',
+                           regularizadas=regularizadas, galerias=galerias, irregulares=irregulares)
 
 @dashboard_bp.route('/assent/areas-brutas')
 @role_required('assent', 'admin', 'assent_gestor')
 def areas_brutas():
     from app.db import get_db
-    with get_db() as db:
-        with db.cursor(dictionary=True) as cursor:
-            cursor.execute("SELECT * FROM areas_brutas ORDER BY tipo, municipio, descricao_area")
-            registros = cursor.fetchall()
-            # busca avaliações agrupadas por registro
-            cursor.execute("""
-                SELECT area_bruta_id, ano, valor_mercado, valor_subsidiado
-                FROM areas_brutas_avaliacoes
-                ORDER BY area_bruta_id, ano
-            """)
-            aval_rows = cursor.fetchall()
-
-    aval_map = {}
-    for av in aval_rows:
-        aval_map.setdefault(av['area_bruta_id'], []).append(av)
-
     import re
 
     def _parse_brl(val):
@@ -161,40 +151,57 @@ def areas_brutas():
             int_formatted = '-' + int_formatted
         return (int_formatted + ',' + dec_part) if dec_part else int_formatted
 
-    for r in registros:
-        # formata ocupacao se for valor numérico
-        raw_ocup = r.get('ocupacao') or ''
-        n = _parse_brl(raw_ocup) if re.match(r'^[\d.,]+$', raw_ocup.strip()) else None
-        r['ocupacao_fmt'] = _fmt_brl(n) if n is not None else None
+    ANOS_AVALIACAO = [2021, 2022, 2023, 2024]
 
-        # formata valor_imovel para exibição uniforme em R$
-        vi = r.get('valor_imovel')
-        if vi and not r.get('valor_conjunto'):
-            n2 = _parse_brl(vi)
-            r['valor_imovel_fmt'] = _fmt_brl(n2) if n2 is not None else _fmt_brl(_parse_brl(str(vi))) or str(vi)
-        else:
-            r['valor_imovel_fmt'] = None
+    def _carregar(tabela):
+        with get_db() as db:
+            with db.cursor(dictionary=True) as cursor:
+                cursor.execute(f"SELECT * FROM {tabela} ORDER BY municipio, descricao_area")
+                registros = cursor.fetchall()
 
-        # formata reserva_legal_m2 (varchar) para exibição BR
-        r['reserva_legal_m2_fmt'] = _fmt_m2_br(_parse_brl(r.get('reserva_legal_m2'))) if r.get('reserva_legal_m2') and r.get('reserva_legal_m2') != '-' else (r.get('reserva_legal_m2') or '-')
+        for r in registros:
+            # formata ocupacao se for valor numérico
+            raw_ocup = r.get('ocupacao') or ''
+            n = _parse_brl(raw_ocup) if re.match(r'^[\d.,]+$', raw_ocup.strip()) else None
+            r['ocupacao_fmt'] = _fmt_brl(n) if n is not None else None
 
-        # formata m² numéricos com padrão BR
-        r['area_util_m2_fmt']  = _fmt_m2_br(r.get('area_util_m2'))
-        r['area_total_m2_fmt'] = _fmt_m2_br(r.get('area_total_m2'))
+            # formata valor_imovel para exibição uniforme em R$
+            vi = r.get('valor_imovel')
+            if vi and not r.get('valor_conjunto'):
+                n2 = _parse_brl(vi)
+                r['valor_imovel_fmt'] = _fmt_brl(n2) if n2 is not None else _fmt_brl(_parse_brl(str(vi))) or str(vi)
+            else:
+                r['valor_imovel_fmt'] = None
 
-        r['num_matricula_fmt'] = _fmt_int_br(r.get('num_matricula'))
-        r['matricula_parcelamento_fmt'] = _fmt_int_br(r.get('matricula_parcelamento'))
+            # formata reserva_legal_m2 (varchar) para exibição BR
+            r['reserva_legal_m2_fmt'] = _fmt_m2_br(_parse_brl(r.get('reserva_legal_m2'))) if r.get('reserva_legal_m2') and r.get('reserva_legal_m2') != '-' else (r.get('reserva_legal_m2') or '-')
 
-        # avaliações do registro
-        avaliacoes = aval_map.get(r['id'], [])
-        r['avaliacoes'] = avaliacoes
-        # última avaliação (maior ano)
-        ultima = max(avaliacoes, key=lambda a: a['ano'], default=None)
-        r['ultima_aval_ano']        = ultima['ano'] if ultima else None
-        r['ultima_aval_mercado']    = ultima['valor_mercado'] if ultima else None
-        r['ultima_aval_subsidiado'] = ultima['valor_subsidiado'] if ultima else None
+            # formata m² numéricos com padrão BR
+            r['area_util_m2_fmt']  = _fmt_m2_br(r.get('area_util_m2'))
+            r['area_total_m2_fmt'] = _fmt_m2_br(r.get('area_total_m2'))
 
-    return render_template('areas_brutas.html', registros=registros)
+            r['num_matricula_fmt'] = _fmt_int_br(r.get('num_matricula'))
+            r['matricula_parcelamento_fmt'] = _fmt_int_br(r.get('matricula_parcelamento'))
+
+            # avaliações do registro (colunas fixas por ano)
+            avaliacoes = [
+                {'ano': ano, 'valor_mercado': r.get(f'valor_mercado_{ano}'), 'valor_subsidiado': r.get(f'valor_subsidiado_{ano}')}
+                for ano in ANOS_AVALIACAO
+                if r.get(f'valor_mercado_{ano}') is not None or r.get(f'valor_subsidiado_{ano}') is not None
+            ]
+            r['avaliacoes'] = avaliacoes
+            # última avaliação (maior ano)
+            ultima = max(avaliacoes, key=lambda a: a['ano'], default=None)
+            r['ultima_aval_ano']        = ultima['ano'] if ultima else None
+            r['ultima_aval_mercado']    = ultima['valor_mercado'] if ultima else None
+            r['ultima_aval_subsidiado'] = ultima['valor_subsidiado'] if ultima else None
+
+        return registros
+
+    imoveis = _carregar('areas_brutas')
+    judiciais = _carregar('areas_brutas_judicial')
+
+    return render_template('areas_brutas.html', imoveis=imoveis, judiciais=judiciais)
 
 DISTRITOS = {
     "abadiania": {

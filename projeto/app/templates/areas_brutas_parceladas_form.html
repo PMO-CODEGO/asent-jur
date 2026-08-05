@@ -70,7 +70,7 @@
             </a>
         </div>
 
-        <form action="{{ url_for('areas_brutas_parceladas.editar', registro_id=registro.id) if registro else url_for('areas_brutas_parceladas.nova') }}"
+        <form action="{{ url_for('areas_brutas_parceladas.editar', familia=familia, registro_id=registro.id) if registro else url_for('areas_brutas_parceladas.nova', familia=familia) }}"
               method="POST" class="p-5 md:p-8 space-y-8">
 
             <!-- IDENTIFICAÇÃO -->
@@ -87,12 +87,7 @@
                     <!-- Tipo -->
                     <div class="md:col-span-2 space-y-1">
                         <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Tipo</label>
-                        <select name="tipo"
-                            class="w-full p-3 border-2 border-gray-200 rounded-xl bg-white focus:ring-2 focus:ring-blue-500 outline-none">
-                            {% for t in tipos %}
-                            <option value="{{ t }}" {% if registro and registro.tipo == t %}selected{% endif %}>{{ t }}</option>
-                            {% endfor %}
-                        </select>
+                        <div class="w-full p-3 border-2 border-gray-200 rounded-xl bg-gray-50 text-gray-700 font-semibold">{{ familia_label }}</div>
                     </div>
 
                     <!-- Município -->
@@ -197,6 +192,15 @@
                             class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none"
                             placeholder="Ex: SIM / NÃO">
                     </div>
+
+                    {% if familia == 'irregulares' %}
+                    <div class="md:col-span-2 space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Observações</label>
+                        <textarea name="observacoes" rows="2"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none resize-none"
+                            placeholder="Ex: Conferir área do perímetro">{{ fval('observacoes') }}</textarea>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
 

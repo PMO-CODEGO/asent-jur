@@ -127,8 +127,7 @@
             <p>Glebas sem Registro de Loteamento de Propriedade da CODEGO</p>
         </div>
 
-        {% set imoveis = registros | selectattr('tipo', 'equalto', 'Área bruta') | list %}
-        {% set judiciais = registros | selectattr('tipo', 'equalto', 'Área bruta - Processo judicial') | list %}
+        {% set registros = imoveis + judiciais %}
 
         <div class="stats-row">
             <div class="stat-card">
@@ -175,7 +174,7 @@
                 <i data-lucide="search" style="width:16px;height:16px;color:#9ca3af;"></i>
                 <input type="text" id="busca" placeholder="Buscar por município, descrição...">
             </div>
-            <a href="{{ url_for('areas_brutas.nova') }}" class="btn-topbar btn-back" style="background-color:#002b5c;padding:9px 18px;border-radius:8px;font-size:0.85rem;font-weight:600;display:flex;align-items:center;gap:7px;text-decoration:none;color:white;">
+            <a href="{{ url_for('areas_brutas.nova', familia='brutas') }}" class="btn-topbar btn-back" style="background-color:#002b5c;padding:9px 18px;border-radius:8px;font-size:0.85rem;font-weight:600;display:flex;align-items:center;gap:7px;text-decoration:none;color:white;">
                 <i data-lucide="plus" style="width:16px;height:16px;"></i>
                 Nova Área
             </a>
@@ -225,14 +224,14 @@
                                 <td class="link-cell">{% if r.link_matricula %}<a href="{{ r.link_matricula }}" target="_blank" onclick="event.stopPropagation()">Ver</a>{% else %}-{% endif %}</td>
                                 <td class="obs-cell" title="{{ r.numero_processo or '' }}">{{ r.numero_processo or '-' }}</td>
                                 <td class="actions-col" onclick="event.stopPropagation()">
-                                    <a href="{{ url_for('areas_brutas.editar', registro_id=r.id) }}" class="btn-action btn-edit">
+                                    <a href="{{ url_for('areas_brutas.editar', familia='brutas', registro_id=r.id) }}" class="btn-action btn-edit">
                                         <i data-lucide="pencil" style="width:12px;height:12px;"></i> Editar
                                     </a>
-                                    <a href="{{ url_for('areas_brutas.relatorio', registro_id=r.id) }}" class="btn-action btn-pdf">
+                                    <a href="{{ url_for('areas_brutas.relatorio', familia='brutas', registro_id=r.id) }}" class="btn-action btn-pdf">
                                         <i data-lucide="file-text" style="width:12px;height:12px;"></i> PDF
                                     </a>
                                     {% if session.get('role') == 'admin' %}
-                                    <button type="button" class="btn-action btn-del" onclick="abrirModal({{ r.id }}, '{{ (r.descricao_area or r.municipio or 'este registro') | replace("'","") }}')">
+                                    <button type="button" class="btn-action btn-del" onclick="abrirModal({{ r.id }}, '{{ (r.descricao_area or r.municipio or 'este registro') | replace("'","") }}', 'brutas')">
                                         <i data-lucide="trash-2" style="width:12px;height:12px;"></i> Excluir
                                     </button>
                                     {% endif %}
@@ -327,6 +326,10 @@
                 <i data-lucide="gavel" style="width:18px;height:18px;"></i>
                 Em Processo Judicial
                 <span class="badge badge-red">{{ judiciais | length }} registros</span>
+                <a href="{{ url_for('areas_brutas.nova', familia='judicial') }}" style="margin-left:auto;display:flex;align-items:center;gap:6px;padding:6px 14px;background:#991b1b;color:white;border-radius:8px;font-size:0.78rem;font-weight:600;text-decoration:none;">
+                    <i data-lucide="plus" style="width:14px;height:14px;"></i>
+                    Novo Processo Judicial
+                </a>
             </div>
             <div class="table-wrap">
                 <div class="table-scroll">
@@ -355,14 +358,14 @@
                                 <td class="num">{{ 'R$ {:,.2f}'.format(r.ultima_aval_mercado).replace(',', 'X').replace('.', ',').replace('X', '.') if r.ultima_aval_mercado else '-' }}<br><small style="color:#9ca3af;font-size:0.68rem;">{{ r.ultima_aval_ano or '' }}</small></td>
                                 <td class="num">{{ 'R$ {:,.2f}'.format(r.ultima_aval_subsidiado).replace(',', 'X').replace('.', ',').replace('X', '.') if r.ultima_aval_subsidiado else '-' }}</td>
                                 <td class="actions-col" onclick="event.stopPropagation()">
-                                    <a href="{{ url_for('areas_brutas.editar', registro_id=r.id) }}" class="btn-action btn-edit">
+                                    <a href="{{ url_for('areas_brutas.editar', familia='judicial', registro_id=r.id) }}" class="btn-action btn-edit">
                                         <i data-lucide="pencil" style="width:12px;height:12px;"></i> Editar
                                     </a>
-                                    <a href="{{ url_for('areas_brutas.relatorio', registro_id=r.id) }}" class="btn-action btn-pdf">
+                                    <a href="{{ url_for('areas_brutas.relatorio', familia='judicial', registro_id=r.id) }}" class="btn-action btn-pdf">
                                         <i data-lucide="file-text" style="width:12px;height:12px;"></i> PDF
                                     </a>
                                     {% if session.get('role') == 'admin' %}
-                                    <button type="button" class="btn-action btn-del" onclick="abrirModal({{ r.id }}, '{{ (r.descricao_area or r.municipio or 'este registro') | replace("'","") }}')">
+                                    <button type="button" class="btn-action btn-del" onclick="abrirModal({{ r.id }}, '{{ (r.descricao_area or r.municipio or 'este registro') | replace("'","") }}', 'judicial')">
                                         <i data-lucide="trash-2" style="width:12px;height:12px;"></i> Excluir
                                     </button>
                                     {% endif %}
@@ -460,9 +463,9 @@
             });
         });
 
-        function abrirModal(id, descricao) {
+        function abrirModal(id, descricao, familia) {
             document.getElementById('modalDescricao').textContent = descricao;
-            document.getElementById('formExcluir').action = '/assent/areas-brutas/' + id + '/excluir';
+            document.getElementById('formExcluir').action = '/assent/areas-brutas/' + familia + '/' + id + '/excluir';
             document.getElementById('modalExcluir').classList.add('open');
         }
 
