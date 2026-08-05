@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Áreas Parceladas - CODEGO</title>
+    <title>Galerias / Condomínio - CODEGO</title>
     <link rel="shortcut icon" href="{{ url_for('static', filename='imagens_empresas/asentjur.png') }}" type="image/png">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -16,11 +16,8 @@
         .topbar img { height: 56px; }
         .topbar-title { font-size: 1rem; font-weight: 600; opacity: 0.9; }
         .topbar-actions { display: flex; gap: 10px; align-items: center; }
-        
-        /* Estilos dos botões */
+
         .btn-topbar { text-decoration: none; padding: 9px 18px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 7px; transition: all 0.2s ease; color: white !important; }
-        .btn-mapa { background-color: #059669; }
-        .btn-mapa:hover { background-color: #047857; }
         .btn-back { background-color: #4b5563; }
         .btn-back:hover { background-color: #374151; }
         .btn-logout { background-color: #ef4444; }
@@ -35,14 +32,12 @@
         .stats-row { display: flex; gap: 16px; margin-bottom: 28px; flex-wrap: wrap; }
         .stat-card { background: white; border-radius: 12px; padding: 16px 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); display: flex; align-items: center; gap: 14px; min-width: 180px; }
         .stat-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
-        .stat-icon-green  { background-color: #d1fae5; color: #065f46; }
         .stat-icon-blue   { background-color: #dbeafe; color: #002b5c; }
-        .stat-icon-amber  { background-color: #fef3c7; color: #92400e; }
         .stat-icon-red    { background-color: #fee2e2; color: #991b1b; }
         .stat-value { font-size: 1.4rem; font-weight: 800; color: #111827; }
         .stat-label { font-size: 0.78rem; color: #6b7280; font-weight: 500; }
 
-        .controls { display: flex; gap: 12px; margin-bottom: 20px; align-items: center; flex-wrap: wrap; }
+        .controls { display: flex; gap: 12px; margin-bottom: 20px; align-items: center; flex-wrap: wrap; justify-content: space-between; }
         .search-box { display: flex; align-items: center; gap: 8px; background: white; border: 1.5px solid #e5e7eb; border-radius: 8px; padding: 8px 14px; flex: 1; min-width: 220px; max-width: 360px; }
         .search-box input { border: none; outline: none; font-size: 0.88rem; width: 100%; background: transparent; }
         .filter-select { background: white; border: 1.5px solid #e5e7eb; border-radius: 8px; padding: 9px 14px; font-size: 0.88rem; outline: none; cursor: pointer; }
@@ -55,13 +50,7 @@
         .ms-filter-actions button { background: none; border: none; color: #2563eb; font-size: 0.78rem; font-weight: 600; cursor: pointer; }
         .ms-filter-option { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 6px; font-size: 0.85rem; cursor: pointer; }
         .ms-filter-option:hover { background: #f3f4f6; }
-
-        .section { margin-bottom: 40px; }
-        .section-title { font-size: 1rem; font-weight: 700; color: #002b5c; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; padding-bottom: 8px; border-bottom: 2px solid #e5e7eb; }
-        .badge { font-size: 0.72rem; border-radius: 20px; padding: 2px 10px; font-weight: 600; white-space: nowrap; }
-        .badge-green { background-color: #d1fae5; color: #065f46; }
-        .badge-blue  { background-color: #dbeafe; color: #1e40af; }
-        .badge-amber { background-color: #fef3c7; color: #92400e; }
+        .btn-nova { display: flex; align-items: center; gap: 6px; padding: 8px 18px; background: #1d4ed8; color: white; border-radius: 8px; text-decoration: none; font-size: 0.85rem; font-weight: 600; }
 
         .table-wrap { background: white; border-radius: 14px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); overflow: hidden; }
         .table-scroll { overflow-x: auto; overflow-y: auto; max-height: 65vh; border-radius: 14px; }
@@ -81,8 +70,6 @@
         .lote-sim { display: inline-block; background-color: #d1fae5; color: #065f46; border-radius: 6px; padding: 2px 8px; font-size: 0.73rem; font-weight: 700; }
         .lote-nao { display: inline-block; background-color: #fee2e2; color: #991b1b; border-radius: 6px; padding: 2px 8px; font-size: 0.73rem; font-weight: 700; }
         .lote-outro { font-size: 0.73rem; color: #6b7280; }
-        .descricao { max-width: 240px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .ocupacao-cell { max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.75rem; color: #6b7280; }
         .empty { padding: 48px; text-align: center; color: #9ca3af; }
         .data-row { cursor: pointer; }
         .data-row:hover { background-color: #f0f7ff; }
@@ -109,15 +96,14 @@
     <div class="topbar">
         <div class="topbar-left">
             <img src="{{ url_for('static', filename='logo_codego.png') }}" alt="Logo CodeGO">
-            <span class="topbar-title">Áreas Parceladas</span>
+            <span class="topbar-title">Galerias / Condomínio</span>
         </div>
         <div class="topbar-actions">
-            
-            <a href="/assent/controle-area" class="btn-topbar btn-back">
+            <a href="{{ url_for('dashboard.controle_area') }}" class="btn-topbar btn-back">
                 <i data-lucide="arrow-left" style="width:16px;height:16px;"></i>
                 <span>Voltar</span>
             </a>
-            <a href="/logout" class="btn-topbar btn-logout">
+            <a href="{{ url_for('auth_login.logout') }}" class="btn-topbar btn-logout">
                 <i data-lucide="log-out" style="width:16px;height:16px;"></i>
                 <span>Sair</span>
             </a>
@@ -126,32 +112,16 @@
 
     <div class="page-body">
         <div class="page-header">
-            <h1>Controle de Áreas Parceladas</h1>
-            <p>Glebas parceladas (loteadas) de propriedade da CODEGO — Ref. Jan/2026</p>
+            <h1>Galerias / Condomínio</h1>
+            <p>Imóveis urbanos em galerias e condomínios de propriedade da CODEGO</p>
         </div>
-
-        {% set registros = regularizadas + irregulares %}
 
         <div class="stats-row">
             <div class="stat-card">
-                <div class="stat-icon stat-icon-blue"><i data-lucide="layout-grid" style="width:22px;height:22px;"></i></div>
+                <div class="stat-icon stat-icon-blue"><i data-lucide="building-2" style="width:22px;height:22px;"></i></div>
                 <div>
                     <div class="stat-value">{{ registros | length }}</div>
                     <div class="stat-label">Total de imóveis</div>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon stat-icon-green"><i data-lucide="check-circle" style="width:22px;height:22px;"></i></div>
-                <div>
-                    <div class="stat-value">{{ regularizadas | length }}</div>
-                    <div class="stat-label">Parceladas regularizadas</div>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon stat-icon-amber"><i data-lucide="alert-triangle" style="width:22px;height:22px;"></i></div>
-                <div>
-                    <div class="stat-value">{{ irregulares | length }}</div>
-                    <div class="stat-label">Loteamento irregular</div>
                 </div>
             </div>
             <div class="stat-card">
@@ -182,9 +152,11 @@
                     {% endfor %}
                 </div>
             </div>
+            <a href="/assent/areas-parceladas/galerias/nova" class="btn-nova">
+                <i data-lucide="plus" style="width:16px;height:16px;"></i> Nova Área
+            </a>
         </div>
 
-        {% macro tabela_secao(lista, familia) %}
         <div class="table-wrap">
             <div class="table-scroll">
                 <table>
@@ -199,7 +171,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for r in lista %}
+                        {% for r in registros %}
                         <tr class="data-row" data-municipio="{{ (r.municipio or '')|lower|trim }}" onclick="toggleDetalhe('p{{ r.id }}')">
                             <td class="col-fix col-fix-1">
                                 <span class="row-toggle">
@@ -212,11 +184,11 @@
                             <td>{{ r.area_total_m2_fmt or '-' }}</td>
                             <td>{{ r.valor_imovel_fmt or '-' }}</td>
                             <td style="white-space:nowrap;" onclick="event.stopPropagation()">
-                                <a href="/assent/areas-parceladas/{{ familia }}/{{ r.id }}/editar"
+                                <a href="/assent/areas-parceladas/galerias/{{ r.id }}/editar"
                                    style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:#dbeafe;color:#1e40af;border-radius:6px;font-size:0.72rem;font-weight:600;text-decoration:none;margin-right:4px;">
                                     <i data-lucide="pencil" style="width:12px;height:12px;"></i> Editar
                                 </a>
-                                <form method="POST" action="/assent/areas-parceladas/{{ familia }}/{{ r.id }}/excluir"
+                                <form method="POST" action="/assent/areas-parceladas/galerias/{{ r.id }}/excluir"
                                       style="display:inline;" onsubmit="return confirm('Excluir este registro?')">
                                     <button type="submit"
                                         style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:#fee2e2;color:#991b1b;border:none;border-radius:6px;font-size:0.72rem;font-weight:600;cursor:pointer;">
@@ -268,31 +240,6 @@
                     </tbody>
                 </table>
             </div>
-        </div>
-        {% endmacro %}
-
-        <div class="section">
-            <div class="section-title">
-                <i data-lucide="check-circle" style="width:18px;height:18px;color:#059669;"></i>
-                Parceladas com Loteamento Regularizado
-                <span class="badge badge-green">{{ regularizadas | length }} registros</span>
-                <a href="/assent/areas-parceladas/regularizadas/nova" style="margin-left:auto;display:flex;align-items:center;gap:6px;padding:6px 14px;background:#059669;color:white;border-radius:8px;font-size:0.78rem;font-weight:600;text-decoration:none;">
-                    <i data-lucide="plus" style="width:14px;height:14px;"></i> Nova Área
-                </a>
-            </div>
-            {{ tabela_secao(regularizadas, 'regularizadas') }}
-        </div>
-
-        <div class="section">
-            <div class="section-title">
-                <i data-lucide="alert-triangle" style="width:18px;height:18px;color:#d97706;"></i>
-                Loteamento Irregular
-                <span class="badge badge-amber">{{ irregulares | length }} registros</span>
-                <a href="/assent/areas-parceladas/irregulares/nova" style="margin-left:auto;display:flex;align-items:center;gap:6px;padding:6px 14px;background:#d97706;color:white;border-radius:8px;font-size:0.78rem;font-weight:600;text-decoration:none;">
-                    <i data-lucide="plus" style="width:14px;height:14px;"></i> Nova Área
-                </a>
-            </div>
-            {{ tabela_secao(irregulares, 'irregulares') }}
         </div>
     </div>
 

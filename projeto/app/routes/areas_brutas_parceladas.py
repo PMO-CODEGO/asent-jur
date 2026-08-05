@@ -107,7 +107,7 @@ def _formato_display(registro):
     return r
 
 
-@areas_brutas_parceladas_bp.route('/assent/areas-brutas-parceladas/<familia>/nova', methods=['GET', 'POST'])
+@areas_brutas_parceladas_bp.route('/assent/areas-parceladas/<familia>/nova', methods=['GET', 'POST'])
 @role_required('assent', 'admin', 'assent_gestor')
 def nova(familia):
     config = _familia_config(familia)
@@ -132,7 +132,7 @@ def nova(familia):
                            titulo=f"Nova {config['titulo_base']}")
 
 
-@areas_brutas_parceladas_bp.route('/assent/areas-brutas-parceladas/<familia>/<int:registro_id>/editar', methods=['GET', 'POST'])
+@areas_brutas_parceladas_bp.route('/assent/areas-parceladas/<familia>/<int:registro_id>/editar', methods=['GET', 'POST'])
 @role_required('assent', 'admin', 'assent_gestor')
 def editar(familia, registro_id):
     config = _familia_config(familia)
@@ -162,7 +162,7 @@ def editar(familia, registro_id):
                            titulo=f"Editar {config['titulo_base']}")
 
 
-@areas_brutas_parceladas_bp.route('/assent/areas-brutas-parceladas/<familia>/<int:registro_id>/excluir', methods=['POST'])
+@areas_brutas_parceladas_bp.route('/assent/areas-parceladas/<familia>/<int:registro_id>/excluir', methods=['POST'])
 @role_required('assent', 'admin', 'assent_gestor')
 def excluir(familia, registro_id):
     config = _familia_config(familia)

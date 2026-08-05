@@ -241,33 +241,40 @@
         </div>
 
         <div class="cards">
-            <div class="card-multi">
+            <a href="{{ url_for('dashboard.areas_brutas') }}" class="card">
                 <div class="card-icon card-icon-amber">
                     <i data-lucide="trees"></i>
                 </div>
                 <h2>Áreas Brutas</h2>
-                <p style="font-size:0.85rem;color:#6b7280;">Gerencie as áreas de propriedade da CODEGO nos distritos industriais.</p>
-                <div class="sub-links">
-                    <a href="{{ url_for('dashboard.areas_brutas') }}" class="sub-link sub-link-amber">
-                        <i data-lucide="trees" style="width:15px;height:15px;flex-shrink:0;"></i>
-                        <span>Sem parcelamento</span>
-                        <i data-lucide="arrow-right" style="width:15px;height:15px;margin-left:auto;"></i>
-                    </a>
-                    <a href="{{ url_for('dashboard.areas_brutas_parceladas') }}" class="sub-link sub-link-green">
-                        <i data-lucide="layout-grid" style="width:15px;height:15px;flex-shrink:0;"></i>
-                        <span>Brutas Parceladas</span>
-                        <i data-lucide="arrow-right" style="width:15px;height:15px;margin-left:auto;"></i>
-                    </a>
+                <p>Glebas sem parcelamento de propriedade da CODEGO, incluindo as em processo judicial.</p>
+                <div class="card-arrow">
+                    <i data-lucide="arrow-right" style="width:22px;height:22px;"></i>
                 </div>
-            </div>
+            </a>
+
+            <a href="{{ url_for('dashboard.galerias') }}" class="card">
+                <div class="card-icon card-icon-blue">
+                    <i data-lucide="building-2"></i>
+                </div>
+                <h2>Galerias</h2>
+                <p>Imóveis urbanos em galerias e condomínios de propriedade da CODEGO.</p>
+                <div class="card-arrow">
+                    <i data-lucide="arrow-right" style="width:22px;height:22px;"></i>
+                </div>
+            </a>
 
             <div class="card-multi">
                 <div class="card-icon card-icon-green">
-                    <i data-lucide="layout-grid"></i>
+                    <i data-lucide="map"></i>
                 </div>
-                <h2>Áreas Parceladas</h2>
-                <p style="font-size:0.85rem;color:#6b7280;">Gerencie os lotes e parcelas já demarcadas nos distritos industriais.</p>
+                <h2>Distritos</h2>
+                <p style="font-size:0.85rem;color:#6b7280;">Áreas parceladas e módulos cadastrados nos distritos industriais.</p>
                 <div class="sub-links">
+                    <a href="{{ url_for('dashboard.areas_brutas_parceladas') }}" class="sub-link sub-link-green">
+                        <i data-lucide="layout-grid" style="width:15px;height:15px;flex-shrink:0;"></i>
+                        <span>Áreas Parceladas</span>
+                        <i data-lucide="arrow-right" style="width:15px;height:15px;margin-left:auto;"></i>
+                    </a>
                     <a href="{{ url_for('dashboard.cadastro_modulos') }}" class="sub-link sub-link-amber">
                         <i data-lucide="package" style="width:15px;height:15px;flex-shrink:0;"></i>
                         <span>Cadastro de Módulos</span>

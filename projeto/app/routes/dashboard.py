@@ -14,9 +14,7 @@ def inicio_assent():
 def controle_area():
     return render_template('controle_area.html')
 
-@dashboard_bp.route('/assent/areas-brutas-parceladas')
-@role_required('assent', 'admin', 'assent_gestor')
-def areas_brutas_parceladas():
+def _carregar_tabela_parcelada(tabela):
     import re
     from app.db import get_db
 
@@ -70,26 +68,33 @@ def areas_brutas_parceladas():
             int_formatted = '-' + int_formatted
         return (int_formatted + ',' + dec_part) if dec_part else int_formatted
 
-    def _carregar(tabela):
-        with get_db() as db:
-            with db.cursor(dictionary=True) as cursor:
-                cursor.execute(f"SELECT * FROM {tabela} ORDER BY municipio, descricao_area")
-                registros = cursor.fetchall()
-        for r in registros:
-            r['area_total_m2_fmt'] = _fmt_m2_br(_parse_brl(r.get('area_total_m2'))) if r.get('area_total_m2') else '-'
-            vi = r.get('valor_imovel')
-            n = _parse_brl(vi) if vi else None
-            r['valor_imovel_fmt'] = _fmt_brl(n) if n is not None else (vi or '-')
-            r['num_matricula_fmt'] = _fmt_int_br(r.get('num_matricula')) or '-'
-            r['matricula_parcelamento_fmt'] = _fmt_int_br(r.get('matricula_parcelamento')) or '-'
-        return registros
+    with get_db() as db:
+        with db.cursor(dictionary=True) as cursor:
+            cursor.execute(f"SELECT * FROM {tabela} ORDER BY municipio, descricao_area")
+            registros = cursor.fetchall()
+    for r in registros:
+        r['area_total_m2_fmt'] = _fmt_m2_br(_parse_brl(r.get('area_total_m2'))) if r.get('area_total_m2') else '-'
+        vi = r.get('valor_imovel')
+        n = _parse_brl(vi) if vi else None
+        r['valor_imovel_fmt'] = _fmt_brl(n) if n is not None else (vi or '-')
+        r['num_matricula_fmt'] = _fmt_int_br(r.get('num_matricula')) or '-'
+        r['matricula_parcelamento_fmt'] = _fmt_int_br(r.get('matricula_parcelamento')) or '-'
+    return registros
 
-    regularizadas = _carregar('areas_parceladas_regularizadas')
-    galerias = _carregar('galerias_condominios')
-    irregulares = _carregar('loteamentos_irregulares')
 
-    return render_template('areas_parceladas.html',
-                           regularizadas=regularizadas, galerias=galerias, irregulares=irregulares)
+@dashboard_bp.route('/assent/areas-parceladas')
+@role_required('assent', 'admin', 'assent_gestor')
+def areas_brutas_parceladas():
+    regularizadas = _carregar_tabela_parcelada('areas_parceladas_regularizadas')
+    irregulares = _carregar_tabela_parcelada('loteamentos_irregulares')
+    return render_template('areas_parceladas.html', regularizadas=regularizadas, irregulares=irregulares)
+
+
+@dashboard_bp.route('/assent/galerias')
+@role_required('assent', 'admin', 'assent_gestor')
+def galerias():
+    registros = _carregar_tabela_parcelada('galerias_condominios')
+    return render_template('galerias.html', registros=registros)
 
 @dashboard_bp.route('/assent/areas-brutas')
 @role_required('assent', 'admin', 'assent_gestor')

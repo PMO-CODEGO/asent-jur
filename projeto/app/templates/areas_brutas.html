@@ -43,6 +43,15 @@
         .search-box { display: flex; align-items: center; gap: 8px; background: white; border: 1.5px solid #e5e7eb; border-radius: 8px; padding: 8px 14px; flex: 1; min-width: 220px; max-width: 360px; }
         .search-box input { border: none; outline: none; font-size: 0.88rem; width: 100%; background: transparent; }
         .filter-select { background: white; border: 1.5px solid #e5e7eb; border-radius: 8px; padding: 9px 14px; font-size: 0.88rem; outline: none; cursor: pointer; }
+        .ms-filter { position: relative; }
+        .ms-filter-btn { display: flex; align-items: center; gap: 8px; background: white; border: 1.5px solid #e5e7eb; border-radius: 8px; padding: 9px 14px; font-size: 0.88rem; cursor: pointer; min-width: 210px; color: #374151; }
+        .ms-filter-btn:hover { border-color: #002b5c; }
+        .ms-filter-panel { display: none; position: absolute; top: calc(100% + 6px); left: 0; background: white; border: 1.5px solid #e5e7eb; border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); max-height: 280px; overflow-y: auto; min-width: 240px; z-index: 50; padding: 8px; }
+        .ms-filter-panel.open { display: block; }
+        .ms-filter-actions { display: flex; justify-content: flex-end; padding: 2px 6px 8px; border-bottom: 1px solid #f3f4f6; margin-bottom: 6px; }
+        .ms-filter-actions button { background: none; border: none; color: #2563eb; font-size: 0.78rem; font-weight: 600; cursor: pointer; }
+        .ms-filter-option { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 6px; font-size: 0.85rem; cursor: pointer; }
+        .ms-filter-option:hover { background: #f3f4f6; }
 
         .section { margin-bottom: 40px; }
         .section-title { font-size: 1rem; font-weight: 700; color: #002b5c; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; padding-bottom: 8px; border-bottom: 2px solid #e5e7eb; }
@@ -170,9 +179,23 @@
         </div>
 
         <div class="controls">
-            <div class="search-box">
-                <i data-lucide="search" style="width:16px;height:16px;color:#9ca3af;"></i>
-                <input type="text" id="busca" placeholder="Buscar por município, descrição...">
+            <div class="ms-filter" id="filtro-municipio-wrap">
+                <button type="button" class="ms-filter-btn" id="filtro-municipio-btn">
+                    <i data-lucide="map-pin" style="width:15px;height:15px;color:#9ca3af;"></i>
+                    <span id="filtro-municipio-label">Todos os municípios</span>
+                    <i data-lucide="chevron-down" style="width:14px;height:14px;margin-left:auto;color:#9ca3af;"></i>
+                </button>
+                <div class="ms-filter-panel" id="filtro-municipio-panel">
+                    <div class="ms-filter-actions">
+                        <button type="button" id="filtro-municipio-limpar">Limpar seleção</button>
+                    </div>
+                    {% for m in registros | map(attribute='municipio') | select | unique | sort %}
+                    <label class="ms-filter-option">
+                        <input type="checkbox" value="{{ m }}">
+                        <span>{{ m }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
             </div>
             <a href="{{ url_for('areas_brutas.nova', familia='brutas') }}" class="btn-topbar btn-back" style="background-color:#002b5c;padding:9px 18px;border-radius:8px;font-size:0.85rem;font-weight:600;display:flex;align-items:center;gap:7px;text-decoration:none;color:white;">
                 <i data-lucide="plus" style="width:16px;height:16px;"></i>
@@ -207,7 +230,7 @@
                         </thead>
                         <tbody>
                             {% for r in imoveis %}
-                            <tr class="data-row" onclick="toggleDetalhe('d{{ r.id }}')" style="cursor:pointer;">
+                            <tr class="data-row" data-municipio="{{ (r.municipio or '')|lower|trim }}" onclick="toggleDetalhe('d{{ r.id }}')" style="cursor:pointer;">
                                 <td class="col-fix col-fix-1">
                                     <span class="row-toggle">
                                         <i data-lucide="chevron-right" style="width:14px;height:14px;"></i>
@@ -346,7 +369,7 @@
                         </thead>
                         <tbody>
                             {% for r in judiciais %}
-                            <tr class="data-row" onclick="toggleDetalhe('j{{ r.id }}')" style="cursor:pointer;">
+                            <tr class="data-row" data-municipio="{{ (r.municipio or '')|lower|trim }}" onclick="toggleDetalhe('j{{ r.id }}')" style="cursor:pointer;">
                                 <td class="col-fix col-fix-1">
                                     <span class="row-toggle">
                                         <i data-lucide="chevron-right" style="width:14px;height:14px;"></i>
@@ -456,12 +479,41 @@
             if (!isOpen) lucide.createIcons();
         }
 
-        document.getElementById('busca').addEventListener('input', function() {
-            const q = this.value.toLowerCase();
-            document.querySelectorAll('.data-row').forEach(function(row) {
-                row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+        (function() {
+            const btn = document.getElementById('filtro-municipio-btn');
+            const panel = document.getElementById('filtro-municipio-panel');
+            const label = document.getElementById('filtro-municipio-label');
+            const limpar = document.getElementById('filtro-municipio-limpar');
+            const checkboxes = panel.querySelectorAll('input[type="checkbox"]');
+
+            function aplicarFiltroMunicipio() {
+                const marcados = Array.from(checkboxes).filter(function(c) { return c.checked; });
+                if (marcados.length === 0) {
+                    label.textContent = 'Todos os municípios';
+                } else if (marcados.length === 1) {
+                    label.textContent = marcados[0].value;
+                } else {
+                    label.textContent = marcados.length + ' municípios selecionados';
+                }
+                const selecionados = marcados.map(function(c) { return c.value.toLowerCase(); });
+                document.querySelectorAll('.data-row').forEach(function(row) {
+                    row.style.display = (selecionados.length === 0 || selecionados.indexOf(row.dataset.municipio) !== -1) ? '' : 'none';
+                });
+            }
+
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                panel.classList.toggle('open');
             });
-        });
+            document.addEventListener('click', function(e) {
+                if (!panel.contains(e.target) && e.target !== btn) panel.classList.remove('open');
+            });
+            checkboxes.forEach(function(cb) { cb.addEventListener('change', aplicarFiltroMunicipio); });
+            limpar.addEventListener('click', function() {
+                checkboxes.forEach(function(cb) { cb.checked = false; });
+                aplicarFiltroMunicipio();
+            });
+        })();
 
         function abrirModal(id, descricao, familia) {
             document.getElementById('modalDescricao').textContent = descricao;
