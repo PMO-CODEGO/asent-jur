@@ -1,14 +1,14 @@
 import io
 import re
 import datetime
+import logging
 from decimal import Decimal, InvalidOperation
 from flask import Blueprint, render_template, request, redirect, url_for, send_file, abort, session
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
 from reportlab.lib.units import cm
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, HRFlowable
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
+from reportlab.lib.styles import ParagraphStyle
 from app.utils.decorators import role_required
 from app.db import get_db
 from app.services.log_service import gravar_log
@@ -84,8 +84,9 @@ MATRICULAS = {'num_matricula', 'matricula_parcelamento'}
 
 
 def _parse_decimal_str(s):
-    """Converte string numérica em float, aceitando formato BR (1.234,56) ou US (1234.56)."""
-    s = s.strip()
+    if not s:
+        return None
+    s = str(s).strip()
     if re.match(r'^\d{1,3}(\.\d{3})+(,\d*)?$', s):
         s = s.replace('.', '').replace(',', '.')
     else:
@@ -97,13 +98,11 @@ def _parse_decimal_str(s):
 
 
 def _fmt_decimal_br(val):
-    """Formata número decimal para exibição BR sem zeros finais desnecessários.
-    Usa Decimal para evitar imprecisão de ponto flutuante."""
     if val is None:
         return ''
     try:
         d = Decimal(str(val)).normalize()
-        s = format(d, 'f')  # evita notação científica
+        s = format(d, 'f')
     except (InvalidOperation, ValueError, TypeError):
         return str(val) if val else ''
     if '.' in s:
@@ -111,7 +110,6 @@ def _fmt_decimal_br(val):
     else:
         int_part, dec_part = s, ''
     neg = int_part.startswith('-')
-    # formata separador de milhar diretamente com ponto
     int_formatted = '{:,}'.format(abs(int(int_part))).replace(',', '.')
     if neg:
         int_formatted = '-' + int_formatted
@@ -119,7 +117,6 @@ def _fmt_decimal_br(val):
 
 
 def _fmt_int_br(val):
-    """Formata inteiro/string numérica com pontos de milhar (ex: 118653 → '118.653')."""
     if not val:
         return ''
     s = str(val).strip().replace('.', '')
@@ -133,14 +130,13 @@ def _parse(field, value):
     if value is None or str(value).strip() == '':
         return None
     if field in DECIMAIS:
-        return _parse_decimal_str(str(value))
+        return _parse_decimal_str(value)
     if field in INTEIROS:
         try:
             return int(str(value).replace('.', '').replace(',', ''))
         except ValueError:
             return None
     if field in MATRICULAS:
-        # remove pontos de milhar inseridos pela máscara antes de salvar
         return str(value).strip().replace('.', '') or None
     return str(value).strip() or None
 
@@ -156,7 +152,6 @@ def _update_set(form):
 
 
 def _propagar_valor_grupo(cursor, tabela, form):
-    """Se o registro pertence a um grupo, aplica moeda e valor a todos do grupo."""
     grupo = (form.get('grupo') or '').strip()
     if not grupo:
         return
@@ -164,10 +159,46 @@ def _propagar_valor_grupo(cursor, tabela, form):
     moeda = (form.get('moeda_conjunto') or 'R$').strip()
     if valor is None:
         return
-    cursor.execute(
-        f'UPDATE {tabela} SET valor_conjunto=%s, moeda_conjunto=%s WHERE grupo=%s',
-        (valor, moeda, grupo)
-    )
+    try:
+        cursor.execute(
+            f'UPDATE {tabela} SET valor_conjunto=%s, moeda_conjunto=%s WHERE grupo=%s',
+            (valor, moeda, grupo)
+        )
+    except Exception as e:
+        logging.warning(f"Não foi possível propagar o valor do grupo: {e}")
+
+
+def _obter_municipios_e_grupos(tabela):
+    municipios = []
+    grupos_rows = []
+    try:
+        with get_db() as db:
+            with db.cursor() as cursor:
+                try:
+                    cursor.execute("SELECT DISTINCT municipio FROM municipal_lots WHERE municipio IS NOT NULL AND municipio != '' ORDER BY municipio")
+                    municipios = [r[0] for r in cursor.fetchall() if r and r[0]]
+                except Exception:
+                    cursor.execute(f"SELECT DISTINCT municipio FROM {tabela} WHERE municipio IS NOT NULL AND municipio != '' ORDER BY municipio")
+                    municipios = [r[0] for r in cursor.fetchall() if r and r[0]]
+
+                try:
+                    cursor.execute(f"""
+                        SELECT grupo, MAX(moeda_conjunto) AS moeda_conjunto, MAX(valor_conjunto) AS valor_conjunto
+                        FROM {tabela}
+                        WHERE grupo IS NOT NULL AND grupo != ''
+                          AND valor_conjunto IS NOT NULL
+                        GROUP BY grupo
+                        ORDER BY grupo
+                    """)
+                    grupos_rows = cursor.fetchall()
+                except Exception:
+                    grupos_rows = []
+    except Exception as e:
+        logging.error(f"Erro ao buscar municípios e grupos: {e}")
+
+    grupos = [r[0] for r in grupos_rows if r and r[0]]
+    grupos_valores = {r[0]: {'moeda': r[1] or 'R$', 'valor': _fmt_decimal_br(r[2])} for r in grupos_rows if r and r[0]}
+    return municipios, grupos, grupos_valores
 
 
 @areas_brutas_bp.route('/assent/areas-brutas/<familia>/nova', methods=['GET', 'POST'])
@@ -190,27 +221,11 @@ def nova(familia):
         gravar_log('AREA_BRUTA_CRIADA', (
             f"Município: {f.get('municipio') or '-'} | "
             f"Matrícula: {f.get('num_matricula') or '-'} | "
-            f"Tipo: {config['label']} | "
-            f"Área total (m²): {f.get('area_total_m2') or '-'} | "
-            f"Ano aquisição: {f.get('ano_aquisicao') or '-'} | "
-            f"Descrição: {f.get('descricao_area') or '-'}"
+            f"Tipo: {config['label']}"
         ))
         return redirect(url_for(config['endpoint_lista']))
-    with get_db() as db:
-        with db.cursor() as cursor:
-            cursor.execute("SELECT DISTINCT municipio FROM municipal_lots WHERE municipio IS NOT NULL AND municipio != '' ORDER BY municipio")
-            municipios = [r[0] for r in cursor.fetchall()]
-            cursor.execute(f"""
-                SELECT grupo, MAX(moeda_conjunto) AS moeda_conjunto, MAX(valor_conjunto) AS valor_conjunto
-                FROM {tabela}
-                WHERE grupo IS NOT NULL AND grupo != ''
-                  AND valor_conjunto IS NOT NULL
-                GROUP BY grupo
-                ORDER BY grupo
-            """)
-            grupos_rows = cursor.fetchall()
-    grupos = [r[0] for r in grupos_rows]
-    grupos_valores = {r[0]: {'moeda': r[1] or 'R$', 'valor': _fmt_decimal_br(r[2])} for r in grupos_rows}
+
+    municipios, grupos, grupos_valores = _obter_municipios_e_grupos(tabela)
     return render_template('areas_brutas_form.html', registro=None, campos=CAMPOS,
                            familia=familia, familia_label=config['label'],
                            titulo=f"Nova {config['titulo_base']}", municipios=municipios, grupos=grupos, grupos_valores=grupos_valores)
@@ -235,46 +250,30 @@ def editar(familia, registro_id):
                 gravar_log('AREA_BRUTA_EDITADA', (
                     f"ID: {registro_id} | "
                     f"Município: {f.get('municipio') or '-'} | "
-                    f"Matrícula: {f.get('num_matricula') or '-'} | "
-                    f"Tipo: {config['label']} | "
-                    f"Área total (m²): {f.get('area_total_m2') or '-'} | "
-                    f"Ano aquisição: {f.get('ano_aquisicao') or '-'} | "
-                    f"Descrição: {f.get('descricao_area') or '-'}"
+                    f"Matrícula: {f.get('num_matricula') or '-'}"
                 ))
                 return redirect(url_for(config['endpoint_lista']))
             cursor.execute(f'SELECT * FROM {tabela} WHERE id=%s', (registro_id,))
             registro = cursor.fetchone()
+
     if not registro:
         return redirect(url_for(config['endpoint_lista']))
-    with get_db() as db:
-        with db.cursor() as cursor:
-            cursor.execute("SELECT DISTINCT municipio FROM municipal_lots WHERE municipio IS NOT NULL AND municipio != '' ORDER BY municipio")
-            municipios = [r[0] for r in cursor.fetchall()]
-            cursor.execute(f"""
-                SELECT grupo, MAX(moeda_conjunto) AS moeda_conjunto, MAX(valor_conjunto) AS valor_conjunto
-                FROM {tabela}
-                WHERE grupo IS NOT NULL AND grupo != ''
-                  AND valor_conjunto IS NOT NULL
-                GROUP BY grupo
-                ORDER BY grupo
-            """)
-            grupos_rows = cursor.fetchall()
-    grupos = [r[0] for r in grupos_rows]
-    grupos_valores = {r[0]: {'moeda': r[1] or 'R$', 'valor': _fmt_decimal_br(r[2])} for r in grupos_rows}
+
+    municipios, grupos, grupos_valores = _obter_municipios_e_grupos(tabela)
+
     registro_display = dict(registro)
     for field in DECIMAIS:
         if registro_display.get(field) is not None:
             registro_display[field] = _fmt_decimal_br(registro_display[field])
-    # matrícula — formata com pontos de milhar para exibição no form
     for field in MATRICULAS:
         if registro_display.get(field):
             registro_display[field] = _fmt_int_br(registro_display[field])
-    # valor_imovel é varchar — tenta formatar se for numérico
     vi = registro_display.get('valor_imovel')
     if vi:
         vi_parsed = _parse_decimal_str(str(vi))
         if vi_parsed is not None:
             registro_display['valor_imovel'] = _fmt_decimal_br(vi_parsed)
+
     return render_template('areas_brutas_form.html', registro=registro_display, campos=CAMPOS,
                            familia=familia, familia_label=config['label'],
                            titulo=f"Editar {config['titulo_base']}", municipios=municipios,
@@ -299,8 +298,8 @@ def _fmt_m2(val):
     except (ValueError, TypeError):
         return str(val) if val else '-'
 
+
 def _pdf_header_footer(canvas, doc, codigo_doc, revisao, data_emissao, usuario):
-    """Desenha cabeçalho e rodapé ISO 9001 em todas as páginas."""
     canvas.saveState()
     width, height = A4
 
@@ -309,11 +308,9 @@ def _pdf_header_footer(canvas, doc, codigo_doc, revisao, data_emissao, usuario):
     _CINZA_TXT = colors.HexColor('#6b7280')
     _BORDA     = colors.HexColor('#e5e7eb')
 
-    # --- Cabeçalho ---
     canvas.setFillColor(_AZUL)
     canvas.rect(0, height - 2.8*cm, width, 2.8*cm, fill=1, stroke=0)
 
-    # Esquerda do Cabeçalho
     canvas.setFillColor(colors.white)
     canvas.setFont('Helvetica-Bold', 15)
     canvas.drawString(2*cm, height - 1.15*cm, 'CODEGO')
@@ -322,7 +319,6 @@ def _pdf_header_footer(canvas, doc, codigo_doc, revisao, data_emissao, usuario):
     canvas.setFont('Helvetica', 7)
     canvas.drawString(2*cm, height - 2.1*cm, 'Relatório de Área Bruta — Informação Documentada')
 
-    # Direita do Cabeçalho (com "Elaborado por" incluído)
     canvas.setFont('Helvetica', 7)
     canvas.drawRightString(width - 2*cm, height - 0.75*cm, f'Código: {codigo_doc}')
     canvas.drawRightString(width - 2*cm, height - 1.15*cm, f'Revisão: {revisao}')
@@ -330,23 +326,19 @@ def _pdf_header_footer(canvas, doc, codigo_doc, revisao, data_emissao, usuario):
     canvas.drawRightString(width - 2*cm, height - 1.95*cm, f'Elaborado por: {usuario}')
     canvas.drawRightString(width - 2*cm, height - 2.35*cm, f'Página {doc.page}')
 
-    # Linha separadora sob o cabeçalho
     canvas.setStrokeColor(_BORDA)
     canvas.setLineWidth(0.5)
     canvas.line(2*cm, height - 2.8*cm, width - 2*cm, height - 2.8*cm)
 
-    # --- Rodapé ---
     canvas.setFillColor(_CINZA_BG)
     canvas.rect(0, 0, width, 1.6*cm, fill=1, stroke=0)
 
     canvas.setStrokeColor(_BORDA)
     canvas.line(2*cm, 1.6*cm, width - 2*cm, 1.6*cm)
 
-    # Normalização no padrão pdf_service.py: remove espaços, pontos, barras e hífens
     raw_footer = f"{codigo_doc}{revisao}"
     footer_code = re.sub(r'[\s./\-]', '', raw_footer).upper()
 
-    # Exibe concentrado no canto esquerdo do rodapé
     canvas.setFillColor(_CINZA_TXT)
     canvas.setFont('Helvetica', 7)
     canvas.drawString(2*cm, 0.8*cm, footer_code)
@@ -372,7 +364,6 @@ def relatorio(familia, registro_id):
         if r.get(f'valor_mercado_{ano}') is not None or r.get(f'valor_subsidiado_{ano}') is not None
     ]
 
-    # --- Metadados ISO 9001 ---
     codigo_doc   = f"CODEGO/ASSENT/{config['codigo_prefixo']}/{registro_id:04d}"
     revisao      = 'Rev. 00'
     data_emissao = datetime.date.today().strftime('%d/%m/%Y')
@@ -382,8 +373,8 @@ def relatorio(familia, registro_id):
     doc = SimpleDocTemplate(
         buf, pagesize=A4,
         leftMargin=2*cm, rightMargin=2*cm,
-        topMargin=3.4*cm,    # espaço para o cabeçalho
-        bottomMargin=2.2*cm, # espaço para o rodapé
+        topMargin=3.4*cm,
+        bottomMargin=2.2*cm,
     )
 
     AZUL       = colors.HexColor('#002b5c')
@@ -411,12 +402,10 @@ def relatorio(familia, registro_id):
 
     story = []
 
-    # Título do documento (abaixo do cabeçalho)
-    story.append(Paragraph(f'Relatório de Área Bruta', titulo_doc_style))
+    story.append(Paragraph('Relatório de Área Bruta', titulo_doc_style))
     story.append(Paragraph(f'{tipo_label} — {municipio}', sub_doc_style))
     story.append(HRFlowable(width='100%', thickness=1.5, color=AZUL, spaceAfter=10))
 
-    # Identificação
     story.append(Paragraph('Identificação', secao_style))
     ident_data = [
         campo('Nº', str(r.get('qtd') or '-')),
@@ -438,12 +427,10 @@ def relatorio(familia, registro_id):
         ]))
         story.append(t)
 
-    # Descrição
     story.append(Paragraph('Descrição da Área', secao_style))
     story.append(Paragraph(descricao or '-', valor_style))
     story.append(Spacer(1, 6))
 
-    # Áreas
     story.append(Paragraph('Áreas', secao_style))
     area_rows = [
         [Paragraph('Área Útil (m²)', label_style), Paragraph('Reserva Legal (m²)', label_style), Paragraph('Área Total (m²)', label_style)],
@@ -458,7 +445,6 @@ def relatorio(familia, registro_id):
     ]))
     story.append(t)
 
-    # Valor
     story.append(Paragraph('Valor', secao_style))
     val_rows = [
         [Paragraph('Valor do Imóvel / Conjunto', label_style), Paragraph('Ocupação', label_style)],
@@ -473,7 +459,6 @@ def relatorio(familia, registro_id):
     ]))
     story.append(t)
 
-    # Avaliações
     if avaliacoes:
         story.append(Paragraph('Avaliações de Mercado', secao_style))
         aval_header = [Paragraph('Ano', label_style), Paragraph('V. Mercado', label_style), Paragraph('V. Subsidiado', label_style)]
@@ -494,7 +479,6 @@ def relatorio(familia, registro_id):
         ]))
         story.append(t)
 
-    # Aquisição e Processo
     story.append(Paragraph('Aquisição e Processo', secao_style))
     aq_data = [
         campo('Tipo de Aquisição', r.get('tipo_aquisicao') or '-'),
@@ -518,7 +502,10 @@ def relatorio(familia, registro_id):
     doc.build(story, onFirstPage=cb, onLaterPages=cb)
     buf.seek(0)
 
-    nome_arquivo = f'area_bruta_{municipio.replace(" ", "_")}_{matricula or registro_id}.pdf'
+    doc_code_filename = codigo_doc.replace('/', '-')
+    rev_filename = revisao.replace(' ', '_').replace('.', '')
+    nome_arquivo = f"{doc_code_filename}_{rev_filename}.pdf"
+
     gravar_log('AREA_BRUTA_PDF', (
         f"ID: {registro_id} | "
         f"Município: {r.get('municipio') or '-'} | "
@@ -542,4 +529,5 @@ def excluir(familia, registro_id):
             db.commit()
     if r:
         gravar_log('AREA_BRUTA_EXCLUIDA', f"ID: {registro_id} | Município: {r.get('municipio') or '-'} | Matrícula: {r.get('num_matricula') or '-'}")
+    return redirect(url_for(config['endpoint_lista']))
     return redirect(url_for(config['endpoint_lista']))
