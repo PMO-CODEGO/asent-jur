@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, redirect, url_for
 from app.utils.decorators import role_required
 from app.db import get_db
 from app.services.log_service import gravar_log
+from app.services.municipio_service import listar_municipios
 
 cadastro_modulos_bp = Blueprint('cadastro_modulos', __name__)
 
@@ -44,7 +45,7 @@ def novo():
         ))
         return redirect(url_for('dashboard.cadastro_modulos'))
     return render_template('cadastro_modulos_form.html', registro=None, campos=CAMPOS,
-                           titulo='Novo Módulo')
+                           titulo='Novo Módulo', municipios=listar_municipios())
 
 
 @cadastro_modulos_bp.route('/assent/cadastro-modulos/<int:registro_id>/editar', methods=['GET', 'POST'])
@@ -70,7 +71,7 @@ def editar(registro_id):
     if not registro:
         return redirect(url_for('dashboard.cadastro_modulos'))
     return render_template('cadastro_modulos_form.html', registro=registro, campos=CAMPOS,
-                           titulo='Editar Módulo')
+                           titulo='Editar Módulo', municipios=listar_municipios())
 
 
 @cadastro_modulos_bp.route('/assent/cadastro-modulos/<int:registro_id>/excluir', methods=['POST'])

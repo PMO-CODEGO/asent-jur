@@ -5,6 +5,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, abort
 from app.utils.decorators import role_required
 from app.db import get_db
 from app.services.log_service import gravar_log
+from app.services.municipio_service import listar_municipios
 
 
 areas_brutas_parceladas_bp = Blueprint('areas_brutas_parceladas', __name__)
@@ -129,7 +130,7 @@ def nova(familia):
         return redirect(url_for('dashboard.areas_brutas_parceladas'))
     return render_template('areas_brutas_parceladas_form.html', registro=None, campos=campos,
                            familia=familia, familia_label=config['label'],
-                           titulo=f"Nova {config['titulo_base']}")
+                           titulo=f"Nova {config['titulo_base']}", municipios=listar_municipios())
 
 
 @areas_brutas_parceladas_bp.route('/assent/areas-parceladas/<familia>/<int:registro_id>/editar', methods=['GET', 'POST'])
@@ -159,7 +160,7 @@ def editar(familia, registro_id):
         return redirect(url_for('dashboard.areas_brutas_parceladas'))
     return render_template('areas_brutas_parceladas_form.html', registro=_formato_display(registro),
                            campos=campos, familia=familia, familia_label=config['label'],
-                           titulo=f"Editar {config['titulo_base']}")
+                           titulo=f"Editar {config['titulo_base']}", municipios=listar_municipios())
 
 
 @areas_brutas_parceladas_bp.route('/assent/areas-parceladas/<familia>/<int:registro_id>/excluir', methods=['POST'])

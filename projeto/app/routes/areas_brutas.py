@@ -12,6 +12,7 @@ from reportlab.lib.styles import ParagraphStyle
 from app.utils.decorators import role_required
 from app.db import get_db
 from app.services.log_service import gravar_log
+from app.services.municipio_service import listar_municipios
 
 areas_brutas_bp = Blueprint('areas_brutas', __name__)
 
@@ -169,18 +170,11 @@ def _propagar_valor_grupo(cursor, tabela, form):
 
 
 def _obter_municipios_e_grupos(tabela):
-    municipios = []
+    municipios = listar_municipios()
     grupos_rows = []
     try:
         with get_db() as db:
             with db.cursor() as cursor:
-                try:
-                    cursor.execute("SELECT DISTINCT municipio FROM municipal_lots WHERE municipio IS NOT NULL AND municipio != '' ORDER BY municipio")
-                    municipios = [r[0] for r in cursor.fetchall() if r and r[0]]
-                except Exception:
-                    cursor.execute(f"SELECT DISTINCT municipio FROM {tabela} WHERE municipio IS NOT NULL AND municipio != '' ORDER BY municipio")
-                    municipios = [r[0] for r in cursor.fetchall() if r and r[0]]
-
                 try:
                     cursor.execute(f"""
                         SELECT grupo, MAX(moeda_conjunto) AS moeda_conjunto, MAX(valor_conjunto) AS valor_conjunto

@@ -15,6 +15,7 @@ from app.services.processo_historico_service import (
     registrar_historico_processo,
 )
 from app.services.processo_busca_service import buscar_processos_juridicos, contar_processos_juridicos
+from app.services.municipio_service import listar_municipios
 from app.constants import (
     COLUNAS,
     LABELS,
@@ -230,9 +231,8 @@ def editar(empresa_id):
                     flash('Alteracoes salvas!', 'success')
                     return redirect(url_for('edicao.selecionar_edicao', modo='assent'))
 
+                municipios = listar_municipios()
                 with db.cursor() as cur2:
-                    cur2.execute("SELECT DISTINCT municipio FROM municipal_lots WHERE municipio IS NOT NULL AND municipio != '-' ORDER BY municipio")
-                    municipios = [r[0] for r in cur2.fetchall()]
                     cur2.execute("SELECT DISTINCT distrito FROM municipal_lots WHERE distrito IS NOT NULL AND distrito != '-' ORDER BY distrito")
                     distritos = [r[0] for r in cur2.fetchall()]
 

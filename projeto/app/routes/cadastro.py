@@ -2,7 +2,7 @@ import os
 import csv
 from uuid import uuid4
 
-from flask import Blueprint, render_template, request, session, redirect, url_for, flash, current_app, send_file, jsonify
+from flask import Blueprint, render_template, request, session, redirect, url_for, flash, current_app, send_file
 from werkzeug.utils import secure_filename
 
 from app.db import get_db
@@ -10,6 +10,7 @@ from app.services.log_service import gravar_log
 from app.utils.decorators import role_required
 from app.constants import imovel_opcoes, ramo_de_atividade_opcoes, status_de_assentamento_opcoes
 from app.services.cadastro_service import CadastroService
+from app.services.municipio_service import listar_municipios
 from app.services.importacao_processos_service import (
     OPCOES_CAMPOS_IMPORTACAO,
     ler_planilha_processos_detalhada,
@@ -251,10 +252,9 @@ def cadastro():
         except Exception as e:
             flash(f'Erro ao cadastrar: {e}', 'danger')
 
+    municipios = listar_municipios()
     with get_db() as db:
         with db.cursor() as cursor:
-            cursor.execute("SELECT DISTINCT municipio FROM municipal_lots WHERE municipio IS NOT NULL AND municipio != '-' ORDER BY municipio")
-            municipios = [r[0] for r in cursor.fetchall()]
             cursor.execute("SELECT DISTINCT distrito FROM municipal_lots WHERE distrito IS NOT NULL AND distrito != '-' ORDER BY distrito")
             distritos = [r[0] for r in cursor.fetchall()]
 
@@ -267,29 +267,6 @@ def cadastro():
         municipios=municipios,
         distritos=distritos,
     )
-
-
-@cadastro_bp.route('/cadastro/municipio', methods=['POST'])
-@role_required('admin', 'assent_gestor')
-def adicionar_municipio():
-    dados = request.get_json(silent=True) or {}
-    nome = (dados.get('municipio') or '').strip().upper()
-    if not nome:
-        return jsonify(ok=False, erro='Nome do município não pode ser vazio.')
-    try:
-        with get_db() as db:
-            with db.cursor() as cursor:
-                cursor.execute(
-                    "SELECT COUNT(*) FROM municipal_lots WHERE municipio = %s", (nome,)
-                )
-                if cursor.fetchone()[0] == 0:
-                    cursor.execute(
-                        "INSERT INTO municipal_lots (municipio, empresa) VALUES (%s, '-')", (nome,)
-                    )
-                    db.commit()
-        return jsonify(ok=True, municipio=nome)
-    except Exception as e:
-        return jsonify(ok=False, erro=str(e))
 
 
 @cadastro_bp.route('/cadastro_jur', methods=['GET', 'POST'])
