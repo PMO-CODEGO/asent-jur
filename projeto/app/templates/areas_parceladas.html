@@ -127,7 +127,7 @@
     <div class="page-body">
         <div class="page-header">
             <h1>Controle de Áreas Parceladas</h1>
-            <p>Glebas parceladas (loteadas) de propriedade da CODEGO — Ref. Jan/2026</p>
+            <p>Glebas parceladas (loteadas) de propriedade da CODEGO</p>
         </div>
 
         {% set registros = regularizadas + irregulares %}
@@ -200,7 +200,7 @@
                     </thead>
                     <tbody>
                         {% for r in lista %}
-                        <tr class="data-row" data-municipio="{{ (r.municipio or '')|lower|trim }}" onclick="toggleDetalhe('p{{ r.id }}')">
+                        <tr class="data-row" data-municipio="{{ (r.municipio or '')|lower|trim }}" onclick="toggleDetalhe('p-{{ familia }}-{{ r.id }}')">
                             <td class="col-fix col-fix-1">
                                 <span class="row-toggle">
                                     <i data-lucide="chevron-right" style="width:14px;height:14px;"></i>
@@ -225,7 +225,7 @@
                                 </form>
                             </td>
                         </tr>
-                        <tr id="p{{ r.id }}" class="detail-row" style="display:none;">
+                        <tr id="p-{{ familia }}-{{ r.id }}" class="detail-row" style="display:none;">
                             <td colspan="6">
                                 <div class="detail-grid">
                                     <div class="detail-item">
