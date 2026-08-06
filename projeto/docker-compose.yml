@@ -21,7 +21,7 @@ services:
     image: mysql:8
     container_name: mysql_sistema
     environment:
-      MYSQL_ROOT_PASSWORD: Joaolopes05
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: codego_db
     ports:
       - "3307:3306"
@@ -36,7 +36,7 @@ services:
     environment:
       MYSQL_HOST: db
       MYSQL_USER: root
-      MYSQL_PASSWORD: Joaolopes05
+      MYSQL_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: codego_db
     volumes:
       - ./backups:/backups
