@@ -26,6 +26,7 @@
 
         <form action="{{ url_for('cadastro.importar_processos_jur') }}" method="POST" enctype="multipart/form-data"
             class="bg-white rounded-2xl p-5 md:p-8 shadow-2xl border border-gray-100 space-y-6">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="border-b pb-4">
                 <h2 class="text-lg font-bold text-[#002b5c] flex items-center gap-2">
                     <i data-lucide="upload"></i> Enviar planilha
@@ -117,6 +118,7 @@
             </div>
 
             <form action="{{ url_for('cadastro.importar_processos_jur') }}" method="POST" class="space-y-6">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <input type="hidden" name="temp_name" value="{{ previa.temp_name }}">
                 <input type="hidden" name="original_filename" value="{{ previa.original_filename }}">
                 <input type="hidden" name="total_colunas" value="{{ previa.cabecalho|length }}">

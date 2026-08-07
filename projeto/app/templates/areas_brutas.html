@@ -455,6 +455,7 @@
                 Esta ação não pode ser desfeita.
             </p>
             <form id="formExcluir" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div style="display:flex;justify-content:flex-end;gap:12px;">
                     <button type="button" onclick="fecharModal()" style="padding:8px 20px;border-radius:8px;font-weight:600;color:#6b7280;background:#f3f4f6;border:none;cursor:pointer;">
                         Cancelar

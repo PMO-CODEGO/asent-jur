@@ -218,6 +218,7 @@
                                 </a>
                                 <form method="POST" action="/assent/areas-parceladas/{{ familia }}/{{ r.id }}/excluir"
                                       style="display:inline;" onsubmit="return confirm('Excluir este registro?')">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                     <button type="submit"
                                         style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:#fee2e2;color:#991b1b;border:none;border-radius:6px;font-size:0.72rem;font-weight:600;cursor:pointer;">
                                         <i data-lucide="trash-2" style="width:12px;height:12px;"></i> Excluir

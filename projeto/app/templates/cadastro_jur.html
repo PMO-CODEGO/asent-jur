@@ -33,6 +33,7 @@
 
     <form action="{{ url_for('cadastro.cadastro_jur') }}" method="POST" enctype="multipart/form-data"
         class="bg-white rounded-2xl p-5 md:p-10 shadow-2xl border border-gray-100 space-y-8">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
         <section class="space-y-6">
             <h2 class="text-lg font-bold text-[#002b5c] flex items-center gap-2 border-b pb-4">

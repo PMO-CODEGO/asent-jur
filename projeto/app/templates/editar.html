@@ -26,6 +26,7 @@
             </div>
 
             <form id="formEditar" action="{{ url_for('edicao.editar', empresa_id=empresa_id) }}" method="POST" class="p-5 md:p-8">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 {% if atualizacao_vencida %}
                 <div class="mb-6 p-4 rounded-xl bg-amber-50 text-amber-800 border border-amber-200 flex items-start gap-3">
                     <i data-lucide="bell-ring" class="w-6 h-6 mt-0.5"></i>
@@ -182,6 +183,7 @@
                 Esta ação não pode ser desfeita. Todos os dados e a foto da empresa serão removidos.
             </p>
             <form action="{{ url_for('edicao.excluir_empresa', empresa_id=empresa_id) }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="flex gap-3 justify-end">
                     <button type="button" onclick="document.getElementById('modalExcluir').classList.add('hidden')"
                         class="px-6 py-2.5 rounded-lg font-bold text-gray-600 hover:bg-gray-100 transition-all">

@@ -49,6 +49,7 @@
         </div>
 
         <form action="{{ url_for('cadastro.cadastro') }}" method="POST" enctype="multipart/form-data" class="bg-white rounded-2xl p-5 md:p-8 shadow-2xl border border-gray-100">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
             {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}

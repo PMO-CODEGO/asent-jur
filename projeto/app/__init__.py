@@ -1,14 +1,21 @@
-from flask import Flask
+from flask import Flask, flash, redirect, request
 from dotenv import load_dotenv
-from app.extensions import bcrypt
+from flask_wtf.csrf import CSRFError
+from app.extensions import bcrypt, csrf
 from app.config import Config
 
 def create_app():
     app = Flask(__name__)
     load_dotenv()
     app.config.from_object(Config)
-    
+
     bcrypt.init_app(app)
+    csrf.init_app(app)
+
+    @app.errorhandler(CSRFError)
+    def erro_csrf(e):
+        flash('Sua sessão expirou ou o formulário é inválido. Tente novamente.', 'danger')
+        return redirect(request.referrer or '/')
 
     # registrar blueprints
     from app.routes.auth_login import auth_login_bp

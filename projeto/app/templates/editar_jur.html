@@ -32,6 +32,7 @@
         </div>
 
         <form id="formEditarJur" action="{{ url_for('edicao.editar_jur', processo_id=processo_id) }}" method="POST" enctype="multipart/form-data" class="p-5 md:p-10 space-y-8">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <section class="space-y-6">
                 <h3 class="text-[#002b5c] font-bold flex items-center gap-2 border-b pb-4">
                     <i data-lucide="gavel"></i> Dados do Processo

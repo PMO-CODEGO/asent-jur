@@ -29,6 +29,7 @@
         {% endwith %}
 
         <form action="{{ url_for('auth_login.login') }}" method="POST" class="space-y-5">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-1">Usuário</label>
                 <div class="relative">

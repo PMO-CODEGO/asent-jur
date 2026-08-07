@@ -504,6 +504,7 @@
                     <p class="instrucao">Selecione um processo para gerar um PDF com dados principais, partes, prazos, movimentacoes e documentos.</p>
 
                     <form method="post" action="{{ url_for('relatorio.relatorios', modo='jur') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <input type="hidden" name="relatorio_tipo" value="processo">
                         <label style="font-weight: 600; font-size: 0.8rem; color: #a0aec0; text-transform: uppercase; display: block; margin-bottom: 8px;">Selecionar Processo</label>
                         <select id="select-processo" name="processo" class="form-select" required></select>
@@ -520,6 +521,7 @@
                     <p class="instrucao">Gere um PDF consolidado com todos os processos cadastrados e um resumo por status.</p>
 
                     <form method="post" action="{{ url_for('relatorio.relatorios', modo='jur') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <input type="hidden" name="relatorio_tipo" value="geral_processos">
                         <button type="submit" class="btn-gerar">
                             <i class="fas fa-list"></i>

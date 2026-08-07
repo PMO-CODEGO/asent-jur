@@ -1003,6 +1003,7 @@
 
 
                     <form method="post" action="{{ url_for('relatorio.relatorios', modo='assent') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
                         <label style="font-weight: 600; font-size: 13px; color: #444; display: block; margin-bottom: 8px;">EMPRESA REGISTRADA</label>
 

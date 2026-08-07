@@ -72,6 +72,7 @@
 
         <form action="{{ url_for('areas_brutas_parceladas.editar', familia=familia, registro_id=registro.id) if registro else url_for('areas_brutas_parceladas.nova', familia=familia) }}"
               method="POST" class="p-5 md:p-8 space-y-8">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
             <!-- IDENTIFICAÇÃO -->
             <div class="section-card border-blue-600 bg-blue-50/40 rounded-xl p-5 shadow-sm">
