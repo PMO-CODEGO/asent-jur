@@ -2,3 +2,6 @@
 
 # SQL files must keep LF and UTF-8 for MySQL compatibility
 *.sql text eol=lf working-tree-encoding=UTF-8
+
+# Shell scripts must keep LF — they run inside Linux containers
+*.sh text eol=lf
