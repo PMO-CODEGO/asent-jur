@@ -9,12 +9,15 @@ Este é o diretório principal da aplicação **CODEGO / Asent-Jur**, um sistema
 ```
 projeto/
 ├── app/                  # Código-fonte da aplicação Flask
-├── docker/               # Configurações do banco de dados MySQL (scripts SQL)
+├── backups/              # Dumps .sql.gz gerados pelo serviço de backup
+├── docker/
+│   ├── backup/           # Imagem que roda o backup periódico do MySQL
+│   └── mysql/init/       # Scripts SQL de inicialização do banco
 ├── nginx/                # Configuração do servidor web Nginx
-├── output/               # Arquivos gerados pela aplicação (PDFs)
-├── tmp/                  # Arquivos temporários de desenvolvimento (não vai para produção)
+├── uploads/              # Arquivos enviados pelos usuários (documentos, imagens)
+├── .env / .env.example   # Variáveis de ambiente (.env não é versionado)
 ├── Dockerfile            # Imagem Docker da aplicação
-├── docker-compose.yml    # Orquestração dos serviços (app, banco, nginx)
+├── docker-compose.yml    # Orquestração dos serviços (web, db, backup, nginx)
 ├── requirements.txt      # Dependências Python do projeto
 └── run.py                # Ponto de entrada da aplicação
 ```
@@ -45,9 +48,10 @@ Lista todas as dependências Python necessárias para rodar a aplicação. Princ
 Define a imagem Docker da aplicação. Usa `python:3.11-slim` como base, instala as dependências do sistema (compilador C e cliente MySQL), copia o código e sobe a aplicação com **Gunicorn** em 4 workers na porta `8000`.
 
 ### `docker-compose.yml`
-Orquestra três serviços:
-- **`web`** — A aplicação Flask/Gunicorn. Depende do banco de dados e lê variáveis de ambiente de um arquivo `.env`.
-- **`db`** — MySQL 8. Inicializa o banco automaticamente com os scripts SQL da pasta `docker/mysql/init/`. Os dados são persistidos em um volume Docker.
+Orquestra quatro serviços:
+- **`web`** — A aplicação Flask/Gunicorn (container `codego_app`). Depende do banco de dados e lê variáveis de ambiente de um arquivo `.env`. O healthcheck usa `python -c "import urllib.request; ..."` (não `curl`, que não está instalado na imagem).
+- **`db`** — MySQL 8 (container `mysql_sistema`). Inicializa o banco automaticamente com os scripts SQL da pasta `docker/mysql/init/`. Os dados são persistidos em um volume Docker. A porta `3307` do host é mapeada para a `3306` do container.
+- **`backup`** — Container que roda `docker/backup/backup.sh` periodicamente (via cron, todo dia às 02:00), gerando dumps `.sql.gz` do banco em `backups/` e removendo os mais antigos. Ver [docker/backup/README.md](docker/backup/README.md).
 - **`nginx`** — Proxy reverso que recebe as requisições na porta `80` e as repassa para o Gunicorn na porta `8000`. Também serve arquivos estáticos diretamente.
 
 ### `.dockerignore`
@@ -57,7 +61,7 @@ Lista arquivos e pastas que não devem ser copiados para dentro da imagem Docker
 
 ## Como rodar localmente
 
-1. Crie um arquivo `.env` na raiz com as variáveis: `SECRET_KEY`, `DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, `DB_PORT`, `SMTP_USER`, `SMTP_PASS`.
+1. Crie um arquivo `.env` na raiz (use o [.env.example](.env.example) como base) com as variáveis: `SECRET_KEY`, `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, `SMTP_USER`, `SMTP_PASS`, `SMTP_SERVER`, `SMTP_PORT`, `MYSQL_ROOT_PASSWORD`, `MYSQL_PASSWORD`.
 2. Execute:
    ```bash
    docker-compose up --build

@@ -30,9 +30,12 @@ projeto/
 │   ├── services/        # Regras de negócio e serviços
 │   ├── static/          # Arquivos estáticos
 │   ├── templates/       # Templates HTML
+│   ├── utils/           # Decorators e utilitários
 │   ├── config.py        # Configurações da aplicação
 │   └── db.py            # Configuração do banco de dados
+├── backups/             # Dumps do banco gerados pelo serviço de backup
 ├── docker/
+│   ├── backup/          # Imagem que roda o backup periódico do MySQL
 │   └── mysql/init/      # Scripts de inicialização do MySQL
 ├── nginx/               # Configuração do Nginx
 ├── uploads/             # Upload de arquivos
@@ -75,20 +78,29 @@ Ou, caso deseje rodar localmente:
 
 # Variáveis de Ambiente
 
-Crie um arquivo `.env` na raiz do projeto com as seguintes variáveis:
+Crie um arquivo `.env` dentro de `projeto/` (use o [.env.example](projeto/.env.example) como base) com as seguintes variáveis:
 
 ```env
 SECRET_KEY=sua_chave_secreta
 
 DB_HOST=db
+DB_PORT=3306
 DB_USER=root
 DB_PASSWORD=sua_senha
 DB_NAME=codego_db
-DB_PORT=3306
+
+FLASK_ENV=production
 
 SMTP_USER=seu_email@gmail.com
 SMTP_PASS=sua_senha_email
+SMTP_SERVER=smtp.gmail.com
+SMTP_PORT=587
+
+MYSQL_ROOT_PASSWORD=sua_senha
+MYSQL_PASSWORD=sua_senha
 ```
+
+`MYSQL_ROOT_PASSWORD` e `MYSQL_PASSWORD` são lidas pelo `docker-compose.yml` para configurar o container do MySQL e o serviço de backup — devem ter o mesmo valor de `DB_PASSWORD`. **Nunca** commite o `.env` real; ele já está no `.gitignore`.
 
 ---
 
@@ -208,9 +220,11 @@ Recomendações para ambiente de produção:
 
 * Alterar a senha padrão do MySQL
 * Utilizar HTTPS
-* Configurar variáveis sensíveis no ambiente
+* Configurar variáveis sensíveis no ambiente (nunca em texto puro no `docker-compose.yml` ou em outros arquivos versionados)
 * Não versionar arquivos `.env`
-* Configurar backup do banco de dados
+* Configurar backup do banco de dados (já feito pelo serviço `backup` do `docker-compose.yml`, ver [docker/backup](projeto/docker/backup))
+* Adicionar proteção CSRF nos formulários (ainda não implementada)
+* Servir a aplicação por HTTPS — hoje roda em HTTP puro (`SESSION_COOKIE_SECURE = False` em `app/config.py`)
 
 ---
 

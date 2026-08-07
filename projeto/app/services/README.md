@@ -47,6 +47,11 @@ Função `gravar_log(acao, descricao, ...)` que insere um registro na tabela `lo
 
 ---
 
+### `municipio_service.py` — Serviço de Municípios
+Função `listar_municipios()` que retorna a lista dos 246 municípios de Goiás cadastrados na tabela de referência `municipio` (populada em `docker/mysql/init/10_municipios.sql`), ordenada alfabeticamente. É a fonte única usada para popular o `<select>` de município em todos os formulários de cadastro (cadastro de empresa, edição, áreas brutas, áreas parceladas e cadastro de módulos).
+
+---
+
 ### `cadastro_service.py` — Serviço de Cadastro e Validação
 Classe `CadastroService` com métodos de validação e normalização de dados de formulários:
 
@@ -59,7 +64,12 @@ Classe `CadastroService` com métodos de validação e normalização de dados d
 ---
 
 ### `pdf_service.py` — Serviço de PDF
-Função `add_watermark(canvas, doc)` usada como callback pelo ReportLab para aplicar o **logo da CODEGO como marca d'água** em todas as páginas dos relatórios gerados, com rotação de 45° e opacidade de 8%.
+Funções usadas como callback/helpers pelo ReportLab para padronizar os relatórios em PDF (cabeçalho, rodapé e blocos no estilo ISO 9001):
+
+- **`add_header_footer(canvas, doc)`** — desenha o cabeçalho azul com o logo da CODEGO, código/revisão/emissão do documento, o rodapé com número de página, e tenta desenhar uma marca d'água em cinza rotacionada 45° a partir de `static/logo_codego_grey.png`. Como esse arquivo não existe mais na pasta `static/`, a marca d'água é silenciosamente omitida (a checagem é feita via `os.path.exists`) — o restante do cabeçalho/rodapé funciona normalmente.
+- **`bloco_identificacao(story, ...)`** — insere a tabela de identificação do documento (título, código, revisão, emitido por) no topo do PDF.
+- **`linha_assinatura(story, ...)`** — insere a tabela de assinatura (elaborado por / aprovado por) ao final do PDF.
+- **`add_watermark(canvas, doc)`** — apenas um alias de `add_header_footer`, mantido no código por compatibilidade legada; não é chamado em nenhuma rota atualmente.
 
 ---
 

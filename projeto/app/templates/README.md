@@ -20,8 +20,10 @@ Esta pasta contém todos os arquivos de template HTML da aplicação, renderizad
 
 | Arquivo | Descrição |
 |---|---|
-| `menu.html` | Menu principal do módulo de **Assentamento** — exibido após login de usuários do setor de assentamento |
-| `menu_jur.html` | Menu principal do módulo **Jurídico** — exibido após login de usuários do setor jurídico |
+| `inicio_assent.html` | Tela inicial do módulo de **Assentamento** (rota `/assent/inicio`) — atalhos para Controle de Área e para o módulo Jurídico |
+| `menu_jur.html` | Menu renderizado pela rota `/menu/<modo>` — na prática é a única tela que essa rota exibe, independente do `modo` |
+| `mapa_distritos.html` | Mapa dos distritos industriais/agroindustriais administrados pela CODEGO, compartilhado entre Assentamento e Jurídico |
+| `distrito_detalhe.html` | Página de detalhe de um distrito específico do mapa (dados vêm do dicionário `DISTRITOS` em `routes/dashboard.py`, não do banco) |
 
 ---
 
@@ -29,10 +31,18 @@ Esta pasta contém todos os arquivos de template HTML da aplicação, renderizad
 
 | Arquivo | Descrição |
 |---|---|
-| `cadastro.html` | Formulário de cadastro de novo lote/empresa no módulo de Assentamento |
+| `cadastro.html` | Formulário de cadastro de novo lote/empresa no módulo de Assentamento. Select de município populado por `municipio_service.listar_municipios()`. |
 | `selecionar_edicao.html` | Listagem de empresas para seleção antes de editar — exibe indicadores visuais de atualização vencida (mais de 1 ano sem atualização) |
 | `editar.html` | Formulário de edição dos dados de assentamento de uma empresa |
 | `relatorios.html` | Página de geração de relatórios do módulo de Assentamento |
+| `controle_area.html` | Hub (rota `/assent/controle-area`) com cards de navegação para Áreas Brutas, Galerias/Condomínio, Áreas Parceladas e Cadastro de Módulos |
+| `areas_brutas.html` | Listagem de imóveis das tabelas `areas_brutas` e `areas_brutas_judicial`, com avaliações de valor por ano (2021–2024) |
+| `areas_brutas_form.html` | Formulário de criação/edição de um registro de área bruta |
+| `areas_parceladas.html` | Listagem de `areas_parceladas_regularizadas` e `loteamentos_irregulares` lado a lado, com painéis de detalhe expansíveis por linha |
+| `areas_brutas_parceladas_form.html` | Formulário compartilhado de criação/edição para as três famílias de área parcelada (regularizadas, galerias/condomínio e loteamentos irregulares) |
+| `galerias.html` | Listagem dos registros de `galerias_condominios` |
+| `cadastro_modulos.html` | Listagem dos registros de `municipal_lots` por município/distrito/quadra/módulo |
+| `cadastro_modulos_form.html` | Formulário de criação/edição de um registro de módulo |
 
 ---
 

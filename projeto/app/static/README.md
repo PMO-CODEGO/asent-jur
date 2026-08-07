@@ -8,31 +8,23 @@ Esta pasta contém os arquivos estáticos da aplicação — imagens, logos e ou
 
 | Arquivo | Descrição |
 |---|---|
-| `logo_codego.png` | Logo oficial da CODEGO em cores, utilizado nas telas do sistema |
-| `logo_codego_grey.png` | Logo da CODEGO em cinza, utilizado como marca d'água nos relatórios PDF gerados pela aplicação (8% de opacidade, rotacionado 45°) |
+| `logo_codego.png` | Logo oficial da CODEGO em cores, utilizado nas telas do sistema e no cabeçalho dos relatórios PDF |
+| `LOGO_CODEGO (ELEITORAL)-01.png` / `-02.png` / `-03.png` | Variações do logo, não referenciadas diretamente pelo código (arquivos de material gráfico) |
+| `imagens_empresas/asentjur.png` | Ícone usado como favicon (`shortcut icon`) nas páginas do sistema |
+
+> **Nota:** a marca d'água dos relatórios PDF foi descontinuada — `app/services/pdf_service.py` ainda referencia `static/logo_codego_grey.png` e verifica sua existência antes de desenhar (`os.path.exists`), mas o arquivo foi removido de propósito, então o watermark é simplesmente omitido, sem erro.
 
 ---
 
 ## Fotos de Empresas (raiz de `/static/`)
 
-Algumas fotos de empresas foram carregadas diretamente na raiz da pasta `/static/` em vez de `/static/imagens_empresas/`. Essas imagens são referenciadas diretamente pelos scripts SQL de seed do banco de dados.
-
-| Arquivo | Empresa |
-|---|---|
-| `empresa295.jpg` | Aché Laboratórios Farmacêuticos S.A. |
-| `empresa395.jpg` | Vitamedic Indústria Farmacêutica Ltda. |
-| `empresa422.jpeg` | Empresa ID 422 |
-| `empresa469.png` | Empresa ID 469 |
-| `empresa506.png` | Granol Indústria, Comércio e Exportação S.A. |
-| `empresa539.jpg` | Vitamedic Indústria Farmacêutica (unidade 539) |
-| `empresa548.jpg` | Brainfarma Indústria Química e Farmacêutica S.A. |
-| `empresa661.jpeg` | Empresa ID 661 |
+Muitas fotos de empresas foram carregadas diretamente na raiz da pasta `/static/` (mais de 60 arquivos, no padrão `empresa{id}.{ext}`) em vez de `/static/imagens_empresas/`. Essas imagens são referenciadas diretamente pelos scripts SQL de seed do banco de dados (`docker/mysql/init/`) através do campo `caminho_imagem` da tabela `empresa_infos`. Não há uma lista fixa — para saber qual empresa corresponde a qual `id`, consulte a tabela `municipal_lots` pelo campo `id`.
 
 ---
 
 ## `imagens_empresas/`
 
-Subpasta principal de fotos das empresas cadastradas no sistema. Contém mais de 100 imagens nos formatos `.jpg`, `.png`, `.webp` e `.jpeg`.
+Subpasta principal de fotos das empresas cadastradas no sistema. Contém mais de 300 imagens nos formatos `.jpg`, `.png`, `.webp`, `.jpeg` e `.svg`.
 
 **Convenção de nomenclatura dos arquivos:**
 ```

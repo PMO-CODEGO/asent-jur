@@ -41,9 +41,12 @@ Blueprints registrados:
 | `cadastro_bp` | `routes/cadastro.py` | Cadastro de empresas e processos |
 | `relatorio_bp` | `routes/relatorios.py` | Geração de relatórios em PDF |
 | `logs_bp` | `routes/logs.py` | Auditoria de ações |
+| `dashboard_bp` | `routes/dashboard.py` | Menu principal, telas de controle de área e mapa de distritos |
 | `edicao_bp` | `routes/edicao.py` | Edição de dados de assentamento e processos |
 | `juridico_bp` | `routes/juridico.py` | Módulo jurídico (consultas e prazos) |
-| `dashboard_bp` | `routes/dashboard.py` | Menu principal |
+| `areas_brutas_bp` | `routes/areas_brutas.py` | Cadastro de áreas brutas (imóveis e processo judicial) |
+| `areas_brutas_parceladas_bp` | `routes/areas_brutas_parceladas.py` | Cadastro de áreas parceladas: regularizadas, galerias/condomínio e loteamentos irregulares |
+| `cadastro_modulos_bp` | `routes/cadastro_modulos.py` | Cadastro de módulos de lotes |
 
 ---
 
