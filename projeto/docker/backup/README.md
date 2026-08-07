@@ -13,9 +13,7 @@ Baseada na própria imagem `mysql:8` (para ter o `mysqldump` disponível sem pre
 Script que gera o dump do banco a cada execução:
 1. Roda `mysqldump` (com `--single-transaction --routines --triggers`) contra o banco definido em `MYSQL_DATABASE`, usando as credenciais de `MYSQL_HOST` / `MYSQL_USER` / `MYSQL_PASSWORD`.
 2. Comprime a saída com `gzip` e salva em `/backups/codego_db_<data>_<hora>.sql.gz`.
-3. Remove dumps antigos com `find "$BACKUP_DIR" -name "codego_db_*.sql.gz" -mtime +5 -delete`.
-
-> **Atenção:** o comentário do script e a mensagem de log dizem que backups com mais de 30 dias são removidos, mas o comando real (`-mtime +5`) apaga qualquer arquivo com mais de **5 dias**. Um dos dois está errado — vale confirmar qual retenção é a pretendida antes de depender disso em produção.
+3. Remove dumps com mais de **30 dias** (`find "$BACKUP_DIR" -name "codego_db_*.sql.gz" -mtime +30 -delete`).
 
 ---
 

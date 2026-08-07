@@ -19,6 +19,6 @@ mysqldump \
 
 echo "[$(date)] Backup salvo: $FILE"
 
-# Remove backups com mais de 5 dias
-find "$BACKUP_DIR" -name "codego_db_*.sql.gz" -mtime +5 -delete
-echo "[$(date)] Backups antigos removidos (>5 dias)."
+# Remove backups com mais de 30 dias
+find "$BACKUP_DIR" -name "codego_db_*.sql.gz" -mtime +30 -delete
+echo "[$(date)] Backups antigos removidos (>30 dias)."
