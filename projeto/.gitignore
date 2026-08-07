@@ -22,6 +22,9 @@ backups/*.sql.gz
 # Uploads
 uploads/
 
+# Certificados TLS
+nginx/certs/
+
 # Logs
 *.log
 
