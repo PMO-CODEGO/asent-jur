@@ -17,7 +17,8 @@ venv/
 env/
 
 # Backups do banco
-backups/*.sql.gz
+backups/*
+!backups/.gitkeep
 
 # Uploads
 uploads/
