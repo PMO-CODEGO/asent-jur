@@ -99,7 +99,7 @@ Cria a tabela **`loteamentos_irregulares`** — glebas parceladas com o loteamen
 
 > As tabelas `areas_parceladas_regularizadas`, `galerias_condominios` e `loteamentos_irregulares` têm auto-increment próprio e independente — o mesmo `id` pode existir em mais de uma delas. `app/routes/areas_brutas_parceladas.py` e o template `areas_parceladas.html` levam isso em conta ao gerar identificadores únicos na tela.
 
-> **Atenção:** esses três scripts (12, 13, 14) contêm os dados de quando foram escritos — se o banco já recebeu atualizações posteriores diretamente (fora do fluxo de inicialização, como uma importação de planilha aplicada em produção), uma criação de banco **do zero** vai vir com os dados **antigos** desses scripts, não com o estado mais recente. Vale considerar atualizar o conteúdo deles quando os dados reais mudarem de forma significativa.
+> **Atenção:** esses três scripts (12, 13, 14) refletem o estado dos dados no momento em que foram gerados a partir do banco em produção. Como qualquer script de inicialização, eles **não se atualizam sozinhos** quando o banco real muda depois (ex: uma nova importação de planilha) — nesse caso, é preciso regenerar o conteúdo deles a partir do banco atual para que uma criação **do zero** reflita o estado mais recente.
 
 ---
 

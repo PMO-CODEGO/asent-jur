@@ -22,5 +22,6 @@ CREATE TABLE `galerias_condominios` (
 INSERT INTO `galerias_condominios` (`municipio_id`, `municipio`, `num_matricula`, `ano_aquisicao`, `area_total_m2`, `valor_imovel`, `matricula_parcelamento`, `registro_loteamento`, `ocupacao`, `descricao_area`, `registro_propriedade`) VALUES
 ('5212600 - MAIRIPOTABA', 'MAIRIPOTABA', '939', '1998', '946,86', 'R$ 2.000,00', '939', 'SIM', 'TERRENO URBANO', 'LOTE 04 E 05, QUADRA 25, RUA LAFAIET BITTENCOURT', 'CODEGO'),
 ('5212907 - MARZAGAO', 'MARZAGAO', '671', '1996', '4.707,88', 'R$ 10.000,00', '671', 'SIM', 'TERRENO URBANO', 'QUADRA 12', 'CODEGO'),
-('5220454 - SENADOR CANEDO', 'SENADOR CANEDO', '3181', '1995', '515.10''', 'R$ 1,00', '3181', 'SIM', 'TERRENO URBANO', 'RUA CARMITA REZENDE PORTO, N° 40, QD. 01 - SETOR GENOVEVA DE REZENDE MACHADO', 'CODEGO'),
-('5213806 - MORRINHOS', 'MORRINHOS', '8.060''', '1989', '7.808,00', 'R$ 0,00', '8.060''', 'SIM', 'IMÓVEL - AVENIDA DOS TRABALHADORES, LOTE 01, QUADRA 101-A, SETOR AEROPORTO', 'TERRENO URBANO COM EDIFICAÇÕES', 'CODEGO');
+('5220454 - SENADOR CANEDO', 'SENADOR CANEDO', '3181', '1995', '515.10\'', 'R$ 1,00', '3181', 'SIM', 'TERRENO URBANO', 'RUA CARMITA REZENDE PORTO, N° 40, QD. 01 - SETOR GENOVEVA DE REZENDE MACHADO', 'CODEGO'),
+('5201108 - ANAPOLIS', 'ANAPOLIS', '5238', '1977', '4.657,97', 'Cr$ 1.947.552,00', NULL, 'SIM', 'TERRENO URBANO', 'Avenida Goiás, Alameda Contorno e Rua
+Cel. Batista', 'CODEGO');
