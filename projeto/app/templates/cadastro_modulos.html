@@ -124,8 +124,8 @@
         {% set total = registros | length %}
         {% set municipios_unicos = registros | map(attribute='municipio') | select | unique | list | length %}
         {% set com_empresa = registros | selectattr('empresa') | list | length %}
-        {% set regulares = registros | selectattr('imovel_regular_irregular', 'equalto', 'Regular') | list | length %}
-        {% set irregulares = registros | selectattr('imovel_regular_irregular', 'equalto', 'Irregular') | list | length %}
+        {% set regulares = registros | selectattr('imovel_regular_irregular') | map(attribute='imovel_regular_irregular') | map('upper') | select('equalto', 'REGULAR') | list | length %}
+        {% set irregulares = registros | selectattr('imovel_regular_irregular') | map(attribute='imovel_regular_irregular') | map('upper') | select('equalto', 'IRREGULAR') | list | length %}
 
         <div class="stats-row">
             <div class="stat-card">
@@ -216,9 +216,9 @@
                             <td>{{ r.status_de_assentamento or '-' }}</td>
                             <td>
                                 {% set ri = r.imovel_regular_irregular or '' %}
-                                {% if ri == 'Regular' %}
+                                {% if ri.upper() == 'REGULAR' %}
                                     <span class="status-badge status-regular">Regular</span>
-                                {% elif ri == 'Irregular' %}
+                                {% elif ri.upper() == 'IRREGULAR' %}
                                     <span class="status-badge status-irregular">Irregular</span>
                                 {% elif ri %}
                                     <span class="status-badge status-outro">{{ ri }}</span>
@@ -353,9 +353,9 @@
                     total++;
                     if (row.dataset.municipio) municipiosVisiveis.add(row.dataset.municipio);
                     if (row.dataset.empresa === '1') comEmpresa++;
-                    const status = row.dataset.status.trim();
-                    if (status === 'Regular') regulares++;
-                    else if (status === 'Irregular') irregulares++;
+                    const status = row.dataset.status.trim().toUpperCase();
+                    if (status === 'REGULAR') regulares++;
+                    else if (status === 'IRREGULAR') irregulares++;
                 }
             });
 
