@@ -142,21 +142,21 @@
             <div class="stat-card">
                 <div class="stat-icon stat-icon-amber"><i data-lucide="trees" style="width:22px;height:22px;"></i></div>
                 <div>
-                    <div class="stat-value">{{ registros | length }}</div>
+                    <div class="stat-value" id="stat-total">{{ registros | length }}</div>
                     <div class="stat-label">Imóveis cadastrados</div>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon stat-icon-red"><i data-lucide="gavel" style="width:22px;height:22px;"></i></div>
                 <div>
-                    <div class="stat-value">{{ judiciais | length }}</div>
+                    <div class="stat-value" id="stat-judiciais">{{ judiciais | length }}</div>
                     <div class="stat-label">Em processo judicial</div>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon stat-icon-blue"><i data-lucide="map" style="width:22px;height:22px;"></i></div>
                 <div>
-                    <div class="stat-value">{{ registros | map(attribute='municipio') | unique | list | length }}</div>
+                    <div class="stat-value" id="stat-municipios">{{ registros | map(attribute='municipio') | unique | list | length }}</div>
                     <div class="stat-label">Municípios</div>
                 </div>
             </div>
@@ -164,7 +164,7 @@
                 <div class="stat-icon stat-icon-green"><i data-lucide="ruler" style="width:22px;height:22px;"></i></div>
                 <div>
                     {% set total_m2 = imoveis | map(attribute='area_total_m2') | select('number') | sum %}
-                    <div class="stat-value">{{ '{:,.0f}'.format(total_m2).replace(',', '.') }} m²</div>
+                    <div class="stat-value" id="stat-area">{{ '{:,.0f}'.format(total_m2).replace(',', '.') }} m²</div>
                     <div class="stat-label">Área total (sem judiciais)</div>
                 </div>
             </div>
@@ -172,7 +172,7 @@
                 <div class="stat-icon stat-icon-purple"><i data-lucide="landmark" style="width:22px;height:22px;"></i></div>
                 <div>
                     {% set total_aval = imoveis | map(attribute='ultima_aval_mercado') | select('number') | sum %}
-                    <div class="stat-value" style="font-size:1rem;">{{ 'R$ {:,.2f}'.format(total_aval).replace(',', 'X').replace('.', ',').replace('X', '.') }}</div>
+                    <div class="stat-value" id="stat-aval" style="font-size:1rem;">{{ 'R$ {:,.2f}'.format(total_aval).replace(',', 'X').replace('.', ',').replace('X', '.') }}</div>
                     <div class="stat-label">Total última avaliação</div>
                 </div>
             </div>
@@ -230,7 +230,7 @@
                         </thead>
                         <tbody>
                             {% for r in imoveis %}
-                            <tr class="data-row" data-municipio="{{ (r.municipio or '')|lower|trim }}" onclick="toggleDetalhe('d{{ r.id }}')" style="cursor:pointer;">
+                            <tr class="data-row" data-familia="imoveis" data-municipio="{{ (r.municipio or '')|lower|trim }}" data-area="{{ r.area_total_m2 or 0 }}" data-aval="{{ r.ultima_aval_mercado or 0 }}" onclick="toggleDetalhe('d{{ r.id }}')" style="cursor:pointer;">
                                 <td class="col-fix col-fix-1">
                                     <span class="row-toggle">
                                         <i data-lucide="chevron-right" style="width:14px;height:14px;"></i>
@@ -369,7 +369,7 @@
                         </thead>
                         <tbody>
                             {% for r in judiciais %}
-                            <tr class="data-row" data-municipio="{{ (r.municipio or '')|lower|trim }}" onclick="toggleDetalhe('j{{ r.id }}')" style="cursor:pointer;">
+                            <tr class="data-row" data-familia="judicial" data-municipio="{{ (r.municipio or '')|lower|trim }}" onclick="toggleDetalhe('j{{ r.id }}')" style="cursor:pointer;">
                                 <td class="col-fix col-fix-1">
                                     <span class="row-toggle">
                                         <i data-lucide="chevron-right" style="width:14px;height:14px;"></i>
@@ -497,9 +497,30 @@
                     label.textContent = marcados.length + ' municípios selecionados';
                 }
                 const selecionados = marcados.map(function(c) { return c.value.toLowerCase(); });
+                const municipiosVisiveis = new Set();
+                let total = 0, judiciais = 0, areaTotal = 0, avalTotal = 0;
+
                 document.querySelectorAll('.data-row').forEach(function(row) {
-                    row.style.display = (selecionados.length === 0 || selecionados.indexOf(row.dataset.municipio) !== -1) ? '' : 'none';
+                    const visivel = selecionados.length === 0 || selecionados.indexOf(row.dataset.municipio) !== -1;
+                    row.style.display = visivel ? '' : 'none';
+
+                    if (visivel) {
+                        total++;
+                        if (row.dataset.municipio) municipiosVisiveis.add(row.dataset.municipio);
+                        if (row.dataset.familia === 'judicial') {
+                            judiciais++;
+                        } else {
+                            areaTotal += parseFloat(row.dataset.area) || 0;
+                            avalTotal += parseFloat(row.dataset.aval) || 0;
+                        }
+                    }
                 });
+
+                document.getElementById('stat-total').textContent = total;
+                document.getElementById('stat-judiciais').textContent = judiciais;
+                document.getElementById('stat-municipios').textContent = municipiosVisiveis.size;
+                document.getElementById('stat-area').textContent = Math.round(areaTotal).toLocaleString('pt-BR') + ' m²';
+                document.getElementById('stat-aval').textContent = 'R$ ' + avalTotal.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
             }
 
             btn.addEventListener('click', function(e) {

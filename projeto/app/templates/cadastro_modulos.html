@@ -130,23 +130,23 @@
         <div class="stats-row">
             <div class="stat-card">
                 <div class="stat-icon stat-icon-blue"><i data-lucide="package" style="width:22px;height:22px;"></i></div>
-                <div><div class="stat-value">{{ total }}</div><div class="stat-label">Total de módulos</div></div>
+                <div><div class="stat-value" id="stat-total">{{ total }}</div><div class="stat-label">Total de módulos</div></div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon stat-icon-amber"><i data-lucide="map-pin" style="width:22px;height:22px;"></i></div>
-                <div><div class="stat-value">{{ municipios_unicos }}</div><div class="stat-label">Municípios</div></div>
+                <div><div class="stat-value" id="stat-municipios">{{ municipios_unicos }}</div><div class="stat-label">Municípios</div></div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon stat-icon-purple"><i data-lucide="building-2" style="width:22px;height:22px;"></i></div>
-                <div><div class="stat-value">{{ com_empresa }}</div><div class="stat-label">Com empresa</div></div>
+                <div><div class="stat-value" id="stat-com-empresa">{{ com_empresa }}</div><div class="stat-label">Com empresa</div></div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon stat-icon-green"><i data-lucide="check-circle" style="width:22px;height:22px;"></i></div>
-                <div><div class="stat-value">{{ regulares }}</div><div class="stat-label">Regulares</div></div>
+                <div><div class="stat-value" id="stat-regulares">{{ regulares }}</div><div class="stat-label">Regulares</div></div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon stat-icon-red"><i data-lucide="alert-triangle" style="width:22px;height:22px;"></i></div>
-                <div><div class="stat-value">{{ irregulares }}</div><div class="stat-label">Irregulares</div></div>
+                <div><div class="stat-value" id="stat-irregulares">{{ irregulares }}</div><div class="stat-label">Irregulares</div></div>
             </div>
         </div>
         
@@ -204,7 +204,7 @@
                     </thead>
                     <tbody>
                         {% for r in registros %}
-                        <tr class="data-row" data-status="{{ (r.imovel_regular_irregular or '')|trim }}" data-municipio="{{ (r.municipio or '')|lower|trim }}" onclick="toggleDetalhe('m{{ r.id }}')">
+                        <tr class="data-row" data-status="{{ (r.imovel_regular_irregular or '')|trim }}" data-municipio="{{ (r.municipio or '')|lower|trim }}" data-empresa="{{ '1' if r.empresa else '0' }}" onclick="toggleDetalhe('m{{ r.id }}')">
                             <td class="col-fix col-fix-1">
                                 <span class="row-toggle">
                                     <i data-lucide="chevron-right" style="width:14px;height:14px;"></i>
@@ -340,11 +340,30 @@
         function filtrar() {
             const sel = municipiosSelecionados();
             const st = filtroStatus.value.trim();
+            const municipiosVisiveis = new Set();
+            let total = 0, comEmpresa = 0, regulares = 0, irregulares = 0;
+
             document.querySelectorAll('.data-row').forEach(function(row) {
                 const munMatch = sel.length === 0 || sel.indexOf(row.dataset.municipio) !== -1;
                 const stMatch = !st || row.dataset.status.trim().toLowerCase() === st.toLowerCase();
-                row.style.display = (munMatch && stMatch) ? '' : 'none';
+                const visivel = munMatch && stMatch;
+                row.style.display = visivel ? '' : 'none';
+
+                if (visivel) {
+                    total++;
+                    if (row.dataset.municipio) municipiosVisiveis.add(row.dataset.municipio);
+                    if (row.dataset.empresa === '1') comEmpresa++;
+                    const status = row.dataset.status.trim();
+                    if (status === 'Regular') regulares++;
+                    else if (status === 'Irregular') irregulares++;
+                }
             });
+
+            document.getElementById('stat-total').textContent = total;
+            document.getElementById('stat-municipios').textContent = municipiosVisiveis.size;
+            document.getElementById('stat-com-empresa').textContent = comEmpresa;
+            document.getElementById('stat-regulares').textContent = regulares;
+            document.getElementById('stat-irregulares').textContent = irregulares;
         }
 
         munChecks.forEach(function(chk) {

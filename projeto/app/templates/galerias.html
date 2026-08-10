@@ -120,14 +120,14 @@
             <div class="stat-card">
                 <div class="stat-icon stat-icon-blue"><i data-lucide="building-2" style="width:22px;height:22px;"></i></div>
                 <div>
-                    <div class="stat-value">{{ registros | length }}</div>
+                    <div class="stat-value" id="stat-total">{{ registros | length }}</div>
                     <div class="stat-label">Total de imóveis</div>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon stat-icon-red"><i data-lucide="map" style="width:22px;height:22px;"></i></div>
                 <div>
-                    <div class="stat-value">{{ registros | map(attribute='municipio') | select | unique | list | length }}</div>
+                    <div class="stat-value" id="stat-municipios">{{ registros | map(attribute='municipio') | select | unique | list | length }}</div>
                     <div class="stat-label">Municípios</div>
                 </div>
             </div>
@@ -273,9 +273,21 @@
                     label.textContent = marcados.length + ' municípios selecionados';
                 }
                 const selecionados = marcados.map(function(c) { return c.value.toLowerCase(); });
+                const municipiosVisiveis = new Set();
+                let total = 0;
+
                 document.querySelectorAll('.data-row').forEach(function(row) {
-                    row.style.display = (selecionados.length === 0 || selecionados.indexOf(row.dataset.municipio) !== -1) ? '' : 'none';
+                    const visivel = selecionados.length === 0 || selecionados.indexOf(row.dataset.municipio) !== -1;
+                    row.style.display = visivel ? '' : 'none';
+
+                    if (visivel) {
+                        total++;
+                        if (row.dataset.municipio) municipiosVisiveis.add(row.dataset.municipio);
+                    }
                 });
+
+                document.getElementById('stat-total').textContent = total;
+                document.getElementById('stat-municipios').textContent = municipiosVisiveis.size;
             }
 
             btn.addEventListener('click', function(e) {
