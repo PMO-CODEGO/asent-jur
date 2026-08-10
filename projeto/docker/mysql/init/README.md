@@ -64,8 +64,10 @@ Cobre 9 empresas do Book 2.
 
 ---
 
-### `09_fotos_zip.sql`
-Atualiza `caminho_imagem` de mais empresas com fotos recebidas em lote (`fotos.zip`), preservando as descrições já existentes.
+### `09_empresa_infos_fotos_descricoes_consolidado.sql`
+Consolida em um único arquivo **12 scripts incrementais** que antes existiam separados (antigos `09_fotos_zip`, `11_descricoes_empresas`, `13_fotos_daia`, `14_descricoes_planilhas`, `15_descricoes_buscadas`, `16_fix_descricoes_vazias`, `17` a `22_fotos_*`). Cada um era um lote sucessivo de descrições/fotos de `empresa_infos` vindo de fontes diferentes (planilhas, busca na web, fotos adicionadas manualmente por distrito). Foram concatenados **na mesma ordem em que já executavam antes** (importante: as instruções `ON DUPLICATE KEY UPDATE`/`COALESCE` de cada trecho dependem de rodar depois dos trechos anteriores), sem alterar nenhuma linha de conteúdo.
+
+> Essa consolidação foi validada comparando o resultado final da tabela `empresa_infos` (636 registros) entre um container MySQL inicializado com os 12 scripts antigos e outro com este arquivo único — o dump ficou byte a byte idêntico nos dois casos.
 
 ---
 
@@ -74,12 +76,7 @@ Cria a tabela de referência **`municipio`** (`municipio_id`, `ibge_id`, `munici
 
 ---
 
-### `11_descricoes_empresas.sql`
-Mais um lote de descrições de empresas extraídas de planilhas, atualizando `empresa_infos` sem sobrescrever imagens já cadastradas.
-
----
-
-### `12_areas_brutas.sql`
+### `11_areas_brutas.sql`
 Cria as tabelas do módulo de **Áreas Brutas**:
 - `areas_brutas` — imóveis brutos (não parcelados) de propriedade da CODEGO, com matrícula, área útil/total, reserva legal e valores de mercado/subsidiado por ano (2021–2024).
 - `areas_brutas_judicial` — mesma estrutura, para imóveis brutos com processo judicial em andamento.
@@ -87,49 +84,22 @@ Cria as tabelas do módulo de **Áreas Brutas**:
 
 ---
 
-### `13_fotos_daia.sql`
-Fotos de empresas do DAIA e outros distritos, adicionadas manualmente. Atualiza apenas `caminho_imagem`, preservando descrições.
-
----
-
-### `14_descricoes_planilhas.sql` / `15_descricoes_buscadas.sql` / `16_fix_descricoes_vazias.sql`
-Sequência de ajustes finos em `empresa_infos.descricao`:
-- **`14`** — descrições extraídas de planilhas, sem sobrescrever imagens.
-- **`15`** — descrições buscadas na web por agentes de pesquisa, sem sobrescrever descrições ou imagens já existentes.
-- **`16`** — corrige registros com `descricao` igual a string vazia (`''`), caso que `COALESCE`/`ON DUPLICATE KEY UPDATE` dos scripts anteriores não cobre (só protege contra `NULL`).
-
----
-
-### `17_fotos_daia.sql` / `18_fotos_daiag.sql` / `19_fotos_darv1.sql` / `20_fotos_dimic.sql` / `21_fotos_dasc.sql` / `22_fotos_njf_jm_greca_planalto.sql`
-Lotes sucessivos de fotos de empresas buscadas/adicionadas manualmente, um script por distrito industrial ou grupo de empresas:
-
-| Script | Distrito / grupo |
-|---|---|
-| `17` | DAIA (Anápolis) |
-| `18` | DAIAG (Aparecida de Goiânia) |
-| `19` | DARV I (Rio Verde) |
-| `20` | DIMIC (Catalão) |
-| `21` | DASC (Senador Canedo) |
-| `22` | NJF, JM Alumínios, GRECA, Planalto Blocos |
-
-Todos seguem o mesmo padrão dos scripts de fotos anteriores: atualizam só `caminho_imagem`, sem sobrescrever o que já existe.
-
----
-
-### `23_areas_parceladas_regularizadas.sql`
+### `12_areas_parceladas_regularizadas.sql`
 Cria a tabela **`areas_parceladas_regularizadas`** — glebas já parceladas (loteadas) com o loteamento regularizado.
 
 ---
 
-### `24_galerias_condominios.sql`
+### `13_galerias_condominios.sql`
 Cria a tabela **`galerias_condominios`** — imóveis do tipo galeria/condomínio.
 
 ---
 
-### `25_loteamentos_irregulares.sql`
+### `14_loteamentos_irregulares.sql`
 Cria a tabela **`loteamentos_irregulares`** — glebas parceladas com o loteamento **não** regularizado. Tem um campo extra (`observacoes`) em relação às outras famílias de área parcelada.
 
 > As tabelas `areas_parceladas_regularizadas`, `galerias_condominios` e `loteamentos_irregulares` têm auto-increment próprio e independente — o mesmo `id` pode existir em mais de uma delas. `app/routes/areas_brutas_parceladas.py` e o template `areas_parceladas.html` levam isso em conta ao gerar identificadores únicos na tela.
+
+> **Atenção:** esses três scripts (12, 13, 14) contêm os dados de quando foram escritos — se o banco já recebeu atualizações posteriores diretamente (fora do fluxo de inicialização, como uma importação de planilha aplicada em produção), uma criação de banco **do zero** vai vir com os dados **antigos** desses scripts, não com o estado mais recente. Vale considerar atualizar o conteúdo deles quando os dados reais mudarem de forma significativa.
 
 ---
 
@@ -141,11 +111,11 @@ Cria a tabela **`loteamentos_irregulares`** — glebas parceladas com o loteamen
         └── 03_...         ← torna empresa_id opcional
         └── 04_...         ← migra processos legados para a nova estrutura
         └── 05_...         ← adiciona campos completos ao módulo jurídico
-06, 07, 08, 09, 11, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22
+06, 07, 08, 09
     ← lotes sucessivos de descrições/fotos de empresa_infos (independentes entre si)
 10_municipios.sql                     ← tabela de referência dos municípios de GO
-12_areas_brutas.sql                   ← tabelas de áreas brutas (imóvel + judicial)
-23_areas_parceladas_regularizadas.sql ← tabela de áreas parceladas regularizadas
-24_galerias_condominios.sql           ← tabela de galerias/condomínio
-25_loteamentos_irregulares.sql        ← tabela de loteamentos irregulares
+11_areas_brutas.sql                   ← tabelas de áreas brutas (imóvel + judicial)
+12_areas_parceladas_regularizadas.sql ← tabela de áreas parceladas regularizadas
+13_galerias_condominios.sql           ← tabela de galerias/condomínio
+14_loteamentos_irregulares.sql        ← tabela de loteamentos irregulares
 ```
