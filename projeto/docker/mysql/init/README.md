@@ -103,6 +103,11 @@ Cria a tabela **`loteamentos_irregulares`** — glebas parceladas com o loteamen
 
 ---
 
+### `15_mapas_interativo_anapolis.sql`
+Cria a tabela **`mapas_interativo_anapolis`** — perímetros do DAIA e áreas relacionadas (DAIA, DAIA Norte, DAIAPLAM, DAIA II, glebas), com área (m²) e coordenadas geográficas de cada um. Dados importados da planilha `MAPAS INTERATIVO ANÁPOLIS.xlsx`. Não há, até o momento, nenhuma tela da aplicação que leia essa tabela — ela existe apenas no banco, para uso futuro.
+
+---
+
 ## Resumo da ordem de dependências
 
 ```
@@ -118,4 +123,5 @@ Cria a tabela **`loteamentos_irregulares`** — glebas parceladas com o loteamen
 12_areas_parceladas_regularizadas.sql ← tabela de áreas parceladas regularizadas
 13_galerias_condominios.sql           ← tabela de galerias/condomínio
 14_loteamentos_irregulares.sql        ← tabela de loteamentos irregulares
+15_mapas_interativo_anapolis.sql      ← tabela de perímetros/coordenadas do DAIA (sem tela ainda)
 ```
