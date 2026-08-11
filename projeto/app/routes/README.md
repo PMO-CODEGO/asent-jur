@@ -145,13 +145,20 @@ Exibe o histórico de ações registradas no sistema.
 
 ---
 
-### `relatorios.py` — Relatórios em PDF
-Gera relatórios em formato PDF com dados de empresas e processos usando a biblioteca ReportLab.
+### `relatorios.py` — Relatórios em PDF (empresas, processos e RELGEA)
+Gera todos os relatórios em PDF da aplicação usando ReportLab: relatórios de empresas/processos (lógica própria deste arquivo) e relatórios RELGEA a partir de `relatorio_relgea_service.py`.
 
 Principais funcionalidades:
 - Geração de relatório completo de uma empresa, incluindo dados de assentamento, processos jurídicos vinculados e foto da empresa.
 - Relatório geral de todos os processos jurídicos cadastrados.
 - Todos os PDFs usam cabeçalho/rodapé padronizados de `pdf_service.add_header_footer` (a marca d'água que esse helper tentava desenhar está desativada, ver [app/services/README.md](../services/README.md#pdf_servicepy--serviço-de-pdf)).
+
+Relatórios RELGEA, gerados em memória a partir dos dados atuais do banco (`inline`, abrem direto no navegador) — ver [app/services/README.md](../services/README.md#relatorio_relgea_servicepy--serviço-de-relatórios-relgea-pdf):
+
+| Rota | Método | Acesso | Descrição |
+|---|---|---|---|
+| `/relatorio-relgea/distrito/<slug>` | GET | `assent`, `jur`, `admin`, `assent_gestor`, `jur_gestor` | Gera o PDF do relatório RELGEA do distrito (todos os registros de `municipal_lots` daquele distrito, A4 paisagem). Se não houver registros, redireciona de volta para `dashboard.distrito_detalhe` com um aviso. Botão "Baixar Relatório RELGEA" em `distrito_detalhe.html`. |
+| `/relatorio-relgea/individual/<familia>/<registro_id>` | GET | `assent`, `admin`, `assent_gestor` | Gera a ficha PDF de um registro de `galerias`, `regularizadas` ou `irregulares` (mesmas famílias de `areas_brutas_parceladas.py`). Botão "Relatório" nas tabelas de `galerias.html` e `areas_parceladas.html`. |
 
 ---
 

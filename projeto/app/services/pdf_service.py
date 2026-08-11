@@ -14,7 +14,7 @@ CINZA_TEXTO = colors.HexColor('#6b7280')
 def add_header_footer(canvas, doc):
     """Cabeçalho e rodapé padronizados em todas as páginas."""
     canvas.saveState()
-    page_width, page_height = A4
+    page_width, page_height = getattr(doc, 'pagesize', A4)
     margin = 54
 
     # Variáveis dinâmicas passadas pelo Flask / ReportLab

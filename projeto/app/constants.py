@@ -76,7 +76,7 @@ colunas_map = {
     'TAXA E OCUPAÇÃO DO IMÓVEL(%)': 'taxa_e_ocupacao_do_imovel',
 }
 
-campos_numericos = ['processo_sei', 'empregos_gerados', 'quadra', 'qtd_modulos', 'tamanho_m2', 'matricula_s', 'taxa_e_ocupacao_do_imovel']
+campos_numericos = ['empregos_gerados', 'quadra', 'qtd_modulos', 'tamanho_m2', 'matricula_s', 'taxa_e_ocupacao_do_imovel']
 
 ramo_de_atividade_opcoes = [
     "ADMINISTRAÇÃO - CODEGO",

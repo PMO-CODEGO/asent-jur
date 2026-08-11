@@ -3,7 +3,7 @@ from io import BytesIO
 from pathlib import Path
 import os
 
-from flask import Blueprint, current_app, flash, make_response, redirect, render_template, request, session, url_for
+from flask import Blueprint, abort, current_app, flash, make_response, redirect, render_template, request, session, url_for
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
@@ -13,6 +13,13 @@ from app.db import get_db
 from app.constants import LABELS
 from app.services.juridico_schema_service import garantir_schema_juridico
 from app.services.pdf_service import add_header_footer, bloco_identificacao, linha_assinatura
+from app.services.relatorio_relgea_service import (
+    DISTRITO_DB_MAP,
+    FAMILIA_TABELA,
+    buscar_registro_individual,
+    gerar_relatorio_distrito_pdf,
+    gerar_relatorio_individual_pdf,
+)
 from app.utils.decorators import role_required
 
 relatorio_bp = Blueprint("relatorio", __name__)
@@ -701,3 +708,43 @@ def relatorios():
         print("Erro ao carregar dados:", err)
 
     return render_template('relatorios.html', empresas=empresas, empresas_info=empresas_info)
+
+
+@relatorio_bp.route('/relatorio-relgea/distrito/<slug>')
+@role_required('assent', 'jur', 'admin', 'assent_gestor', 'jur_gestor')
+def relatorio_relgea_distrito(slug):
+    distrito_db = DISTRITO_DB_MAP.get(slug)
+    if not distrito_db:
+        abort(404)
+
+    emitido_por = obter_usuario_logado()
+    with get_db() as db:
+        buffer, filename, _ = gerar_relatorio_distrito_pdf(db, distrito_db, emitido_por)
+
+    if not buffer:
+        flash('Nenhum registro encontrado no banco de dados para este distrito.', 'warning')
+        return redirect(url_for('dashboard.distrito_detalhe', slug=slug))
+
+    response = make_response(buffer.getvalue())
+    response.headers['Content-Type'] = 'application/pdf'
+    response.headers['Content-Disposition'] = f'inline; filename="{filename}"'
+    return response
+
+
+@relatorio_bp.route('/relatorio-relgea/individual/<familia>/<int:registro_id>')
+@role_required('assent', 'admin', 'assent_gestor')
+def relatorio_relgea_individual(familia, registro_id):
+    if familia not in FAMILIA_TABELA:
+        abort(404)
+
+    emitido_por = obter_usuario_logado()
+    with get_db() as db:
+        registro = buscar_registro_individual(db, familia, registro_id)
+        if not registro:
+            abort(404)
+        buffer, filename = gerar_relatorio_individual_pdf(familia, registro, emitido_por)
+
+    response = make_response(buffer.getvalue())
+    response.headers['Content-Type'] = 'application/pdf'
+    response.headers['Content-Disposition'] = f'inline; filename="{filename}"'
+    return response

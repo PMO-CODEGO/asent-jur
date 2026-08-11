@@ -6,7 +6,8 @@ from app.constants import colunas_map, imovel_opcoes, ramo_de_atividade_opcoes, 
 
 
 class CadastroService:
-    INT_FIELDS = {'processo_sei', 'empregos_gerados', 'quadra', 'qtd_modulos', 'matricula_s'}
+    INT_FIELDS = {'empregos_gerados', 'quadra', 'qtd_modulos', 'matricula_s'}
+    PROCESSO_SEI_PATTERN = re.compile(r'^\d+$')
     DECIMAL_FIELDS = {'tamanho_m2', 'taxa_e_ocupacao_do_imovel'}
     MAX_LENGTHS = {
         'municipio': 50,
@@ -86,6 +87,17 @@ class CadastroService:
 
         if db_name == 'cnpj' and valor and not cls.CNPJ_PATTERN.fullmatch(valor):
             raise ValueError('O CNPJ deve estar no formato 00.000.000/0000-00 ou conter 14 digitos.')
+
+        if db_name == 'processo_sei':
+            # armazenado como texto (varchar) para nao truncar/estourar numeros SEI
+            # reais (~15 digitos) e para preservar zeros a esquerda, caso existam
+            if not valor:
+                return '0'
+            if not cls.PROCESSO_SEI_PATTERN.fullmatch(valor):
+                raise ValueError(f'O campo "{field_name}" aceita apenas numeros inteiros.')
+            if len(valor) > 20:
+                raise ValueError(f'O campo "{field_name}" aceita no maximo 20 digitos.')
+            return valor
 
         if db_name in cls.INT_FIELDS:
             return cls._parse_int(valor, field_name)

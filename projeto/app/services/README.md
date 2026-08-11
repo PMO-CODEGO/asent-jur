@@ -63,6 +63,19 @@ Classe `CadastroService` com métodos de validação e normalização de dados d
 
 ---
 
+### `relatorio_relgea_service.py` — Serviço de Relatórios RELGEA (PDF)
+Gera, sob demanda e com os dados atuais do banco, os relatórios em PDF no padrão RELGEA exigido pelo manual de controle de informação documentada (SUGEQ). Usa ReportLab (mesma biblioteca de `pdf_service.py`, reaproveitando `add_header_footer`, `bloco_identificacao` e `linha_assinatura` para manter cabeçalho/rodapé/identificação ISO 9001 idênticos aos demais PDFs do sistema). Os arquivos são gerados inteiramente em memória (`io.BytesIO`) e devolvidos diretamente na resposta HTTP — nada é salvo em disco.
+
+Dois formatos de relatório:
+- **Relatório de distrito** — `gerar_relatorio_distrito_pdf(db, distrito_db, emitido_por)`. Tabela (A4 paisagem) com todos os registros de `municipal_lots` daquele distrito — linhas sem empresa cadastrada ("área disponível") aparecem destacadas em verde, mesma convenção do relatório oficial. Retorna `(None, None, 0)` se não houver registros. O mapeamento slug → valor da coluna `distrito` fica em `DISTRITO_DB_MAP` (os slugs são os mesmos usados em `dashboard.DISTRITOS`).
+- **Ficha individual** — `gerar_relatorio_individual_pdf(familia, registro, emitido_por)`, para um único registro de `galerias_condominios`, `areas_parceladas_regularizadas` ou `loteamentos_irregulares`. Tabela de campo/valor (A4 retrato).
+
+A coluna `processo_sei` era `INT` e estourava silenciosamente para `2147483647` com números de processo SEI reais (~15 dígitos) — corrigido migrando a coluna para `varchar(50)` (não faz sentido tratar um identificador como número: além do limite, um `int`/`bigint` também derruba zeros à esquerda). `_clean_processo` ainda descarta o valor sentinela `2147483647` (ou `'0'`) para os ~649 registros cujo número original já havia sido perdido antes da correção e não pôde ser recuperado — a correção evita truncamento em cadastros novos, mas não recupera dados já sobrescritos.
+
+> `pdf_service.add_header_footer` foi ajustado para ler o tamanho de página de `doc.pagesize` em vez de assumir A4 retrato fixo — necessário para o relatório de distrito, que usa A4 paisagem. Não muda o comportamento dos demais PDFs (todos já usavam A4 retrato).
+
+---
+
 ### `pdf_service.py` — Serviço de PDF
 Funções usadas como callback/helpers pelo ReportLab para padronizar os relatórios em PDF (cabeçalho, rodapé e blocos no estilo ISO 9001):
 

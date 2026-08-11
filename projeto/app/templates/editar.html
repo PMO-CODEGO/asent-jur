@@ -120,9 +120,14 @@
                                 maxlength="50"
                                 class="w-full p-3 border-2 border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all shadow-sm bg-gray-50/50">
 
-                            {% elif col in ['processo_sei', 'empregos_gerados', 'quadra', 'qtd_modulos', 'matricula_s'] %}
+                            {% elif col in ['empregos_gerados', 'quadra', 'qtd_modulos', 'matricula_s'] %}
                             <input type="number" name="{{ col }}" value="{{ 0 if dados[col] in ['-', None, ''] else dados[col] }}"
                                 min="0" max="2147483647" step="1"
+                                class="w-full p-3 border-2 border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all shadow-sm bg-gray-50/50">
+
+                            {% elif col == 'processo_sei' %}
+                            <input type="text" name="{{ col }}" value="{{ '' if dados[col] in ['-', None, '0'] else dados[col] }}"
+                                inputmode="numeric" pattern="\d*" maxlength="20" placeholder="Somente números"
                                 class="w-full p-3 border-2 border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all shadow-sm bg-gray-50/50">
 
                             {% elif col in ['tamanho_m2', 'taxa_e_ocupacao_do_imovel'] %}
