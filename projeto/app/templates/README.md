@@ -76,3 +76,16 @@ A subpasta `partials/` contém fragmentos HTML incluídos em outras páginas via
 | Arquivo | Incluído em | Descrição |
 |---|---|---|
 | `partials/processo_eventos_lista.html` | `detalhe_jur.html` | Renderiza a lista de eventos de um processo (prazos, movimentações, histórico de alterações) de forma reutilizável |
+| `partials/guia_mascote.html` | 17 telas principais (ver abaixo) | Codi — personagem-guia flutuante (mascote no canto inferior direito) com dicas contextuais por tela |
+
+### Codi, o personagem-guia (`guia_mascote.html`)
+
+Widget autocontido (HTML + CSS + JS inline, sem dependências externas) que mostra o Codi — mascote da CODEGO — como um avatar flutuante com dicas sobre a tela atual, escritas na primeira pessoa como se ele estivesse falando (ver conteúdo em `app/services/guia_service.py`). Duas imagens em `app/static/`: `mascote_codego.png` (corpo inteiro, pose parada, usada no botão flutuante) e `mascote_codego_apontando.png` (pose apontando, usada no cabeçalho do balão de dicas). Para incluir numa tela nova:
+
+```jinja
+{% set guia_pagina = 'cadastro' %}{% include 'partials/guia_mascote.html' %}
+```
+
+logo antes do `</body>`. O conteúdo (contexto da tela + lista de falas) de cada `guia_pagina` fica centralizado em `app/services/guia_service.py` (`GUIA_CONTEUDO`), exposto aos templates como a função global do Jinja `guia_dicas(pagina)` (registrada em `app/__init__.py`). Se a chave não existir no dicionário, o `{% include %}` não renderiza nada — então basta adicionar a entrada em `guia_service.py` para "ligar" o Codi numa tela que já tem o include, ou adicionar as duas linhas (entrada + include) numa tela nova.
+
+O balão tem um "rabinho" apontando para o Codi no botão flutuante, reforçando que é ele quem está falando. Na primeira visita de cada tela (controlado via `localStorage`, `guia_visto_<pagina>`) o balão já abre sozinho; depois de fechado uma vez, só reabre se o usuário clicar no botão.

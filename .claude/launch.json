@@ -6,6 +6,10 @@
       "runtimeExecutable": "docker",
       "runtimeArgs": ["compose", "-f", "projeto/docker-compose.yml", "up", "--build"],
       "port": 80
+    },
+    {
+      "name": "asent-jur (attach)",
+      "url": "https://localhost"
     }
   ]
 }

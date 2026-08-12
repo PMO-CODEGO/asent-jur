@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 from flask_wtf.csrf import CSRFError
 from app.extensions import bcrypt, csrf
 from app.config import Config
+from app.services.guia_service import obter_guia
 
 def create_app():
     app = Flask(__name__)
@@ -11,6 +12,8 @@ def create_app():
 
     bcrypt.init_app(app)
     csrf.init_app(app)
+
+    app.jinja_env.globals['guia_dicas'] = obter_guia
 
     @app.errorhandler(CSRFError)
     def erro_csrf(e):

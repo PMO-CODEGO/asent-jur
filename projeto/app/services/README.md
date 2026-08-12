@@ -47,6 +47,11 @@ Função `gravar_log(acao, descricao, ...)` que insere um registro na tabela `lo
 
 ---
 
+### `guia_service.py` — Conteúdo do Codi (personagem-guia)
+Módulo puro de dados: `GUIA_CONTEUDO` é um dicionário `{chave_da_pagina: {'titulo': ..., 'dicas': [...]}}` com as falas do Codi — mascote da CODEGO que dá dicas contextuais (`app/templates/partials/guia_mascote.html`) — escritas na primeira pessoa em cada tela. `obter_guia(pagina)` retorna a entrada correspondente ou `None`. É registrado como função global do Jinja (`guia_dicas`) em `app/__init__.py`, para que qualquer template possa chamá-lo sem precisar que a rota passe esse dado explicitamente no `render_template`. Ver [app/templates/README.md](../templates/README.md#codi-o-personagem-guia-guia_mascotehtml) para como ligar numa tela nova.
+
+---
+
 ### `municipio_service.py` — Serviço de Municípios
 Função `listar_municipios()` que retorna a lista dos 246 municípios de Goiás cadastrados na tabela de referência `municipio` (populada em `docker/mysql/init/10_municipios.sql`), ordenada alfabeticamente. É a fonte única usada para popular o `<select>` de município em todos os formulários de cadastro (cadastro de empresa, edição, áreas brutas, áreas parceladas e cadastro de módulos).
 
