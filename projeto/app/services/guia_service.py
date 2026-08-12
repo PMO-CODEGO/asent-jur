@@ -10,14 +10,13 @@ GUIA_CONTEUDO = {
         'dicas': [
             'Oi, eu sou o Codi! Usa seu usuário e senha cadastrados pra entrar por aqui.',
             'Esqueceu a senha? Sem crise, clica em "Esqueci minha senha" que eu te ajudo a redefinir por e-mail.',
-            'O que você vai ver depois de entrar depende do seu perfil: Assentamento, Jurídico ou administrador.',
+            'O que você vai ver depois de entrar depende do seu perfil de acesso.',
         ],
     },
     'inicio_assent': {
         'titulo': 'sobre esta página',
         'dicas': [
             'Bem-vindo! Em "Controle de Área" você encontra áreas brutas, parceladas, galerias e módulos.',
-            'Se você for administrador, também dá pra acessar o Módulo Jurídico por aqui.',
             'Quando terminar, clica em "Sair" ali em cima pra encerrar sua sessão com segurança.',
         ],
     },
