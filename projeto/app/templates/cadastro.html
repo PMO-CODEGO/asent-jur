@@ -20,7 +20,9 @@
     <div class="max-w-5xl mx-auto">
         <header class="bg-white rounded-2xl p-6 mb-8 shadow-lg flex flex-col md:flex-row justify-between items-center border border-gray-100">
             <div class="flex items-center gap-4">
-                <img src="{{ url_for('static', filename='logo_codego.png') }}" alt="Logo CodeGO" class="h-16 w-auto">
+                <a href="{{ url_for('dashboard.inicio_assent') }}" aria-label="Voltar ao início">
+                    <img src="{{ url_for('static', filename='logo_codego.png') }}" alt="Logo CodeGO" class="h-16 w-auto">
+                </a>
                 <div class="border-l pl-4 border-gray-200">
                     <h1 class="text-xl font-bold text-[#002b5c]">Novo Cadastro</h1>
                     <p class="text-xs text-gray-500 font-medium uppercase tracking-wider">Módulo de Assentamento</p>

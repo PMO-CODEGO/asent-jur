@@ -12,7 +12,9 @@
     <div class="max-w-5xl mx-auto">
         <header class="bg-white rounded-2xl p-6 mb-8 shadow-lg flex flex-col md:flex-row justify-between items-center border border-gray-100">
             <div class="flex items-center gap-4">
-                <img src="{{ url_for('static', filename='logo_codego.png') }}" class="h-16 w-auto">
+                <a href="{{ url_for('dashboard.menu', modo='jur') }}" aria-label="Voltar ao início">
+                    <img src="{{ url_for('static', filename='logo_codego.png') }}" class="h-16 w-auto">
+                </a>
                 <div>
                     <h1 class="text-xl font-bold text-[#002b5c]">Importar Processos</h1>
                     <p class="text-sm text-gray-500 italic">Carga em lote por planilha</p>
