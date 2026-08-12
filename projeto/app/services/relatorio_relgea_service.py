@@ -1,6 +1,6 @@
 import re
 import unicodedata
-from datetime import date, datetime
+from datetime import datetime
 from decimal import Decimal
 from io import BytesIO
 from xml.sax.saxutils import escape
@@ -10,9 +10,22 @@ from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
-from app.services.pdf_service import AZUL_CODEGO, add_header_footer, bloco_identificacao, linha_assinatura
+from app.services.pdf_service import (
+    AZUL_CODEGO,
+    FONTE_NEGRITO,
+    FONTE_REGULAR,
+    bloco_identificacao,
+    linha_assinatura,
+    pagina_relgea,
+)
 
 VERDE_DISPONIVEL = colors.HexColor('#C6EFCE')
+
+# Sigla oficial da area no Anexo D do MANSUGEQ (Ficha de Siglas Unidade SEI): GEAS-18820
+# = Gerencia de Assentamento. O codigo dos relatorios usa RELGEAS (nao "RELGEA"), seguindo
+# a estrutura [TIPO]-[AREA]-[NOME]-[REVxxx] descrita na secao 11.1 do manual.
+UNIDADE_RESPONSAVEL = 'GEAS - GERÊNCIA DE ASSENTAMENTO'
+CONTROLE = 'SUGEQ'
 
 # slug (mesmo usado em dashboard.DISTRITOS) -> valor da coluna `distrito` em municipal_lots
 DISTRITO_DB_MAP = {
@@ -131,12 +144,18 @@ def buscar_registros_distrito(db, distrito_db):
     return rows
 
 
-DISTRITO_COL_WIDTHS = [22, 95, 65, 55, 60, 32, 32, 30, 50, 90, 40, 34, 90, 46]
+# larguras calibradas para caber em A4 paisagem (usavel ~762pt com margem 40) na fonte
+# Arial 10 exigida pela secao 6.1-III/IV do manual
+DISTRITO_COL_WIDTHS = [18, 100, 68, 60, 60, 28, 30, 28, 46, 85, 34, 30, 85, 40]
 DISTRITO_HEADERS = [
     'Nº', 'Empresa', 'CNPJ', 'Processo SEI', 'Status de Assentamento', 'Quadra',
     'Módulo(s)', 'Qtd. Módulos', 'Tamanho (m²)', 'Ação Judicial', 'Taxa Ocup.',
     'Ramo Ativ.', 'Irregularidades', 'Regular/Irregular',
 ]
+# secao 6.1-III do manual: "textos objetivos (codigos, datas, revisoes, status, valores)
+# centralizados; textos descritivos alinhados a esquerda" — indices das colunas descritivas
+# (Empresa, Acao Judicial, Irregularidades); as demais sao objetivas -> centralizadas
+DISTRITO_COLS_ESQUERDA = {1, 9, 12}
 
 
 def gerar_relatorio_distrito_pdf(db, distrito_db, emitido_por='SISTEMA'):
@@ -149,30 +168,44 @@ def gerar_relatorio_distrito_pdf(db, distrito_db, emitido_por='SISTEMA'):
         return None, None, 0
 
     buffer = BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=landscape(A4), leftMargin=36, rightMargin=36, topMargin=90, bottomMargin=60)
+    doc = SimpleDocTemplate(buffer, pagesize=landscape(A4), leftMargin=40, rightMargin=40, topMargin=90, bottomMargin=60)
 
     data_emissao = datetime.now().strftime('%d/%m/%Y')
-    codigo = 'RELGEADISTRITODE' + strip_accents(distrito_db).upper().replace(' ', '') + 'REV000'
+    codigo = 'RELGEASDISTRITODE' + strip_accents(distrito_db).upper().replace(' ', '') + 'REV000'
     doc._iso_doc_code = codigo
     doc._iso_rev = 'Rev. 00'
     doc._iso_data = data_emissao
     doc._iso_emitido_por = emitido_por
 
     styles = getSampleStyleSheet()
+    # seção 6.1-IV do manual: título principal centralizado, negrito, tamanho 14
+    titulo_style = ParagraphStyle('DistritoTitulo', parent=styles['Normal'],
+        fontName=FONTE_NEGRITO, fontSize=14, leading=18, alignment=1,
+        spaceAfter=12, textColor=AZUL_CODEGO)
+    # seção 6.1-I: subtítulos Arial 11, negrito, esquerda
     subtitle_style = ParagraphStyle('DistritoSubtitle', parent=styles['Normal'],
-        fontName='Helvetica-Bold', fontSize=10, leading=14, spaceAfter=6,
+        fontName=FONTE_NEGRITO, fontSize=11, leading=14, spaceAfter=6,
         spaceBefore=4, textColor=AZUL_CODEGO)
+    # seção 6.1-IV / tabela 6.2: cabeçalhos de coluna Arial 10, negrito, centralizados
     header_cell_style = ParagraphStyle('DistritoHeaderCell', parent=styles['Normal'],
-        fontName='Helvetica-Bold', fontSize=6.5, leading=8, textColor=colors.whitesmoke, wordWrap='CJK')
-    cell_style = ParagraphStyle('DistritoCell', parent=styles['Normal'],
-        fontName='Helvetica', fontSize=6.5, leading=8, wordWrap='CJK')
-    styles_map = {'cell': cell_style, 'bold': subtitle_style}
+        fontName=FONTE_NEGRITO, fontSize=10, leading=12, alignment=1, textColor=colors.whitesmoke, wordWrap='CJK')
+    # conteúdo das células Arial 10; alinhamento por coluna decidido na hora de montar a linha
+    cell_style_centro = ParagraphStyle('DistritoCellCentro', parent=styles['Normal'],
+        fontName=FONTE_REGULAR, fontSize=10, leading=12, alignment=1, wordWrap='CJK')
+    cell_style_esquerda = ParagraphStyle('DistritoCellEsquerda', parent=styles['Normal'],
+        fontName=FONTE_REGULAR, fontSize=10, leading=12, alignment=0, wordWrap='CJK')
+    identificacao_style = ParagraphStyle('DistritoIdentCell', parent=styles['Normal'],
+        fontName=FONTE_REGULAR, fontSize=8, leading=10, wordWrap='CJK')
+    styles_map = {'cell': identificacao_style, 'bold': subtitle_style}
 
     story = []
+    story.append(Paragraph(f'RELATÓRIO RELGEA — DISTRITO DE {distrito_db}'.upper(), titulo_style))
     bloco_identificacao(story,
         titulo=f'Relatório RELGEA — Distrito de {distrito_db}',
         doc_code=codigo, rev='Rev. 00', data_emissao=data_emissao,
-        emitido_por=emitido_por, styles_map=styles_map)
+        emitido_por=emitido_por, styles_map=styles_map,
+        unidade_responsavel=UNIDADE_RESPONSAVEL, revisado_por='A definir', controle=CONTROLE,
+        aprovado_por='A definir')
 
     story.append(Paragraph(f'REGISTROS DO DISTRITO ({len(registros)})', subtitle_style))
 
@@ -199,7 +232,11 @@ def gerar_relatorio_distrito_pdf(db, distrito_db, emitido_por='SISTEMA'):
             (_clean(reg.get('irregularidades')) or '-') if not vazio else '-',
             (_clean(reg.get('imovel_regular_irregular')) or '-') if not vazio else '-',
         ]
-        linhas.append([Paragraph(escape(str(v)), cell_style) for v in valores])
+        linha = []
+        for col, v in enumerate(valores):
+            estilo_col = cell_style_esquerda if col in DISTRITO_COLS_ESQUERDA else cell_style_centro
+            linha.append(Paragraph(escape(str(v)), estilo_col))
+        linhas.append(linha)
 
     tabela = Table(linhas, colWidths=DISTRITO_COL_WIDTHS, repeatRows=1)
     estilo = [
@@ -216,12 +253,12 @@ def gerar_relatorio_distrito_pdf(db, distrito_db, emitido_por='SISTEMA'):
     tabela.setStyle(TableStyle(estilo))
     story.append(tabela)
 
-    linha_assinatura(story, emitido_por, styles_map)
+    linha_assinatura(story, emitido_por, styles_map, revisado_por='A definir', aprovado_por='A definir')
 
-    doc.build(story, onFirstPage=add_header_footer, onLaterPages=add_header_footer)
+    doc.build(story, onFirstPage=pagina_relgea, onLaterPages=pagina_relgea)
     buffer.seek(0)
 
-    nome_arquivo = f'REL-GEA_DISTRITO_DE_{strip_accents(distrito_db).replace(" ", "_")}_REV000.pdf'
+    nome_arquivo = f'REL-GEAS_DISTRITO_DE_{strip_accents(distrito_db).replace(" ", "_")}_REV000.pdf'
     nome_arquivo = re.sub(r'[<>:"/\\|?*]', '', nome_arquivo)
     return buffer, nome_arquivo, len(registros)
 
@@ -251,7 +288,7 @@ def gerar_relatorio_individual_pdf(familia, registro, emitido_por='SISTEMA'):
     matricula = _clean(registro.get('num_matricula')) or f"SN{registro.get('id')}"
     reg_id = registro.get('id')
 
-    codigo = f'RELGEA{safe_filename(TIPO_LABELS[tipo])}{safe_filename(municipio)}{safe_filename(matricula)}ID{reg_id}REV000'
+    codigo = f'RELGEAS{safe_filename(TIPO_LABELS[tipo])}{safe_filename(municipio)}{safe_filename(matricula)}ID{reg_id}REV000'
     data_emissao = datetime.now().strftime('%d/%m/%Y')
 
     buffer = BytesIO()
@@ -262,20 +299,31 @@ def gerar_relatorio_individual_pdf(familia, registro, emitido_por='SISTEMA'):
     doc._iso_emitido_por = emitido_por
 
     styles = getSampleStyleSheet()
+    # seção 6.1-IV do manual: título principal centralizado, negrito, tamanho 14
+    titulo_style = ParagraphStyle('FichaTitulo', parent=styles['Normal'],
+        fontName=FONTE_NEGRITO, fontSize=14, leading=18, alignment=1,
+        spaceAfter=12, textColor=AZUL_CODEGO)
+    # seção 6.1-I: subtítulos Arial 11, negrito, esquerda
     subtitle_style = ParagraphStyle('FichaSubtitle', parent=styles['Normal'],
-        fontName='Helvetica-Bold', fontSize=10, leading=14, spaceAfter=6,
+        fontName=FONTE_NEGRITO, fontSize=11, leading=14, spaceAfter=6,
         spaceBefore=4, textColor=AZUL_CODEGO)
+    # formulários/campos de preenchimento: Arial 10 (seção 6.2)
     label_style = ParagraphStyle('FichaLabel', parent=styles['Normal'],
-        fontName='Helvetica-Bold', fontSize=9, leading=12, textColor=colors.whitesmoke)
+        fontName=FONTE_NEGRITO, fontSize=10, leading=13, textColor=colors.whitesmoke)
     value_style = ParagraphStyle('FichaValue', parent=styles['Normal'],
-        fontName='Helvetica', fontSize=9, leading=12, wordWrap='CJK')
-    styles_map = {'cell': ParagraphStyle('FichaCell', parent=styles['Normal'], fontName='Helvetica', fontSize=9, leading=12), 'bold': subtitle_style}
+        fontName=FONTE_REGULAR, fontSize=10, leading=13, wordWrap='CJK')
+    identificacao_style = ParagraphStyle('FichaIdentCell', parent=styles['Normal'],
+        fontName=FONTE_REGULAR, fontSize=8, leading=10, wordWrap='CJK')
+    styles_map = {'cell': identificacao_style, 'bold': subtitle_style}
 
     story = []
+    story.append(Paragraph(f'FICHA DE ÁREA — {TIPO_LABELS[tipo]}', titulo_style))
     bloco_identificacao(story,
         titulo=f'Ficha de Área — {TIPO_LABELS[tipo]}',
         doc_code=codigo, rev='Rev. 00', data_emissao=data_emissao,
-        emitido_por=emitido_por, styles_map=styles_map)
+        emitido_por=emitido_por, styles_map=styles_map,
+        unidade_responsavel=UNIDADE_RESPONSAVEL, revisado_por='A definir', controle=CONTROLE,
+        aprovado_por='A definir')
 
     story.append(Paragraph(TIPO_LABELS[tipo], subtitle_style))
 
@@ -307,10 +355,10 @@ def gerar_relatorio_individual_pdf(familia, registro, emitido_por='SISTEMA'):
     ]))
     story.append(tabela)
 
-    linha_assinatura(story, emitido_por, styles_map)
+    linha_assinatura(story, emitido_por, styles_map, revisado_por='A definir', aprovado_por='A definir')
 
-    doc.build(story, onFirstPage=add_header_footer, onLaterPages=add_header_footer)
+    doc.build(story, onFirstPage=pagina_relgea, onLaterPages=pagina_relgea)
     buffer.seek(0)
 
-    nome_arquivo = f'REL-GEA_{safe_filename(TIPO_LABELS[tipo])}_{safe_filename(municipio)}_{safe_filename(matricula)}_ID{reg_id}_REV000.pdf'
+    nome_arquivo = f'REL-GEAS_{safe_filename(TIPO_LABELS[tipo])}_{safe_filename(municipio)}_{safe_filename(matricula)}_ID{reg_id}_REV000.pdf'
     return buffer, nome_arquivo

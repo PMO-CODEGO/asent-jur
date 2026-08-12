@@ -209,7 +209,9 @@
 
     <div class="topbar">
         <div class="topbar-left">
-            <img src="{{ url_for('static', filename='logo_codego.png') }}" alt="Logo CodeGO">
+            <a href="{{ url_for('dashboard.inicio_assent') }}" style="display:inline-block;line-height:0;" aria-label="Voltar ao início">
+                <img src="{{ url_for('static', filename='logo_codego.png') }}" alt="Logo CodeGO">
+            </a>
             <span class="topbar-title">Bem-vindo, {{ session['username'] }}</span>
         </div>
         <div class="topbar-actions">
@@ -270,5 +272,6 @@
     </div>
 
     <script>lucide.createIcons();</script>
+    {% set guia_pagina = 'inicio_assent' %}{% include 'partials/guia_mascote.html' %}
 </body>
 </html>

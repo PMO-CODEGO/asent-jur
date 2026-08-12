@@ -100,7 +100,9 @@
 <body>
     <div class="topbar">
         <div class="topbar-left">
-            <img src="{{ url_for('static', filename='logo_codego.png') }}" alt="Logo CodeGO">
+            <a href="{{ url_for('dashboard.inicio_assent') }}" style="display:inline-block;line-height:0;" aria-label="Voltar ao início">
+                <img src="{{ url_for('static', filename='logo_codego.png') }}" alt="Logo CodeGO">
+            </a>
             <span class="topbar-title">Cadastro de Módulos</span>
         </div>
         <div class="topbar-actions">
@@ -392,5 +394,6 @@
 
         filtroStatus.addEventListener('change', filtrar);
     </script>
+    {% set guia_pagina = 'cadastro_modulos' %}{% include 'partials/guia_mascote.html' %}
 </body>
 </html>
