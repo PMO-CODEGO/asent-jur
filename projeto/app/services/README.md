@@ -48,7 +48,7 @@ Função `gravar_log(acao, descricao, ...)` que insere um registro na tabela `lo
 ---
 
 ### `guia_service.py` — Conteúdo do Codi (personagem-guia)
-Módulo puro de dados: `GUIA_CONTEUDO` é um dicionário `{chave_da_pagina: {'titulo': ..., 'dicas': [...]}}` com as falas do Codi — mascote da CODEGO que dá dicas contextuais (`app/templates/partials/guia_mascote.html`) — escritas na primeira pessoa em cada tela. `obter_guia(pagina)` retorna a entrada correspondente ou `None`. É registrado como função global do Jinja (`guia_dicas`) em `app/__init__.py`, para que qualquer template possa chamá-lo sem precisar que a rota passe esse dado explicitamente no `render_template`. Ver [app/templates/README.md](../templates/README.md#codi-o-personagem-guia-guia_mascotehtml) para como ligar numa tela nova.
+Módulo puro de dados: `GUIA_CONTEUDO` é um dicionário `{chave_da_pagina: {'titulo': ..., 'pose': ..., 'dicas': [...]}}` com as falas do Codi (`pose` escolhe qual das 13 imagens `app/static/mascote_codego_<pose>.png` aparece nessa tela) — mascote da CODEGO que dá dicas contextuais (`app/templates/partials/guia_mascote.html`) — escritas na primeira pessoa em cada tela. `obter_guia(pagina)` retorna a entrada correspondente ou `None`. É registrado como função global do Jinja (`guia_dicas`) em `app/__init__.py`, para que qualquer template possa chamá-lo sem precisar que a rota passe esse dado explicitamente no `render_template`. Ver [app/templates/README.md](../templates/README.md#codi-o-personagem-guia-guia_mascotehtml) para como ligar numa tela nova.
 
 ---
 

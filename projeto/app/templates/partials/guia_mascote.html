@@ -3,6 +3,7 @@
    Conteúdo por página fica em app/services/guia_service.py (GUIA_CONTEUDO). #}
 {% set guia = guia_dicas(guia_pagina) if guia_pagina else None %}
 {% if guia %}
+{% set guia_pose_arquivo = 'mascote_codego_' ~ (guia.pose or 'aceno') ~ '.png' %}
 <div id="guia-mascote-raiz" data-pagina="{{ guia_pagina }}">
     <style>
         #guia-mascote-raiz { font-family: 'Inter', sans-serif; }
@@ -145,12 +146,12 @@
     </style>
 
     <button id="guia-mascote-botao" type="button" aria-label="Falar com o Codi" title="Falar com o Codi">
-        <img src="{{ url_for('static', filename='mascote_codego.png') }}" alt="Codi">
+        <img src="{{ url_for('static', filename=guia_pose_arquivo) }}" alt="Codi">
     </button>
 
     <div id="guia-mascote-painel">
         <div class="guia-cabecalho">
-            <img class="guia-icone-mini" src="{{ url_for('static', filename='mascote_codego_apontando.png') }}" alt="Codi">
+            <img class="guia-icone-mini" src="{{ url_for('static', filename=guia_pose_arquivo) }}" alt="Codi">
             <div class="guia-titulo-bloco">
                 <span class="guia-nome">Codi</span>
                 <span class="guia-contexto">{{ guia.titulo }}</span>

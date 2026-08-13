@@ -80,7 +80,7 @@ A subpasta `partials/` contém fragmentos HTML incluídos em outras páginas via
 
 ### Codi, o personagem-guia (`guia_mascote.html`)
 
-Widget autocontido (HTML + CSS + JS inline, sem dependências externas) que mostra o Codi — mascote da CODEGO — como um avatar flutuante com dicas sobre a tela atual, escritas na primeira pessoa como se ele estivesse falando (ver conteúdo em `app/services/guia_service.py`). Duas imagens em `app/static/`: `mascote_codego.png` (corpo inteiro, pose parada, usada no botão flutuante) e `mascote_codego_apontando.png` (pose apontando, usada no cabeçalho do balão de dicas). Para incluir numa tela nova:
+Widget autocontido (HTML + CSS + JS inline, sem dependências externas) que mostra o Codi — mascote da CODEGO — como um avatar flutuante com dicas sobre a tela atual, escritas na primeira pessoa como se ele estivesse falando (ver conteúdo em `app/services/guia_service.py`). A pose do Codi varia por tela (ex: lupa numa tela de busca, notebook num cadastro) — são 13 imagens em `app/static/mascote_codego_<pose>.png`, escolhidas pela chave `'pose'` de cada entrada em `GUIA_CONTEUDO`; a mesma imagem é usada tanto no botão flutuante quanto no cabeçalho do balão. Para incluir numa tela nova:
 
 ```jinja
 {% set guia_pagina = 'cadastro' %}{% include 'partials/guia_mascote.html' %}
