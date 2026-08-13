@@ -3,326 +3,219 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mapa de Distritos Industriais - Goiás</title>
+    <title>Distritos Regulares - CODEGO</title>
     <link rel="shortcut icon" href="{{ url_for('static', filename='imagens_empresas/asentjur.png') }}" type="image/png">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
     <style>
         :root {
-            --sidebar-bg: #ffffff;
-            --accent-blue: #002b5c;
-            --button-blue: #7a97bb;
-            --text-white: #ffffff;
-            --logout-red: #ef4444;
-            --logout-red-hover: #dc2626;
-            --admin-amber: #f59e0b;
+            --azul-principal: #002b5c;   /* azul original do layout */
+            --azul-titulo-coluna: white; /* cor original do título das colunas */
         }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body, html { height: 100%; font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
 
-        body, html {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            width: 100%;
-            font-family: 'Inter', sans-serif;
-            overflow: hidden;
-        }
+        .topbar { background-color: var(--azul-principal); color: white; padding: 0 32px; height: 68px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); position: sticky; top: 0; z-index: 100; }
+        .topbar-left { display: flex; align-items: center; gap: 16px; }
+        .topbar img { height: 56px; }
+        .topbar-title { font-size: 1rem; font-weight: 600; opacity: 0.9; }
+        .topbar-actions { display: flex; gap: 10px; align-items: center; }
 
-        .wrapper {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            width: 100vw;
-        }
+        .btn-topbar { text-decoration: none; padding: 9px 18px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 7px; transition: all 0.2s ease; color: white !important; }
+        .btn-back { background-color: #4b5563; }
+        .btn-back:hover { background-color: #374151; }
+        .btn-logout { background-color: #ef4444; }
+        .btn-logout:hover { background-color: #dc2626; }
 
-        .main-content {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            background-color: #f3f4f6;
-            height: 100%;
-            width: 100%;
-        }
+        .page-body { padding: 32px; max-width: 1600px; margin: 0 auto; }
 
-        .topbar {
-            background-color: var(--accent-blue);
-            color: var(--text-white);
-            padding: 15px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            height: 70px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            z-index: 5;
-            flex-shrink: 0;
-            box-sizing: border-box;
-        }
+        .page-header { margin-bottom: 24px; display: flex; align-items: center; gap: 10px; }
+        .page-header h1 { font-size: 1.6rem; font-weight: 800; color: var(--azul-principal); }
+        .page-header p { color: #6b7280; font-size: 0.9rem; margin-top: 4px; }
 
-        .topbar-actions { display: flex; gap: 12px; align-items: center; }
+        .stats-row { display: flex; gap: 16px; margin-bottom: 28px; flex-wrap: wrap; }
+        .stat-card { background: white; border-radius: 12px; padding: 16px 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); display: flex; align-items: center; gap: 14px; min-width: 180px; }
+        .stat-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+        .stat-icon-green { background-color: #d1fae5; color: #065f46; }
+        .stat-icon-red   { background-color: #fee2e2; color: #991b1b; }
+        .stat-value { font-size: 1.4rem; font-weight: 800; color: #111827; }
+        .stat-label { font-size: 0.78rem; color: #6b7280; font-weight: 500; }
 
-        .welcome-text {
-            font-size: 1.3rem;
-            font-weight: 700;
-            color: var(--text-white);
-            letter-spacing: -0.025em;
-        }
-
-        .welcome-text span { font-weight: 400; opacity: 0.9; }
-
-        .btn-topbar {
-            text-decoration: none;
-            padding: 10px 22px;
-            border-radius: 10px;
-            font-weight: 600;
-            font-size: 0.875rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.2);
-            border: 2px solid rgba(255,255,255,0.1);
-            color: white;
-        }
-
-        .btn-logout { background-color: var(--logout-red); }
-        .btn-logout:hover { background-color: var(--logout-red-hover); transform: translateY(-2px); }
-
-        .map-container {
-            flex-grow: 1;
-            position: relative;
-            overflow: hidden;
-            width: 100%;
-        }
-
-        #map {
-            width: 100%;
-            height: 100%;
-        }
-
-        /* Painel de legenda */
-        .map-legend {
-            position: absolute;
-            bottom: 24px;
-            left: 16px;
-            background: white;
-            border-radius: 10px;
-            padding: 14px 18px;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
-            z-index: 1000;
-            font-size: 12px;
-            min-width: 180px;
-        }
-
-        .map-legend h4 {
-            margin: 0 0 10px 0;
-            font-size: 13px;
-            font-weight: 700;
-            color: var(--accent-blue);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 6px;
-        }
-
-        .legend-dot {
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            flex-shrink: 0;
-            border: 2px solid rgba(0,0,0,0.15);
-        }
-
-        /* Filtro por município — caixa ao lado do controle de zoom do Leaflet (que fica no topo esquerdo) */
-        .map-filter {
-            position: absolute;
-            top: 16px;
-            left: 64px;
-            z-index: 1000;
-            background: white;
-            border-radius: 10px;
-            padding: 12px 16px 14px;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.18);
-            min-width: 260px;
-            box-sizing: border-box;
-        }
-
-        .map-filter h4 {
-            margin: 0 0 8px 0;
-            font-size: 12px;
-            font-weight: 700;
-            color: var(--accent-blue);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .ms-filter-btn {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            width: 100%;
-            background: #f0f5ff;
-            border: 1.5px solid #dbeafe;
-            border-radius: 8px;
-            padding: 9px 12px;
-            font-size: 13px;
-            font-weight: 600;
-            color: #374151;
-            cursor: pointer;
-            font-family: 'Inter', sans-serif;
-            box-sizing: border-box;
-        }
-
-        .ms-filter-btn:hover { background: #e0ecff; border-color: var(--accent-blue); }
-
-        .ms-filter-panel {
-            display: none;
-            position: absolute;
-            top: calc(100% + 4px);
-            left: 0;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.18);
-            max-height: 320px;
-            overflow-y: auto;
-            width: 100%;
-            padding: 8px;
-            box-sizing: border-box;
-        }
-
+        .controls { display: flex; gap: 12px; margin-bottom: 20px; align-items: center; flex-wrap: wrap; justify-content: space-between; }
+        .ms-filter { position: relative; }
+        .ms-filter-btn { display: flex; align-items: center; gap: 8px; background: white; border: 1.5px solid #e5e7eb; border-radius: 8px; padding: 9px 14px; font-size: 0.88rem; cursor: pointer; min-width: 210px; color: #374151; }
+        .ms-filter-btn:hover { border-color: var(--azul-principal); }
+        .ms-filter-panel { display: none; position: absolute; top: calc(100% + 6px); left: 0; background: white; border: 1.5px solid #e5e7eb; border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); max-height: 280px; overflow-y: auto; min-width: 240px; z-index: 50; padding: 8px; }
         .ms-filter-panel.open { display: block; }
-
-        .ms-filter-actions {
-            display: flex;
-            justify-content: flex-end;
-            padding: 2px 6px 8px;
-            border-bottom: 1px solid #f3f4f6;
-            margin-bottom: 6px;
-        }
-
-        .ms-filter-actions button {
-            background: none;
-            border: none;
-            color: #2563eb;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        .ms-filter-option {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 6px 8px;
-            border-radius: 6px;
-            font-size: 13px;
-            color: #374151;
-            cursor: pointer;
-        }
-
+        .ms-filter-actions { display: flex; justify-content: flex-end; padding: 2px 6px 8px; border-bottom: 1px solid #f3f4f6; margin-bottom: 6px; }
+        .ms-filter-actions button { background: none; border: none; color: #2563eb; font-size: 0.78rem; font-weight: 600; cursor: pointer; }
+        .ms-filter-option { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 6px; font-size: 0.85rem; cursor: pointer; }
         .ms-filter-option:hover { background: #f3f4f6; }
+        .btn-nova { display: flex; align-items: center; gap: 6px; padding: 8px 18px; background: #059669; color: white; border-radius: 8px; text-decoration: none; font-size: 0.85rem; font-weight: 600; }
 
-        /* Contador de distritos */
-        .map-counter {
-            position: absolute;
-            top: 16px;
-            right: 16px;
-            background: var(--accent-blue);
-            color: white;
-            border-radius: 10px;
-            padding: 10px 18px;
-            z-index: 1000;
-            font-size: 13px;
-            font-weight: 600;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-        }
+        .table-wrap { background: white; border-radius: 14px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); overflow: hidden; }
+        .table-scroll { overflow-x: auto; overflow-y: auto; max-height: 65vh; border-radius: 14px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+        thead tr { background-color: var(--azul-principal); color: var(--azul-titulo-coluna); }
+        thead th { padding: 11px 14px; text-align: left; font-weight: 600; white-space: nowrap; font-size: 0.75rem; letter-spacing: 0.02em; position: sticky; top: 0; z-index: 10; background-color: var(--azul-principal); }
+        tbody tr { border-bottom: 1px solid #f3f4f6; transition: background 0.12s; }
+        tbody tr:hover { background-color: #f8faff; }
+        tbody tr:last-child { border-bottom: none; }
+        td { padding: 10px 14px; color: #374151; vertical-align: middle; }
+        th.col-fix, td.col-fix { position: sticky; z-index: 5; background-color: white; }
+        thead th.col-fix { background-color: var(--azul-principal); z-index: 11; }
+        th.col-fix-1, td.col-fix-1 { left: 0; }
+        td.col-fix::after, th.col-fix-1::after { content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 3px; background: linear-gradient(to right, rgba(0,0,0,0.08), transparent); pointer-events: none; }
+        tbody tr:hover td.col-fix { background-color: #f8faff; }
+        .municipio-badge { display: inline-block; background-color: #eff6ff; color: #1e40af; border-radius: 6px; padding: 2px 8px; font-size: 0.75rem; font-weight: 600; white-space: nowrap; }
+        .lote-sim { display: inline-block; background-color: #d1fae5; color: #065f46; border-radius: 6px; padding: 2px 8px; font-size: 0.73rem; font-weight: 700; }
+        .lote-nao { display: inline-block; background-color: #fee2e2; color: #991b1b; border-radius: 6px; padding: 2px 8px; font-size: 0.73rem; font-weight: 700; }
+        .lote-outro { font-size: 0.73rem; color: #6b7280; }
+        .empty { padding: 48px; text-align: center; color: #9ca3af; }
+        .data-row { cursor: pointer; }
+        .data-row:hover { background-color: #f0f7ff; }
+        .data-row.open { background-color: #eff6ff; }
+        .row-toggle { display: inline-flex; align-items: center; gap: 6px; color: #6b7280; font-size: 0.75rem; }
+        .row-toggle svg { transition: transform 0.2s ease; flex-shrink: 0; }
+        .data-row.open .row-toggle svg { transform: rotate(90deg); }
+        .data-row:hover .row-toggle { color: var(--azul-principal); }
+        .detail-row td { background-color: #f8fafc; padding: 0 !important; border-bottom: 2px solid #bfdbfe; }
+        .detail-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; padding: 16px 24px; }
+        .detail-item-wide { grid-column: span 2; }
+        .detail-item { display: flex; flex-direction: column; gap: 4px; }
+        .detail-label { font-size: 0.7rem; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; }
+        .detail-value { font-size: 0.82rem; color: #1e293b; }
 
-        .map-counter span {
-            font-size: 22px;
-            font-weight: 700;
-            display: block;
-            text-align: center;
-        }
+        .sub-detail-wrap { margin: 0 24px 16px; border-top: 1px dashed #cbd5e1; padding-top: 14px; }
+        .sub-detail-title { display: flex; align-items: center; gap: 6px; font-size: 0.75rem; font-weight: 700; color: var(--azul-principal); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 8px; }
+        .sub-table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
+        .sub-table thead tr { background-color: #e0e7ef; }
+        .sub-table thead th { padding: 8px 12px; text-align: left; font-size: 0.68rem; font-weight: 700; color: #002b5c; text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap; background-color: #e0e7ef; position: static; }
+        .sub-table tbody tr { border-bottom: 1px solid #f1f5f9; }
+        .sub-table tbody tr:last-child { border-bottom: none; }
+        .sub-table td { padding: 8px 12px; font-size: 0.78rem; color: #334155; }
 
-        /* Popup customizado */
-        .leaflet-popup-content-wrapper {
-            border-radius: 10px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.18);
-        }
-
-        .popup-title {
-            font-weight: 700;
-            font-size: 14px;
-            color: var(--accent-blue);
-            margin-bottom: 6px;
-        }
-
-        .popup-tag {
-            display: inline-block;
-            padding: 2px 10px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: white;
-        }
-
-        .popup-info {
-            font-size: 12px;
-            color: #555;
-            line-height: 1.6;
-        }
-
-        @media (max-width: 900px) {
-            .topbar { height: auto; min-height: 64px; padding: 12px 14px; flex-direction: column; align-items: stretch; gap: 10px; }
-            .welcome-text { font-size: 1rem; }
-            .topbar-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
-            .btn-topbar { justify-content: center; padding: 10px 12px; font-size: 0.8rem; }
-            .map-legend { bottom: 12px; left: 8px; }
-            .map-counter { top: 8px; right: 8px; }
-            .map-filter { top: 74px; left: 8px; min-width: 0; width: calc(100% - 16px); max-width: 280px; padding: 10px 12px 12px; }
-            .ms-filter-btn { padding: 9px 10px; font-size: 12px; }
+        @media (max-width: 768px) {
+            .page-body { padding: 16px; }
+            .topbar { padding: 0 16px; }
+            .topbar-title { display: none; }
         }
     </style>
 </head>
 <body>
+    <div class="topbar">
+        <div class="topbar-left">
+            <a href="{{ url_for('dashboard.inicio_assent') }}" style="display:inline-block;line-height:0;" aria-label="Voltar ao início">
+                <img src="{{ url_for('static', filename='logo_codego.png') }}" alt="Logo CodeGO">
+            </a>
+            <span class="topbar-title">Distritos Regulares</span>
+        </div>
+        <div class="topbar-actions">
+            <a href="{{ url_for('dashboard.controle_area') }}" class="btn-topbar btn-back">
+                <i data-lucide="arrow-left" style="width:16px;height:16px;"></i>
+                <span>Voltar</span>
+            </a>
+            <a href="{{ url_for('auth_login.logout') }}" class="btn-topbar btn-logout">
+                <i data-lucide="log-out" style="width:16px;height:16px;"></i>
+                <span>Sair</span>
+            </a>
+        </div>
+    </div>
 
-<div class="wrapper">
-    <div class="main-content">
-        <div class="topbar">
-            <div class="welcome-text">
-                <i data-lucide="map-pin" style="display:inline; vertical-align:middle; margin-right:8px;"></i>
-                Distritos Industriais de <span>Goiás</span>
-            </div>
-            <div class="topbar-actions">
-                {% if session.get('role') == 'admin' %}
-                <a href="{{ url_for('logs.logs') }}" class="btn-topbar" style="background-color: var(--admin-amber); color: #1a202c; border:none;">
-                    <i data-lucide="database-zap" class="w-4 h-4"></i>
-                    Logs do Sistema
-                </a>
+    <div class="page-body">
+        {# ==========================================================
+           TRATAMENTO DE DADOS: agrupa os registros por município.
+           - "principal": primeiro registro do município cuja
+             "matrícula do parcelamento" (matricula_parcelamento_fmt)
+             é diferente de "-" -> é o que aparece na linha da tabela.
+           - "outros": os demais registros do mesmo município (os que
+             têm essa coluna igual a "-", e qualquer "principal" extra
+             que porventura exista).
+           - "itens": todos os registros do município (principal + outros),
+             na ordem original -> usados no detalhamento.
+           - Quando há mais de 1 registro no município, a linha
+             principal exibe a SOMA de área/valor de todos os registros;
+             o detalhamento traz cada registro individualmente (inclusive
+             o principal) com seus próprios valores.
+           Observação: o filtro Jinja `groupby` ordena por município,
+           então a tabela passa a ficar em ordem alfabética.
+        ========================================================== #}
+        {% set grupos = [] %}
+        {% for municipio, items in registros|groupby('municipio') %}
+            {% set items_list = items|list %}
+            {% set principais = [] %}
+            {% set outros = [] %}
+            {% for item in items_list %}
+                {% set mp = (item.matricula_parcelamento_fmt or '')|trim %}
+                {% if mp and mp != '-' %}
+                    {{ principais.append(item) or '' }}
+                {% else %}
+                    {{ outros.append(item) or '' }}
                 {% endif %}
-                <a href="{{ url_for('auth_login.logout') }}" class="btn-topbar btn-logout">
-                    <i data-lucide="log-out" class="w-4 h-4"></i>
-                    Sair do Sistema
-                </a>
+            {% endfor %}
+            {% if principais %}
+                {% set principal = principais[0] %}
+                {% for extra in principais[1:] %}
+                    {{ outros.append(extra) or '' }}
+                {% endfor %}
+            {% else %}
+                {% set principal = items_list[0] %}
+            {% endif %}
+
+            {# soma de área (m²) e valor (R$) de todos os registros do município #}
+            {% set area_ns = namespace(total=0.0) %}
+            {% set valor_ns = namespace(total=0.0) %}
+            {% for item in items_list %}
+                {% set area_limpa = (item.area_total_m2_fmt or '0')|string|replace('m²', '')|replace('M²', '')|replace('.', '')|replace(',', '.')|trim %}
+                {% set area_ns.total = area_ns.total + (area_limpa|float(0)) %}
+                {% set valor_limpo = (item.valor_imovel_fmt or '0')|string|replace('R$', '')|replace('.', '')|replace(',', '.')|trim %}
+                {% set valor_ns.total = valor_ns.total + (valor_limpo|float(0)) %}
+            {% endfor %}
+
+            {% if items_list|length > 1 %}
+                {% set area_total_exibida = '{:,.2f}'.format(area_ns.total)|replace(',', '§')|replace('.', ',')|replace('§', '.') %}
+                {% set valor_total_exibido = 'R$ ' + ('{:,.2f}'.format(valor_ns.total)|replace(',', '§')|replace('.', ',')|replace('§', '.')) %}
+            {% else %}
+                {% set area_total_exibida = principal.area_total_m2_fmt or '-' %}
+                {% set valor_total_exibido = principal.valor_imovel_fmt or '-' %}
+            {% endif %}
+
+            {{ grupos.append({
+                'municipio': municipio,
+                'principal': principal,
+                'outros': outros,
+                'itens': items_list,
+                'area_total_exibida': area_total_exibida,
+                'valor_total_exibido': valor_total_exibido
+            }) or '' }}
+        {% endfor %}
+
+        <div class="page-header">
+            <div>
+                <h1><i data-lucide="check-circle" style="width:22px;height:22px;color:#059669;vertical-align:-3px;margin-right:6px;"></i>Distritos Regulares</h1>
+                <p>Loteamentos com regularização já concluída, de propriedade da CODEGO</p>
             </div>
         </div>
 
-        <div class="map-container">
-            <div id="map"></div>
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-icon stat-icon-green"><i data-lucide="check-circle" style="width:22px;height:22px;"></i></div>
+                <div>
+                    <div class="stat-value" id="stat-total">{{ grupos | length }}</div>
+                    <div class="stat-label">Total de distritos regulares</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon stat-icon-red"><i data-lucide="map" style="width:22px;height:22px;"></i></div>
+                <div>
+                    <div class="stat-value" id="stat-municipios">{{ grupos | map(attribute='municipio') | unique | list | length }}</div>
+                    <div class="stat-label">Municípios</div>
+                </div>
+            </div>
+        </div>
 
-            <div class="map-filter" id="filtro-municipio-wrap">
-                <h4><i data-lucide="filter" style="width:13px;height:13px;"></i> Filtrar por Município</h4>
+        <div class="controls">
+            <div class="ms-filter" id="filtro-municipio-wrap">
                 <button type="button" class="ms-filter-btn" id="filtro-municipio-btn">
                     <i data-lucide="map-pin" style="width:15px;height:15px;color:#9ca3af;"></i>
                     <span id="filtro-municipio-label">Todos os municípios</span>
@@ -332,365 +225,202 @@
                     <div class="ms-filter-actions">
                         <button type="button" id="filtro-municipio-limpar">Limpar seleção</button>
                     </div>
-                    <div id="filtro-municipio-opcoes"></div>
+                    {% for m in grupos | map(attribute='municipio') | select | unique | sort %}
+                    <label class="ms-filter-option">
+                        <input type="checkbox" value="{{ m }}">
+                        <span>{{ m }}</span>
+                    </label>
+                    {% endfor %}
                 </div>
             </div>
+            <a href="/assent/areas-parceladas/regularizadas/nova" class="btn-nova">
+                <i data-lucide="plus" style="width:16px;height:16px;"></i> Nova Área
+            </a>
+        </div>
 
-            <div class="map-counter">
-                <span id="total-count">—</span>
-                Distritos
-            </div>
+        <div class="table-wrap">
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="col-fix col-fix-1">Município</th>
+                            <th>Nº Matrícula</th>
+                            <th>Ano Aquis.</th>
+                            <th>Área Total (m²)</th>
+                            <th>Valor do Imóvel</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for grupo in grupos %}
+                        {% set r = grupo.principal %}
+                        <tr class="data-row" data-municipio="{{ (r.municipio or '')|lower|trim }}" onclick="toggleDetalhe('p{{ r.id }}')">
+                            <td class="col-fix col-fix-1">
+                                <span class="row-toggle">
+                                    <i data-lucide="chevron-right" style="width:14px;height:14px;"></i>
+                                    <span class="municipio-badge">{{ r.municipio or '' }}</span>
+                                </span>
+                            </td>
+                            <td>{{ r.num_matricula_fmt or '-' }}</td>
+                            <td>{{ r.ano_aquisicao or '-' }}</td>
+                            <td>{{ grupo.area_total_exibida }}</td>
+                            <td>{{ grupo.valor_total_exibido }}</td>
+                            <td style="white-space:nowrap;" onclick="event.stopPropagation()">
+                                <a href="{{ url_for('relatorio.relatorio_relgea_individual', familia='regularizadas', registro_id=r.id) }}"
+                                   style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:#d1fae5;color:#065f46;border-radius:6px;font-size:0.72rem;font-weight:600;text-decoration:none;margin-right:4px;">
+                                    <i data-lucide="file-text" style="width:12px;height:12px;"></i> Relatório
+                                </a>
+                                <a href="/assent/areas-parceladas/regularizadas/{{ r.id }}/editar"
+                                   style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:#dbeafe;color:#1e40af;border-radius:6px;font-size:0.72rem;font-weight:600;text-decoration:none;margin-right:4px;">
+                                    <i data-lucide="pencil" style="width:12px;height:12px;"></i> Editar
+                                </a>
+                                <form method="POST" action="/assent/areas-parceladas/regularizadas/{{ r.id }}/excluir"
+                                      style="display:inline;" onsubmit="return confirm('Excluir este registro?')">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit"
+                                        style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:#fee2e2;color:#991b1b;border:none;border-radius:6px;font-size:0.72rem;font-weight:600;cursor:pointer;">
+                                        <i data-lucide="trash-2" style="width:12px;height:12px;"></i> Excluir
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        <tr id="p{{ r.id }}" class="detail-row" style="display:none;">
+                            <td colspan="6">
+                                <div class="detail-grid">
+                                    <div class="detail-item">
+                                        <span class="detail-label">Matr. Parcelamento</span>
+                                        <span class="detail-value">{{ r.matricula_parcelamento_fmt or '-' }}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Reg. Loteamento</span>
+                                        <span class="detail-value">
+                                            {% set rl = r.registro_loteamento or '' %}
+                                            {% if rl == 'SIM' %}
+                                                <span class="lote-sim">SIM</span>
+                                            {% elif rl in ('NÃO', 'NAO') %}
+                                                <span class="lote-nao">NÃO</span>
+                                            {% elif rl %}
+                                                <span class="lote-outro" title="{{ rl }}">{{ rl[:30] }}{% if rl|length > 30 %}…{% endif %}</span>
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        </span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Reg. Propriedade</span>
+                                        <span class="detail-value">{{ r.registro_propriedade or '-' }}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Ocupação / Distrito</span>
+                                        <span class="detail-value">{{ r.ocupacao or '-' }}</span>
+                                    </div>
+                                    <div class="detail-item detail-item-wide" style="grid-column: span 4;">
+                                        <span class="detail-label">Descrição da Área</span>
+                                        <span class="detail-value">{{ r.descricao_area or '-' }}</span>
+                                    </div>
+                                </div>
 
-            <div class="map-legend">
-                <h4>Tipo de Distrito</h4>
-                <div class="legend-item">
-                    <div class="legend-dot" style="background:#002b5c;"></div>
-                    <span>Distrito Agroindustrial</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-dot" style="background:#2563eb;"></div>
-                    <span>Distrito Industrial</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-dot" style="background:#059669;"></div>
-                    <span>Parque Tecnológico</span>
-                </div>
+                                {% if grupo.itens and grupo.itens|length > 1 %}
+                                <div class="sub-detail-wrap">
+                                    <div class="sub-detail-title">
+                                        <i data-lucide="layers" style="width:14px;height:14px;"></i>
+                                        Matrículas deste distrito ({{ grupo.itens|length }})
+                                    </div>
+                                    <table class="sub-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Nº Matrícula do Imóvel</th>
+                                                <th>Ano de Aquisição</th>
+                                                <th>Área Total (m²)</th>
+                                                <th>Valor do Imóvel (R$)</th>
+                                                <th>Descrição da Área</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for o in grupo.itens %}
+                                            <tr>
+                                                <td>{{ o.num_matricula_fmt or '-' }}</td>
+                                                <td>{{ o.ano_aquisicao or '-' }}</td>
+                                                <td>{{ o.area_total_m2_fmt or '-' }}</td>
+                                                <td>{{ o.valor_imovel_fmt or '-' }}</td>
+                                                <td>{{ o.descricao_area or '-' }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="6" class="empty">Nenhum registro encontrado.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
-</div>
 
-<script>
-    lucide.createIcons();
+    <script>
+        lucide.createIcons();
 
-    const map = L.map('map', {
-        center: [-16.35, -49.30],
-        zoom: 7,
-        zoomControl: true,
-    });
-
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-        maxZoom: 18,
-    }).addTo(map);
-
-    const TIPOS = {
-        agroindustrial: { cor: '#002b5c', label: 'Distrito Agroindustrial' },
-        industrial:     { cor: '#2563eb', label: 'Distrito Industrial' },
-        tecnologico:    { cor: '#059669', label: 'Parque Tecnológico' },
-    };
-
-    function criarIcone(tipo) {
-        const cor = TIPOS[tipo].cor;
-        const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="36" viewBox="0 0 28 36">
-            <path d="M14 0C6.27 0 0 6.27 0 14c0 9.63 14 22 14 22S28 23.63 28 14C28 6.27 21.73 0 14 0z" fill="${cor}"/>
-            <circle cx="14" cy="14" r="6" fill="white" opacity="0.9"/>
-        </svg>`;
-        return L.divIcon({
-            html: svg,
-            className: '',
-            iconSize: [28, 36],
-            iconAnchor: [14, 36],
-            popupAnchor: [0, -38],
-        });
-    }
-
-    const distritos = [
-        {
-            slug: "abadiania",
-            nome: "Distrito Industrial de Abadiânia",
-            tipo: "industrial",
-            lat: -16.1980,
-            lng: -48.7070,
-            municipio: "Abadiânia",
-            descricao: "Distrito industrial localizado em Abadiânia, com atuação nos setores de materiais de construção e distribuição de insumos.",
-            empresas: "Materiais de construção e insumos",
-        },
-        {
-            slug: "bela-vista",
-            nome: "Distrito Industrial de Bela Vista de Goiás",
-            tipo: "industrial",
-            lat: -16.9740,
-            lng: -48.9590,
-            municipio: "Bela Vista de Goiás",
-            descricao: "Polo industrial da região sul da Grande Goiânia, com indústrias têxteis, de reciclagem e laticínios.",
-            empresas: "Têxtil, reciclagem e laticínios",
-        },
-        {
-            slug: "daia",
-            nome: "DAIA — Distrito Agroindustrial de Anápolis",
-            tipo: "agroindustrial",
-            lat: -16.3216,
-            lng: -48.9534,
-            municipio: "Anápolis",
-            descricao: "Um dos maiores distritos industriais do Centro-Oeste. Abriga empresas dos setores farmacêutico, automotivo, alimentício e químico.",
-            empresas: "Mais de 180 empresas instaladas",
-        },
-        {
-            slug: "daiag",
-            nome: "DAIAG — Distrito Agroindustrial de Aparecida de Goiânia",
-            tipo: "agroindustrial",
-            lat: -16.8320,
-            lng: -49.2480,
-            municipio: "Aparecida de Goiânia",
-            descricao: "Importante polo industrial da região metropolitana de Goiânia, com destaque para metalurgia, reciclagem e indústria química.",
-            empresas: "Metalurgia, reciclagem e química",
-        },
-        {
-            slug: "daimo",
-            nome: "DAIMO — Distrito Agroindustrial de Morrinhos",
-            tipo: "agroindustrial",
-            lat: -17.7330,
-            lng: -49.0990,
-            municipio: "Morrinhos",
-            descricao: "Distrito voltado ao processamento de produtos agropecuários da região sul goiana, com forte presença do setor lácteo e de construção.",
-            empresas: "Lácteos, agropecuária e construção",
-        },
-        {
-            slug: "dapo",
-            nome: "DAPO — Distrito Agroindustrial de Pontalina",
-            tipo: "agroindustrial",
-            lat: -17.5220,
-            lng: -49.4450,
-            municipio: "Pontalina",
-            descricao: "Distrito agroindustrial de Pontalina, com atuação em nutrição animal, cerâmica, cooperativas rurais e construção rodoviária.",
-            empresas: "Nutrição animal, cerâmica e cooperativas",
-        },
-        {
-            slug: "darv-i",
-            nome: "DARV I — Distrito Agroindustrial de Rio Verde I",
-            tipo: "agroindustrial",
-            lat: -17.7982,
-            lng: -50.9290,
-            municipio: "Rio Verde",
-            descricao: "Primeiro distrito agroindustrial de Rio Verde, polo do agronegócio do sudoeste goiano com indústrias de alimentos, metalurgia e plásticos.",
-            empresas: "Alimentos, metalurgia e plásticos",
-        },
-        {
-            slug: "darv-ii",
-            nome: "DARV II — Distrito Agroindustrial de Rio Verde II",
-            tipo: "agroindustrial",
-            lat: -17.8200,
-            lng: -50.9500,
-            municipio: "Rio Verde",
-            descricao: "Segundo distrito agroindustrial de Rio Verde, com atuação em sementes, montagens industriais, reciclagem e serviços.",
-            empresas: "Sementes, montagens e reciclagem",
-        },
-        {
-            slug: "dasc",
-            nome: "DASC — Distrito Agroindustrial de Senador Canedo",
-            tipo: "agroindustrial",
-            lat: -16.7080,
-            lng: -49.0890,
-            municipio: "Senador Canedo",
-            descricao: "Polo industrial de Senador Canedo, na região metropolitana de Goiânia. Concentra indústrias moveleiras, ambientais e de reciclagem.",
-            empresas: "Móveis, ambiental e reciclagem",
-        },
-        {
-            slug: "diagri",
-            nome: "DIAGRI — Distrito Agroindustrial de Goiatuba",
-            tipo: "agroindustrial",
-            lat: -18.0140,
-            lng: -49.3590,
-            municipio: "Goiatuba",
-            descricao: "Distrito agroindustrial de Goiatuba, com atuação em fertilizantes, transportes, laticínios, concreto e implementos agrícolas.",
-            empresas: "Fertilizantes, laticínios e transporte",
-        },
-        {
-            slug: "dimic",
-            nome: "DIMIC — Distrito Industrial Minero-Industrial de Catalão",
-            tipo: "industrial",
-            lat: -18.1560,
-            lng: -47.9370,
-            municipio: "Catalão",
-            descricao: "Centro industrial estratégico, com destaque para mineração de nióbio e fósforo, montagem de veículos e fertilizantes.",
-            empresas: "Mineração, automotivo e fertilizantes",
-        },
-        {
-            slug: "disc",
-            nome: "DISC — Distrito Industrial de Senador Canedo",
-            tipo: "industrial",
-            lat: -16.7200,
-            lng: -49.1100,
-            municipio: "Senador Canedo",
-            descricao: "Segundo polo industrial de Senador Canedo, com indústrias de alimentos, móveis, plásticos e farmacêuticos.",
-            empresas: "Alimentos, móveis e plásticos",
-        },
-        {
-            slug: "goianesia",
-            nome: "Distrito Industrial de Goianésia",
-            tipo: "industrial",
-            lat: -15.3190,
-            lng: -49.1150,
-            municipio: "Goianésia",
-            descricao: "Polo industrial de Goianésia, com atuação em metalurgia, etiquetas, lavanderias industriais, alimentos e serviços.",
-            empresas: "Metalurgia, alimentos e serviços",
-        },
-        {
-            slug: "goianira",
-            nome: "Distrito Industrial de Goianira",
-            tipo: "industrial",
-            lat: -16.4930,
-            lng: -49.4250,
-            municipio: "Goianira",
-            descricao: "Polo industrial de Goianira, com forte presença de indústrias de calçados, confecções, cosméticos, plásticos e metalurgia.",
-            empresas: "Calçados, confecções e cosméticos",
-        },
-        {
-            slug: "inhumas",
-            nome: "Distrito Industrial de Inhumas",
-            tipo: "industrial",
-            lat: -16.3580,
-            lng: -49.4990,
-            municipio: "Inhumas",
-            descricao: "Polo agroindustrial a oeste de Goiânia, com indústrias de alimentos, cerâmica e beneficiamento de madeiras.",
-            empresas: "Alimentos, cerâmica e madeiras",
-        },
-        {
-            slug: "luziania",
-            nome: "Distrito Industrial de Luziânia",
-            tipo: "industrial",
-            lat: -16.2520,
-            lng: -47.9510,
-            municipio: "Luziânia",
-            descricao: "Localizado no Entorno do Distrito Federal, com indústrias de calçados, alimentos, telhas, fertilizantes e soluções ambientais.",
-            empresas: "Calçados, alimentos e fertilizantes",
-        },
-        {
-            slug: "mineiros",
-            nome: "Distrito Industrial de Mineiros I e II",
-            tipo: "industrial",
-            lat: -17.5690,
-            lng: -52.5530,
-            municipio: "Mineiros",
-            descricao: "Polo industrial do sudoeste goiano, com destaque para frigoríficos, laticínios, cereais, rações e cooperativas agrícolas.",
-            empresas: "Frigoríficos, laticínios e cereais",
-        },
-        {
-            slug: "orizona",
-            nome: "Distrito Industrial de Orizona",
-            tipo: "industrial",
-            lat: -17.0270,
-            lng: -48.2980,
-            municipio: "Orizona",
-            descricao: "Distrito industrial de Orizona, com atuação em eletrônica, rações, produtos agropecuários, cerâmica e sementes.",
-            empresas: "Eletrônica, rações e agropecuário",
-        },
-        {
-            slug: "porangatu",
-            nome: "Distrito Industrial de Porangatu",
-            tipo: "industrial",
-            lat: -13.4430,
-            lng: -49.1480,
-            municipio: "Porangatu",
-            descricao: "Polo industrial do norte goiano, com indústrias de produtos agropecuários, laticínios, ferragens, charque e engenharia ambiental.",
-            empresas: "Agropecuário, laticínios e ferragens",
-        },
-        {
-            slug: "rubiataba",
-            nome: "Distrito Industrial de Rubiataba",
-            tipo: "industrial",
-            lat: -15.1560,
-            lng: -49.8000,
-            municipio: "Rubiataba",
-            descricao: "Distrito industrial de Rubiataba, com atuação em móveis, estofados, transportes e construção civil.",
-            empresas: "Móveis, estofados e transporte",
-        },
-        {
-            slug: "uruacu",
-            nome: "Distrito Industrial de Uruaçu",
-            tipo: "industrial",
-            lat: -14.5240,
-            lng: -49.1440,
-            municipio: "Uruaçu",
-            descricao: "Polo industrial do norte goiano, com diversidade de indústrias: alimentos, móveis, couros, vidros, hidráulica e artefatos de cimento.",
-            empresas: "Alimentos, móveis e artefatos",
-        },
-    ];
-
-    document.getElementById('total-count').textContent = distritos.length;
-
-    distritos.forEach(d => {
-        const tipo = TIPOS[d.tipo];
-        const popupHtml = `
-            <div style="min-width:220px; max-width:280px;">
-                <div class="popup-title">${d.nome}</div>
-                <span class="popup-tag" style="background:${tipo.cor};">${tipo.label}</span>
-                <div class="popup-info">
-                    <strong>Município:</strong> ${d.municipio}<br>
-                    <strong>Perfil:</strong> ${d.empresas}<br><br>
-                    ${d.descricao}
-                </div>
-                <a href="/mapa-distritos/${d.slug}"
-                   style="display:block; margin-top:12px; padding:8px 0; background:#002b5c; color:white;
-                          text-align:center; border-radius:6px; font-size:12px; font-weight:700;
-                          text-decoration:none; letter-spacing:0.03em;">
-                    Ver Detalhes →
-                </a>
-            </div>
-        `;
-        d.marker = L.marker([d.lat, d.lng], { icon: criarIcone(d.tipo) })
-            .bindPopup(popupHtml, { maxWidth: 300 })
-            .addTo(map);
-    });
-
-    // ---- Filtro por município ----
-    (function() {
-        const btn = document.getElementById('filtro-municipio-btn');
-        const panel = document.getElementById('filtro-municipio-panel');
-        const label = document.getElementById('filtro-municipio-label');
-        const limpar = document.getElementById('filtro-municipio-limpar');
-        const opcoesContainer = document.getElementById('filtro-municipio-opcoes');
-
-        const municipios = [...new Set(distritos.map(d => d.municipio))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
-        municipios.forEach(m => {
-            const opcao = document.createElement('label');
-            opcao.className = 'ms-filter-option';
-            opcao.innerHTML = `<input type="checkbox" value="${m}"><span>${m}</span>`;
-            opcoesContainer.appendChild(opcao);
-        });
-        const checkboxes = opcoesContainer.querySelectorAll('input[type="checkbox"]');
-
-        function aplicarFiltroMunicipio() {
-            const marcados = Array.from(checkboxes).filter(c => c.checked);
-            if (marcados.length === 0) {
-                label.textContent = 'Todos os municípios';
-            } else if (marcados.length === 1) {
-                label.textContent = marcados[0].value;
-            } else {
-                label.textContent = marcados.length + ' municípios selecionados';
-            }
-            const selecionados = marcados.map(c => c.value);
-            let visiveis = 0;
-
-            distritos.forEach(d => {
-                const mostrar = selecionados.length === 0 || selecionados.includes(d.municipio);
-                if (mostrar) {
-                    if (!map.hasLayer(d.marker)) d.marker.addTo(map);
-                    visiveis++;
-                } else if (map.hasLayer(d.marker)) {
-                    map.removeLayer(d.marker);
-                }
-            });
-
-            document.getElementById('total-count').textContent = visiveis;
+        function toggleDetalhe(id) {
+            const row = document.getElementById(id);
+            const dataRow = row.previousElementSibling;
+            const isOpen = row.style.display !== 'none';
+            row.style.display = isOpen ? 'none' : 'table-row';
+            dataRow.classList.toggle('open', !isOpen);
+            if (!isOpen) lucide.createIcons();
         }
 
-        btn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            panel.classList.toggle('open');
-        });
-        document.addEventListener('click', function(e) {
-            if (!panel.contains(e.target) && e.target !== btn) panel.classList.remove('open');
-        });
-        checkboxes.forEach(cb => cb.addEventListener('change', aplicarFiltroMunicipio));
-        limpar.addEventListener('click', function() {
-            checkboxes.forEach(cb => cb.checked = false);
-            aplicarFiltroMunicipio();
-        });
-    })();
-</script>
+        (function() {
+            const btn = document.getElementById('filtro-municipio-btn');
+            const panel = document.getElementById('filtro-municipio-panel');
+            const label = document.getElementById('filtro-municipio-label');
+            const limpar = document.getElementById('filtro-municipio-limpar');
+            const checkboxes = panel.querySelectorAll('input[type="checkbox"]');
 
-{% set guia_pagina = 'mapa_distritos' %}{% include 'partials/guia_mascote.html' %}
+            function aplicarFiltroMunicipio() {
+                const marcados = Array.from(checkboxes).filter(function(c) { return c.checked; });
+                if (marcados.length === 0) {
+                    label.textContent = 'Todos os municípios';
+                } else if (marcados.length === 1) {
+                    label.textContent = marcados[0].value;
+                } else {
+                    label.textContent = marcados.length + ' municípios selecionados';
+                }
+                const selecionados = marcados.map(function(c) { return c.value.toLowerCase(); });
+                const municipiosVisiveis = new Set();
+                let total = 0;
+
+                document.querySelectorAll('.data-row').forEach(function(row) {
+                    const visivel = selecionados.length === 0 || selecionados.indexOf(row.dataset.municipio) !== -1;
+                    row.style.display = visivel ? '' : 'none';
+
+                    if (visivel) {
+                        total++;
+                        if (row.dataset.municipio) municipiosVisiveis.add(row.dataset.municipio);
+                    }
+                });
+
+                document.getElementById('stat-total').textContent = total;
+                document.getElementById('stat-municipios').textContent = municipiosVisiveis.size;
+            }
+
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                panel.classList.toggle('open');
+            });
+            document.addEventListener('click', function(e) {
+                if (!panel.contains(e.target) && e.target !== btn) panel.classList.remove('open');
+            });
+            checkboxes.forEach(function(cb) { cb.addEventListener('change', aplicarFiltroMunicipio); });
+            limpar.addEventListener('click', function() {
+                checkboxes.forEach(function(cb) { cb.checked = false; });
+                aplicarFiltroMunicipio();
+            });
+        })();
+    </script>
+    {% set guia_pagina = 'distritos_regulares' %}{% include 'partials/guia_mascote.html' %}
 </body>
 </html>

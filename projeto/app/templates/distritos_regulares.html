@@ -8,10 +8,14 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
+        :root {
+            --azul-principal: #002b5c;   /* azul original do layout */
+            --azul-titulo-coluna: white; /* cor original do título das colunas */
+        }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body, html { height: 100%; font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
 
-        .topbar { background-color: #002b5c; color: white; padding: 0 32px; height: 68px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); position: sticky; top: 0; z-index: 100; }
+        .topbar { background-color: var(--azul-principal); color: white; padding: 0 32px; height: 68px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); position: sticky; top: 0; z-index: 100; }
         .topbar-left { display: flex; align-items: center; gap: 16px; }
         .topbar img { height: 56px; }
         .topbar-title { font-size: 1rem; font-weight: 600; opacity: 0.9; }
@@ -26,7 +30,7 @@
         .page-body { padding: 32px; max-width: 1600px; margin: 0 auto; }
 
         .page-header { margin-bottom: 24px; display: flex; align-items: center; gap: 10px; }
-        .page-header h1 { font-size: 1.6rem; font-weight: 800; color: #002b5c; }
+        .page-header h1 { font-size: 1.6rem; font-weight: 800; color: var(--azul-principal); }
         .page-header p { color: #6b7280; font-size: 0.9rem; margin-top: 4px; }
 
         .stats-row { display: flex; gap: 16px; margin-bottom: 28px; flex-wrap: wrap; }
@@ -40,7 +44,7 @@
         .controls { display: flex; gap: 12px; margin-bottom: 20px; align-items: center; flex-wrap: wrap; justify-content: space-between; }
         .ms-filter { position: relative; }
         .ms-filter-btn { display: flex; align-items: center; gap: 8px; background: white; border: 1.5px solid #e5e7eb; border-radius: 8px; padding: 9px 14px; font-size: 0.88rem; cursor: pointer; min-width: 210px; color: #374151; }
-        .ms-filter-btn:hover { border-color: #002b5c; }
+        .ms-filter-btn:hover { border-color: var(--azul-principal); }
         .ms-filter-panel { display: none; position: absolute; top: calc(100% + 6px); left: 0; background: white; border: 1.5px solid #e5e7eb; border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); max-height: 280px; overflow-y: auto; min-width: 240px; z-index: 50; padding: 8px; }
         .ms-filter-panel.open { display: block; }
         .ms-filter-actions { display: flex; justify-content: flex-end; padding: 2px 6px 8px; border-bottom: 1px solid #f3f4f6; margin-bottom: 6px; }
@@ -52,14 +56,14 @@
         .table-wrap { background: white; border-radius: 14px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); overflow: hidden; }
         .table-scroll { overflow-x: auto; overflow-y: auto; max-height: 65vh; border-radius: 14px; }
         table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
-        thead tr { background-color: #002b5c; color: white; }
-        thead th { padding: 11px 14px; text-align: left; font-weight: 600; white-space: nowrap; font-size: 0.75rem; letter-spacing: 0.02em; position: sticky; top: 0; z-index: 10; background-color: #002b5c; }
+        thead tr { background-color: var(--azul-principal); color: var(--azul-titulo-coluna); }
+        thead th { padding: 11px 14px; text-align: left; font-weight: 600; white-space: nowrap; font-size: 0.75rem; letter-spacing: 0.02em; position: sticky; top: 0; z-index: 10; background-color: var(--azul-principal); }
         tbody tr { border-bottom: 1px solid #f3f4f6; transition: background 0.12s; }
         tbody tr:hover { background-color: #f8faff; }
         tbody tr:last-child { border-bottom: none; }
         td { padding: 10px 14px; color: #374151; vertical-align: middle; }
         th.col-fix, td.col-fix { position: sticky; z-index: 5; background-color: white; }
-        thead th.col-fix { background-color: #002b5c; z-index: 11; }
+        thead th.col-fix { background-color: var(--azul-principal); z-index: 11; }
         th.col-fix-1, td.col-fix-1 { left: 0; }
         td.col-fix::after, th.col-fix-1::after { content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 3px; background: linear-gradient(to right, rgba(0,0,0,0.08), transparent); pointer-events: none; }
         tbody tr:hover td.col-fix { background-color: #f8faff; }
@@ -74,7 +78,7 @@
         .row-toggle { display: inline-flex; align-items: center; gap: 6px; color: #6b7280; font-size: 0.75rem; }
         .row-toggle svg { transition: transform 0.2s ease; flex-shrink: 0; }
         .data-row.open .row-toggle svg { transform: rotate(90deg); }
-        .data-row:hover .row-toggle { color: #1e3a5f; }
+        .data-row:hover .row-toggle { color: var(--azul-principal); }
         .detail-row td { background-color: #f8fafc; padding: 0 !important; border-bottom: 2px solid #bfdbfe; }
         .detail-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; padding: 16px 24px; }
         .detail-item-wide { grid-column: span 2; }
@@ -83,10 +87,10 @@
         .detail-value { font-size: 0.82rem; color: #1e293b; }
 
         .sub-detail-wrap { margin: 0 24px 16px; border-top: 1px dashed #cbd5e1; padding-top: 14px; }
-        .sub-detail-title { display: flex; align-items: center; gap: 6px; font-size: 0.75rem; font-weight: 700; color: #1e3a5f; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 8px; }
+        .sub-detail-title { display: flex; align-items: center; gap: 6px; font-size: 0.75rem; font-weight: 700; color: var(--azul-principal); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 8px; }
         .sub-table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
         .sub-table thead tr { background-color: #eef2f7; }
-        .sub-table thead th { padding: 8px 12px; text-align: left; font-size: 0.68rem; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap; }
+        .sub-table thead th { padding: 8px 12px; text-align: left; font-size: 0.68rem; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap; background-color: #eef2f7; position: static; }
         .sub-table tbody tr { border-bottom: 1px solid #f1f5f9; }
         .sub-table tbody tr:last-child { border-bottom: none; }
         .sub-table td { padding: 8px 12px; font-size: 0.78rem; color: #334155; }
@@ -126,10 +130,15 @@
              é diferente de "-" -> é o que aparece na linha da tabela.
            - "outros": os demais registros do mesmo município (os que
              têm essa coluna igual a "-", e qualquer "principal" extra
-             que porventura exista) -> viram o detalhamento exibido
-             ao clicar no município.
+             que porventura exista).
+           - "itens": todos os registros do município (principal + outros),
+             na ordem original -> usados no detalhamento.
+           - Quando há mais de 1 registro no município, a linha
+             principal exibe a SOMA de área/valor de todos os registros;
+             o detalhamento traz cada registro individualmente (inclusive
+             o principal) com seus próprios valores.
            Observação: o filtro Jinja `groupby` ordena por município,
-           então a tabela passa a ficar ordenada alfabeticamente.
+           então a tabela passa a ficar em ordem alfabética.
         ========================================================== #}
         {% set grupos = [] %}
         {% for municipio, items in registros|groupby('municipio') %}
@@ -152,7 +161,33 @@
             {% else %}
                 {% set principal = items_list[0] %}
             {% endif %}
-            {{ grupos.append({'municipio': municipio, 'principal': principal, 'outros': outros}) or '' }}
+
+            {# soma de área (m²) e valor (R$) de todos os registros do município #}
+            {% set area_ns = namespace(total=0.0) %}
+            {% set valor_ns = namespace(total=0.0) %}
+            {% for item in items_list %}
+                {% set area_limpa = (item.area_total_m2_fmt or '0')|string|replace('m²', '')|replace('M²', '')|replace('.', '')|replace(',', '.')|trim %}
+                {% set area_ns.total = area_ns.total + (area_limpa|float(0)) %}
+                {% set valor_limpo = (item.valor_imovel_fmt or '0')|string|replace('R$', '')|replace('.', '')|replace(',', '.')|trim %}
+                {% set valor_ns.total = valor_ns.total + (valor_limpo|float(0)) %}
+            {% endfor %}
+
+            {% if items_list|length > 1 %}
+                {% set area_total_exibida = '{:,.2f}'.format(area_ns.total)|replace(',', '§')|replace('.', ',')|replace('§', '.') %}
+                {% set valor_total_exibido = 'R$ ' + ('{:,.2f}'.format(valor_ns.total)|replace(',', '§')|replace('.', ',')|replace('§', '.')) %}
+            {% else %}
+                {% set area_total_exibida = principal.area_total_m2_fmt or '-' %}
+                {% set valor_total_exibido = principal.valor_imovel_fmt or '-' %}
+            {% endif %}
+
+            {{ grupos.append({
+                'municipio': municipio,
+                'principal': principal,
+                'outros': outros,
+                'itens': items_list,
+                'area_total_exibida': area_total_exibida,
+                'valor_total_exibido': valor_total_exibido
+            }) or '' }}
         {% endfor %}
 
         <div class="page-header">
@@ -228,8 +263,8 @@
                             </td>
                             <td>{{ r.num_matricula_fmt or '-' }}</td>
                             <td>{{ r.ano_aquisicao or '-' }}</td>
-                            <td>{{ r.area_total_m2_fmt or '-' }}</td>
-                            <td>{{ r.valor_imovel_fmt or '-' }}</td>
+                            <td>{{ grupo.area_total_exibida }}</td>
+                            <td>{{ grupo.valor_total_exibido }}</td>
                             <td style="white-space:nowrap;" onclick="event.stopPropagation()">
                                 <a href="{{ url_for('relatorio.relatorio_relgea_individual', familia='regularizadas', registro_id=r.id) }}"
                                    style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:#d1fae5;color:#065f46;border-radius:6px;font-size:0.72rem;font-weight:600;text-decoration:none;margin-right:4px;">
@@ -285,16 +320,15 @@
                                     </div>
                                 </div>
 
-                                {% if grupo.outros and grupo.outros|length > 0 %}
+                                {% if grupo.itens and grupo.itens|length > 1 %}
                                 <div class="sub-detail-wrap">
                                     <div class="sub-detail-title">
                                         <i data-lucide="layers" style="width:14px;height:14px;"></i>
-                                        Matrículas adicionais deste distrito ({{ grupo.outros|length }})
+                                        Matrículas deste distrito ({{ grupo.itens|length }})
                                     </div>
                                     <table class="sub-table">
                                         <thead>
                                             <tr>
-                                                <th>QTD.</th>
                                                 <th>Nº Matrícula do Imóvel</th>
                                                 <th>Ano de Aquisição</th>
                                                 <th>Área Total (m²)</th>
@@ -303,9 +337,8 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {% for o in grupo.outros %}
+                                            {% for o in grupo.itens %}
                                             <tr>
-                                                <td>{{ loop.index }}</td>
                                                 <td>{{ o.num_matricula_fmt or '-' }}</td>
                                                 <td>{{ o.ano_aquisicao or '-' }}</td>
                                                 <td>{{ o.area_total_m2_fmt or '-' }}</td>
