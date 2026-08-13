@@ -82,6 +82,15 @@
         .detail-label { font-size: 0.7rem; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; }
         .detail-value { font-size: 0.82rem; color: #1e293b; }
 
+        .sub-detail-wrap { margin: 0 24px 16px; border-top: 1px dashed #cbd5e1; padding-top: 14px; }
+        .sub-detail-title { display: flex; align-items: center; gap: 6px; font-size: 0.75rem; font-weight: 700; color: #1e3a5f; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 8px; }
+        .sub-table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
+        .sub-table thead tr { background-color: #eef2f7; }
+        .sub-table thead th { padding: 8px 12px; text-align: left; font-size: 0.68rem; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap; }
+        .sub-table tbody tr { border-bottom: 1px solid #f1f5f9; }
+        .sub-table tbody tr:last-child { border-bottom: none; }
+        .sub-table td { padding: 8px 12px; font-size: 0.78rem; color: #334155; }
+
         @media (max-width: 768px) {
             .page-body { padding: 16px; }
             .topbar { padding: 0 16px; }
@@ -110,6 +119,42 @@
     </div>
 
     <div class="page-body">
+        {# ==========================================================
+           TRATAMENTO DE DADOS: agrupa os registros por município.
+           - "principal": primeiro registro do município cuja
+             "matrícula do parcelamento" (matricula_parcelamento_fmt)
+             é diferente de "-" -> é o que aparece na linha da tabela.
+           - "outros": os demais registros do mesmo município (os que
+             têm essa coluna igual a "-", e qualquer "principal" extra
+             que porventura exista) -> viram o detalhamento exibido
+             ao clicar no município.
+           Observação: o filtro Jinja `groupby` ordena por município,
+           então a tabela passa a ficar ordenada alfabeticamente.
+        ========================================================== #}
+        {% set grupos = [] %}
+        {% for municipio, items in registros|groupby('municipio') %}
+            {% set items_list = items|list %}
+            {% set principais = [] %}
+            {% set outros = [] %}
+            {% for item in items_list %}
+                {% set mp = (item.matricula_parcelamento_fmt or '')|trim %}
+                {% if mp and mp != '-' %}
+                    {{ principais.append(item) or '' }}
+                {% else %}
+                    {{ outros.append(item) or '' }}
+                {% endif %}
+            {% endfor %}
+            {% if principais %}
+                {% set principal = principais[0] %}
+                {% for extra in principais[1:] %}
+                    {{ outros.append(extra) or '' }}
+                {% endfor %}
+            {% else %}
+                {% set principal = items_list[0] %}
+            {% endif %}
+            {{ grupos.append({'municipio': municipio, 'principal': principal, 'outros': outros}) or '' }}
+        {% endfor %}
+
         <div class="page-header">
             <div>
                 <h1><i data-lucide="check-circle" style="width:22px;height:22px;color:#059669;vertical-align:-3px;margin-right:6px;"></i>Distritos Regulares</h1>
@@ -121,14 +166,14 @@
             <div class="stat-card">
                 <div class="stat-icon stat-icon-green"><i data-lucide="check-circle" style="width:22px;height:22px;"></i></div>
                 <div>
-                    <div class="stat-value" id="stat-total">{{ registros | length }}</div>
+                    <div class="stat-value" id="stat-total">{{ grupos | length }}</div>
                     <div class="stat-label">Total de distritos regulares</div>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon stat-icon-red"><i data-lucide="map" style="width:22px;height:22px;"></i></div>
                 <div>
-                    <div class="stat-value" id="stat-municipios">{{ registros | map(attribute='municipio') | select | unique | list | length }}</div>
+                    <div class="stat-value" id="stat-municipios">{{ grupos | map(attribute='municipio') | unique | list | length }}</div>
                     <div class="stat-label">Municípios</div>
                 </div>
             </div>
@@ -145,7 +190,7 @@
                     <div class="ms-filter-actions">
                         <button type="button" id="filtro-municipio-limpar">Limpar seleção</button>
                     </div>
-                    {% for m in registros | map(attribute='municipio') | select | unique | sort %}
+                    {% for m in grupos | map(attribute='municipio') | select | unique | sort %}
                     <label class="ms-filter-option">
                         <input type="checkbox" value="{{ m }}">
                         <span>{{ m }}</span>
@@ -172,7 +217,8 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for r in registros %}
+                        {% for grupo in grupos %}
+                        {% set r = grupo.principal %}
                         <tr class="data-row" data-municipio="{{ (r.municipio or '')|lower|trim }}" onclick="toggleDetalhe('p{{ r.id }}')">
                             <td class="col-fix col-fix-1">
                                 <span class="row-toggle">
@@ -238,6 +284,39 @@
                                         <span class="detail-value">{{ r.descricao_area or '-' }}</span>
                                     </div>
                                 </div>
+
+                                {% if grupo.outros and grupo.outros|length > 0 %}
+                                <div class="sub-detail-wrap">
+                                    <div class="sub-detail-title">
+                                        <i data-lucide="layers" style="width:14px;height:14px;"></i>
+                                        Matrículas adicionais deste distrito ({{ grupo.outros|length }})
+                                    </div>
+                                    <table class="sub-table">
+                                        <thead>
+                                            <tr>
+                                                <th>QTD.</th>
+                                                <th>Nº Matrícula do Imóvel</th>
+                                                <th>Ano de Aquisição</th>
+                                                <th>Área Total (m²)</th>
+                                                <th>Valor do Imóvel (R$)</th>
+                                                <th>Descrição da Área</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for o in grupo.outros %}
+                                            <tr>
+                                                <td>{{ loop.index }}</td>
+                                                <td>{{ o.num_matricula_fmt or '-' }}</td>
+                                                <td>{{ o.ano_aquisicao or '-' }}</td>
+                                                <td>{{ o.area_total_m2_fmt or '-' }}</td>
+                                                <td>{{ o.valor_imovel_fmt or '-' }}</td>
+                                                <td>{{ o.descricao_area or '-' }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                {% endif %}
                             </td>
                         </tr>
                         {% else %}
