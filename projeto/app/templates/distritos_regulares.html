@@ -3,49 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Áreas Parceladas - CODEGO</title>
+    <title>Distritos Regulares - CODEGO</title>
     <link rel="shortcut icon" href="{{ url_for('static', filename='imagens_empresas/asentjur.png') }}" type="image/png">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body, html { height: 100%; font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
- 
+
         .topbar { background-color: #002b5c; color: white; padding: 0 32px; height: 68px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); position: sticky; top: 0; z-index: 100; }
         .topbar-left { display: flex; align-items: center; gap: 16px; }
         .topbar img { height: 56px; }
         .topbar-title { font-size: 1rem; font-weight: 600; opacity: 0.9; }
         .topbar-actions { display: flex; gap: 10px; align-items: center; }
-        
-        /* Estilos dos botões */
+
         .btn-topbar { text-decoration: none; padding: 9px 18px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 7px; transition: all 0.2s ease; color: white !important; }
-        .btn-mapa { background-color: #059669; }
-        .btn-mapa:hover { background-color: #047857; }
         .btn-back { background-color: #4b5563; }
         .btn-back:hover { background-color: #374151; }
         .btn-logout { background-color: #ef4444; }
         .btn-logout:hover { background-color: #dc2626; }
- 
+
         .page-body { padding: 32px; max-width: 1600px; margin: 0 auto; }
- 
-        .page-header { margin-bottom: 24px; }
+
+        .page-header { margin-bottom: 24px; display: flex; align-items: center; gap: 10px; }
         .page-header h1 { font-size: 1.6rem; font-weight: 800; color: #002b5c; }
         .page-header p { color: #6b7280; font-size: 0.9rem; margin-top: 4px; }
- 
+
         .stats-row { display: flex; gap: 16px; margin-bottom: 28px; flex-wrap: wrap; }
         .stat-card { background: white; border-radius: 12px; padding: 16px 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); display: flex; align-items: center; gap: 14px; min-width: 180px; }
         .stat-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
-        .stat-icon-green  { background-color: #d1fae5; color: #065f46; }
-        .stat-icon-blue   { background-color: #dbeafe; color: #002b5c; }
-        .stat-icon-amber  { background-color: #fef3c7; color: #92400e; }
-        .stat-icon-red    { background-color: #fee2e2; color: #991b1b; }
+        .stat-icon-green { background-color: #d1fae5; color: #065f46; }
+        .stat-icon-red   { background-color: #fee2e2; color: #991b1b; }
         .stat-value { font-size: 1.4rem; font-weight: 800; color: #111827; }
         .stat-label { font-size: 0.78rem; color: #6b7280; font-weight: 500; }
- 
-        .controls { display: flex; gap: 12px; margin-bottom: 20px; align-items: center; flex-wrap: wrap; }
-        .search-box { display: flex; align-items: center; gap: 8px; background: white; border: 1.5px solid #e5e7eb; border-radius: 8px; padding: 8px 14px; flex: 1; min-width: 220px; max-width: 360px; }
-        .search-box input { border: none; outline: none; font-size: 0.88rem; width: 100%; background: transparent; }
-        .filter-select { background: white; border: 1.5px solid #e5e7eb; border-radius: 8px; padding: 9px 14px; font-size: 0.88rem; outline: none; cursor: pointer; }
+
+        .controls { display: flex; gap: 12px; margin-bottom: 20px; align-items: center; flex-wrap: wrap; justify-content: space-between; }
         .ms-filter { position: relative; }
         .ms-filter-btn { display: flex; align-items: center; gap: 8px; background: white; border: 1.5px solid #e5e7eb; border-radius: 8px; padding: 9px 14px; font-size: 0.88rem; cursor: pointer; min-width: 210px; color: #374151; }
         .ms-filter-btn:hover { border-color: #002b5c; }
@@ -55,14 +47,8 @@
         .ms-filter-actions button { background: none; border: none; color: #2563eb; font-size: 0.78rem; font-weight: 600; cursor: pointer; }
         .ms-filter-option { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 6px; font-size: 0.85rem; cursor: pointer; }
         .ms-filter-option:hover { background: #f3f4f6; }
- 
-        .section { margin-bottom: 40px; }
-        .section-title { font-size: 1rem; font-weight: 700; color: #002b5c; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; padding-bottom: 8px; border-bottom: 2px solid #e5e7eb; }
-        .badge { font-size: 0.72rem; border-radius: 20px; padding: 2px 10px; font-weight: 600; white-space: nowrap; }
-        .badge-green { background-color: #d1fae5; color: #065f46; }
-        .badge-blue  { background-color: #dbeafe; color: #1e40af; }
-        .badge-amber { background-color: #fef3c7; color: #92400e; }
- 
+        .btn-nova { display: flex; align-items: center; gap: 6px; padding: 8px 18px; background: #059669; color: white; border-radius: 8px; text-decoration: none; font-size: 0.85rem; font-weight: 600; }
+
         .table-wrap { background: white; border-radius: 14px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); overflow: hidden; }
         .table-scroll { overflow-x: auto; overflow-y: auto; max-height: 65vh; border-radius: 14px; }
         table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
@@ -81,8 +67,6 @@
         .lote-sim { display: inline-block; background-color: #d1fae5; color: #065f46; border-radius: 6px; padding: 2px 8px; font-size: 0.73rem; font-weight: 700; }
         .lote-nao { display: inline-block; background-color: #fee2e2; color: #991b1b; border-radius: 6px; padding: 2px 8px; font-size: 0.73rem; font-weight: 700; }
         .lote-outro { font-size: 0.73rem; color: #6b7280; }
-        .descricao { max-width: 240px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .ocupacao-cell { max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.75rem; color: #6b7280; }
         .empty { padding: 48px; text-align: center; color: #9ca3af; }
         .data-row { cursor: pointer; }
         .data-row:hover { background-color: #f0f7ff; }
@@ -97,7 +81,7 @@
         .detail-item { display: flex; flex-direction: column; gap: 4px; }
         .detail-label { font-size: 0.7rem; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; }
         .detail-value { font-size: 0.82rem; color: #1e293b; }
- 
+
         @media (max-width: 768px) {
             .page-body { padding: 16px; }
             .topbar { padding: 0 16px; }
@@ -111,49 +95,34 @@
             <a href="{{ url_for('dashboard.inicio_assent') }}" style="display:inline-block;line-height:0;" aria-label="Voltar ao início">
                 <img src="{{ url_for('static', filename='logo_codego.png') }}" alt="Logo CodeGO">
             </a>
-            <span class="topbar-title">Áreas Parceladas</span>
+            <span class="topbar-title">Distritos Regulares</span>
         </div>
         <div class="topbar-actions">
-            
-            <a href="/assent/controle-area" class="btn-topbar btn-back">
+            <a href="{{ url_for('dashboard.controle_area') }}" class="btn-topbar btn-back">
                 <i data-lucide="arrow-left" style="width:16px;height:16px;"></i>
                 <span>Voltar</span>
             </a>
-            <a href="/logout" class="btn-topbar btn-logout">
+            <a href="{{ url_for('auth_login.logout') }}" class="btn-topbar btn-logout">
                 <i data-lucide="log-out" style="width:16px;height:16px;"></i>
                 <span>Sair</span>
             </a>
         </div>
     </div>
- 
+
     <div class="page-body">
         <div class="page-header">
-            <h1>Controle de Áreas Parceladas</h1>
-            <p>Glebas parceladas (loteadas) de propriedade da CODEGO</p>
-        </div>
- 
-        {% set registros = regularizadas + irregulares %}
- 
-        <div class="stats-row">
-            <div class="stat-card">
-                <div class="stat-icon stat-icon-blue"><i data-lucide="layout-grid" style="width:22px;height:22px;"></i></div>
-                <div>
-                    <div class="stat-value" id="stat-total">{{ registros | length }}</div>
-                    <div class="stat-label">Total de imóveis</div>
-                </div>
+            <div>
+                <h1><i data-lucide="check-circle" style="width:22px;height:22px;color:#059669;vertical-align:-3px;margin-right:6px;"></i>Distritos Regulares</h1>
+                <p>Loteamentos com regularização já concluída, de propriedade da CODEGO</p>
             </div>
+        </div>
+
+        <div class="stats-row">
             <div class="stat-card">
                 <div class="stat-icon stat-icon-green"><i data-lucide="check-circle" style="width:22px;height:22px;"></i></div>
                 <div>
-                    <div class="stat-value" id="stat-regularizadas">{{ regularizadas | length }}</div>
-                    <div class="stat-label">Parceladas regularizadas</div>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon stat-icon-amber"><i data-lucide="alert-triangle" style="width:22px;height:22px;"></i></div>
-                <div>
-                    <div class="stat-value" id="stat-irregulares">{{ irregulares | length }}</div>
-                    <div class="stat-label">Loteamento irregular</div>
+                    <div class="stat-value" id="stat-total">{{ registros | length }}</div>
+                    <div class="stat-label">Total de distritos regulares</div>
                 </div>
             </div>
             <div class="stat-card">
@@ -164,7 +133,7 @@
                 </div>
             </div>
         </div>
- 
+
         <div class="controls">
             <div class="ms-filter" id="filtro-municipio-wrap">
                 <button type="button" class="ms-filter-btn" id="filtro-municipio-btn">
@@ -184,9 +153,11 @@
                     {% endfor %}
                 </div>
             </div>
+            <a href="/assent/areas-parceladas/regularizadas/nova" class="btn-nova">
+                <i data-lucide="plus" style="width:16px;height:16px;"></i> Nova Área
+            </a>
         </div>
- 
-        {% macro tabela_secao(lista, familia) %}
+
         <div class="table-wrap">
             <div class="table-scroll">
                 <table>
@@ -201,8 +172,8 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for r in lista %}
-                        <tr class="data-row" data-familia="{{ familia }}" data-municipio="{{ (r.municipio or '')|lower|trim }}" onclick="toggleDetalhe('p-{{ familia }}-{{ r.id }}')">
+                        {% for r in registros %}
+                        <tr class="data-row" data-municipio="{{ (r.municipio or '')|lower|trim }}" onclick="toggleDetalhe('p{{ r.id }}')">
                             <td class="col-fix col-fix-1">
                                 <span class="row-toggle">
                                     <i data-lucide="chevron-right" style="width:14px;height:14px;"></i>
@@ -214,15 +185,15 @@
                             <td>{{ r.area_total_m2_fmt or '-' }}</td>
                             <td>{{ r.valor_imovel_fmt or '-' }}</td>
                             <td style="white-space:nowrap;" onclick="event.stopPropagation()">
-                                <a href="{{ url_for('relatorio.relatorio_relgea_individual', familia=familia, registro_id=r.id) }}"
+                                <a href="{{ url_for('relatorio.relatorio_relgea_individual', familia='regularizadas', registro_id=r.id) }}"
                                    style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:#d1fae5;color:#065f46;border-radius:6px;font-size:0.72rem;font-weight:600;text-decoration:none;margin-right:4px;">
                                     <i data-lucide="file-text" style="width:12px;height:12px;"></i> Relatório
                                 </a>
-                                <a href="/assent/areas-parceladas/{{ familia }}/{{ r.id }}/editar"
+                                <a href="/assent/areas-parceladas/regularizadas/{{ r.id }}/editar"
                                    style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:#dbeafe;color:#1e40af;border-radius:6px;font-size:0.72rem;font-weight:600;text-decoration:none;margin-right:4px;">
                                     <i data-lucide="pencil" style="width:12px;height:12px;"></i> Editar
                                 </a>
-                                <form method="POST" action="/assent/areas-parceladas/{{ familia }}/{{ r.id }}/excluir"
+                                <form method="POST" action="/assent/areas-parceladas/regularizadas/{{ r.id }}/excluir"
                                       style="display:inline;" onsubmit="return confirm('Excluir este registro?')">
                                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                     <button type="submit"
@@ -232,7 +203,7 @@
                                 </form>
                             </td>
                         </tr>
-                        <tr id="p-{{ familia }}-{{ r.id }}" class="detail-row" style="display:none;">
+                        <tr id="p{{ r.id }}" class="detail-row" style="display:none;">
                             <td colspan="6">
                                 <div class="detail-grid">
                                     <div class="detail-item">
@@ -276,81 +247,11 @@
                 </table>
             </div>
         </div>
-        {% endmacro %}
- 
-        <div class="section">
-            <div class="section-title">
-                <i data-lucide="check-circle" style="width:18px;height:18px;color:#059669;"></i>
-                Parceladas com Loteamento Regularizado
-                <span class="badge badge-green">{{ regularizadas | length }} registros</span>
-                <a href="/assent/areas-parceladas/regularizadas/nova" style="margin-left:auto;display:flex;align-items:center;gap:6px;padding:6px 14px;background:#059669;color:white;border-radius:8px;font-size:0.78rem;font-weight:600;text-decoration:none;">
-                    <i data-lucide="plus" style="width:14px;height:14px;"></i> Nova Área
-                </a>
-            </div>
-            {{ tabela_secao(regularizadas, 'regularizadas') }}
-        </div>
- 
-        <div class="section">
-            <div class="section-title">
-                <i data-lucide="alert-triangle" style="width:18px;height:18px;color:#d97706;"></i>
-                Loteamento Irregular
-                <span class="badge badge-amber">{{ irregulares | length }} registros</span>
-                <a href="/assent/areas-parceladas/irregulares/nova" style="margin-left:auto;display:flex;align-items:center;gap:6px;padding:6px 14px;background:#d97706;color:white;border-radius:8px;font-size:0.78rem;font-weight:600;text-decoration:none;">
-                    <i data-lucide="plus" style="width:14px;height:14px;"></i> Nova Área
-                </a>
-            </div>
-            {{ tabela_secao(irregulares, 'irregulares') }}
-        </div>
     </div>
- 
+
     <script>
         lucide.createIcons();
- 
-        // Mapa de correção de acentuação dos municípios (chave sem acento -> nome correto)
-        const CORRECOES_MUNICIPIO = {
-            'ABADIANIA': 'ABADIÂNIA',
-            'ANAPOLIS': 'ANÁPOLIS',
-            'APARECIDA DE GOIANIA': 'APARECIDA DE GOIÂNIA',
-            'BELA VISTA DE GOIAS': 'BELA VISTA DE GOIÁS',
-            'CATALAO': 'CATALÃO',
-            'GOIANESIA': 'GOIANÉSIA',
-            'LUZIANIA': 'LUZIÂNIA',
-            'SAO LUIZ DO NORTE': 'SÃO LUIZ DO NORTE',
-            'URUACU': 'URUAÇU'
-        };
- 
-        function normalizarSemAcento(str) {
-            return (str || '')
-                .normalize('NFD')
-                .replace(/[\u0300-\u036f]/g, '')
-                .toUpperCase()
-                .trim();
-        }
- 
-        function corrigirMunicipio(nome) {
-            const chave = normalizarSemAcento(nome);
-            return CORRECOES_MUNICIPIO[chave] || nome;
-        }
- 
-        function aplicarCorrecoesAcentuacao() {
-            document.querySelectorAll('.municipio-badge').forEach(function (el) {
-                el.textContent = corrigirMunicipio(el.textContent);
-            });
-            document.querySelectorAll('.data-row').forEach(function (row) {
-                const corrigido = corrigirMunicipio(row.dataset.municipio);
-                row.dataset.municipio = corrigido.toLowerCase().trim();
-            });
-            document.querySelectorAll('#filtro-municipio-panel .ms-filter-option').forEach(function (label) {
-                const input = label.querySelector('input[type="checkbox"]');
-                const span = label.querySelector('span');
-                const corrigido = corrigirMunicipio(input.value);
-                input.value = corrigido;
-                span.textContent = corrigido;
-            });
-        }
- 
-        aplicarCorrecoesAcentuacao();
- 
+
         function toggleDetalhe(id) {
             const row = document.getElementById(id);
             const dataRow = row.previousElementSibling;
@@ -359,14 +260,14 @@
             dataRow.classList.toggle('open', !isOpen);
             if (!isOpen) lucide.createIcons();
         }
- 
+
         (function() {
             const btn = document.getElementById('filtro-municipio-btn');
             const panel = document.getElementById('filtro-municipio-panel');
             const label = document.getElementById('filtro-municipio-label');
             const limpar = document.getElementById('filtro-municipio-limpar');
             const checkboxes = panel.querySelectorAll('input[type="checkbox"]');
- 
+
             function aplicarFiltroMunicipio() {
                 const marcados = Array.from(checkboxes).filter(function(c) { return c.checked; });
                 if (marcados.length === 0) {
@@ -378,25 +279,22 @@
                 }
                 const selecionados = marcados.map(function(c) { return c.value.toLowerCase(); });
                 const municipiosVisiveis = new Set();
-                let regularizadas = 0, irregulares = 0;
- 
+                let total = 0;
+
                 document.querySelectorAll('.data-row').forEach(function(row) {
                     const visivel = selecionados.length === 0 || selecionados.indexOf(row.dataset.municipio) !== -1;
                     row.style.display = visivel ? '' : 'none';
- 
+
                     if (visivel) {
+                        total++;
                         if (row.dataset.municipio) municipiosVisiveis.add(row.dataset.municipio);
-                        if (row.dataset.familia === 'regularizadas') regularizadas++;
-                        else if (row.dataset.familia === 'irregulares') irregulares++;
                     }
                 });
- 
-                document.getElementById('stat-total').textContent = regularizadas + irregulares;
-                document.getElementById('stat-regularizadas').textContent = regularizadas;
-                document.getElementById('stat-irregulares').textContent = irregulares;
+
+                document.getElementById('stat-total').textContent = total;
                 document.getElementById('stat-municipios').textContent = municipiosVisiveis.size;
             }
- 
+
             btn.addEventListener('click', function(e) {
                 e.stopPropagation();
                 panel.classList.toggle('open');
@@ -411,6 +309,6 @@
             });
         })();
     </script>
-    {% set guia_pagina = 'areas_parceladas' %}{% include 'partials/guia_mascote.html' %}
+    {% set guia_pagina = 'distritos_regulares' %}{% include 'partials/guia_mascote.html' %}
 </body>
 </html>

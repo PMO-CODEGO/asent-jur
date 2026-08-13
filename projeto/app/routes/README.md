@@ -46,9 +46,10 @@ Concentra as rotas de navegação e listagem do módulo de Assentamento, além d
 |---|---|---|---|
 | `/menu/<modo>` | GET | Todos os usuários logados | Sempre renderiza `menu_jur.html`, independente do valor de `modo` (o menu do módulo de Assentamento é `inicio_assent.html`, acessado direto por `/assent/inicio`). |
 | `/assent/inicio` | GET | `assent`, `admin`, `assent_gestor` | Tela inicial do módulo de Assentamento (`inicio_assent.html`), com atalhos para Controle de Área e para o módulo Jurídico. |
-| `/assent/controle-area` | GET | `assent`, `admin`, `assent_gestor` | Hub (`controle_area.html`) com cards para Áreas Brutas, Galerias/Condomínio, Áreas Parceladas e Cadastro de Módulos. |
+| `/assent/controle-area` | GET | `assent`, `admin`, `assent_gestor` | Hub (`controle_area.html`) com cards para Áreas Brutas, Galerias/Condomínio, Distritos Regulares/em Regularização e Cadastro de Módulos. |
 | `/assent/areas-brutas` | GET | `assent`, `admin`, `assent_gestor` | Lista os registros das tabelas `areas_brutas` e `areas_brutas_judicial`, com formatação de valores em BRL e cálculo da última avaliação por ano (`areas_brutas.html`). |
-| `/assent/areas-parceladas` | GET | `assent`, `admin`, `assent_gestor` | Lista `areas_parceladas_regularizadas` e `loteamentos_irregulares` lado a lado (`areas_parceladas.html`). |
+| `/assent/distritos-regulares` | GET | `assent`, `admin`, `assent_gestor` | Lista `areas_parceladas_regularizadas` (`distritos_regulares.html`). |
+| `/assent/distritos-em-regularizacao` | GET | `assent`, `admin`, `assent_gestor` | Lista `loteamentos_irregulares` (`distritos_regularizacao.html`). |
 | `/assent/galerias` | GET | `assent`, `admin`, `assent_gestor` | Lista os registros de `galerias_condominios` (`galerias.html`). |
 | `/assent/cadastro-modulos` | GET | `assent`, `admin`, `assent_gestor` | Lista os registros de `municipal_lots` ordenados por município/distrito/quadra/módulo (`cadastro_modulos.html`). |
 | `/mapa-distritos` | GET | `assent`, `jur`, `admin`, `assent_gestor`, `jur_gestor` | Mapa dos distritos industriais/agroindustriais de Goiás administrados pela CODEGO (`mapa_distritos.html`). |
@@ -83,13 +84,13 @@ Registros de um mesmo `grupo` podem compartilhar um `valor_conjunto`/`moeda_conj
 ---
 
 ### `areas_brutas_parceladas.py` — Cadastro de Áreas Parceladas
-Gerencia três "famílias" de imóveis já loteados/parcelados, todas com o mesmo formulário (`areas_brutas_parceladas_form.html`) mas tabelas próprias:
+Gerencia três "famílias" de imóveis já loteados/parcelados, todas com o mesmo formulário (`areas_brutas_parceladas_form.html`) mas tabelas e telas de listagem próprias:
 
-| Família | Tabela | Campos extras |
-|---|---|---|
-| `regularizadas` | `areas_parceladas_regularizadas` | — |
-| `galerias` | `galerias_condominios` | — |
-| `irregulares` | `loteamentos_irregulares` | `observacoes` |
+| Família | Tabela | Tela de listagem | Campos extras |
+|---|---|---|---|
+| `regularizadas` | `areas_parceladas_regularizadas` | `/assent/distritos-regulares` (`distritos_regulares.html`) | — |
+| `galerias` | `galerias_condominios` | `/assent/galerias` (`galerias.html`) | — |
+| `irregulares` | `loteamentos_irregulares` | `/assent/distritos-em-regularizacao` (`distritos_regularizacao.html`) | `observacoes` |
 
 | Rota | Método | Descrição |
 |---|---|---|
@@ -97,7 +98,7 @@ Gerencia três "famílias" de imóveis já loteados/parcelados, todas com o mesm
 | `/assent/areas-parceladas/<familia>/<id>/editar` | GET/POST | Edição de um registro existente. |
 | `/assent/areas-parceladas/<familia>/<id>/excluir` | POST | Exclui o registro. |
 
-> Como os `id` de cada família vêm de tabelas diferentes, eles podem colidir entre si — o template `areas_parceladas.html` usa `p-<familia>-<id>` como identificador único dos painéis de detalhe expansíveis para evitar conflito.
+Os três verbos (criar/editar/excluir) redirecionam de volta para a tela de listagem correta por família — `REDIRECT_ENDPOINT` neste arquivo mapeia `familia → endpoint`. O formulário compartilhado (`areas_brutas_parceladas_form.html`) resolve o mesmo destino para os botões "Voltar"/"Cancelar" via `voltar_endpoint`.
 
 ---
 
@@ -158,7 +159,7 @@ Relatórios RELGEA, gerados em memória a partir dos dados atuais do banco (`inl
 | Rota | Método | Acesso | Descrição |
 |---|---|---|---|
 | `/relatorio-relgea/distrito/<slug>` | GET | `assent`, `jur`, `admin`, `assent_gestor`, `jur_gestor` | Gera o PDF do relatório RELGEA do distrito (todos os registros de `municipal_lots` daquele distrito, A4 paisagem). Se não houver registros, redireciona de volta para `dashboard.distrito_detalhe` com um aviso. Botão "Baixar Relatório RELGEA" em `distrito_detalhe.html`. |
-| `/relatorio-relgea/individual/<familia>/<registro_id>` | GET | `assent`, `admin`, `assent_gestor` | Gera a ficha PDF de um registro de `galerias`, `regularizadas` ou `irregulares` (mesmas famílias de `areas_brutas_parceladas.py`). Botão "Relatório" nas tabelas de `galerias.html` e `areas_parceladas.html`. |
+| `/relatorio-relgea/individual/<familia>/<registro_id>` | GET | `assent`, `admin`, `assent_gestor` | Gera a ficha PDF de um registro de `galerias`, `regularizadas` ou `irregulares` (mesmas famílias de `areas_brutas_parceladas.py`). Botão "Relatório" nas tabelas de `galerias.html`, `distritos_regulares.html` e `distritos_regularizacao.html`. |
 
 ---
 

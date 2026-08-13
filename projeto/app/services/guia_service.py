@@ -62,11 +62,20 @@ GUIA_CONTEUDO = {
             'Clica num registro que eu te mostro todos os detalhes dele.',
         ],
     },
-    'areas_parceladas': {
-        'titulo': 'sobre Áreas Parceladas',
+    'distritos_regulares': {
+        'titulo': 'sobre Distritos Regulares',
         'pose': 'bracos_cruzados',
         'dicas': [
-            'Aqui tem duas listas: loteamento regularizado e loteamento irregular.',
+            'Aqui ficam os loteamentos que já têm a regularização concluída.',
+            'Usa o filtro de município se a lista estiver grande demais.',
+            'Clicando em "Relatório" eu gero um PDF atualizado desse registro na hora.',
+        ],
+    },
+    'distritos_regularizacao': {
+        'titulo': 'sobre Distritos em Regularização',
+        'pose': 'piscando_apontando_cima',
+        'dicas': [
+            'Aqui ficam os loteamentos que ainda estão em processo de regularização.',
             'Usa o filtro de município se a lista estiver grande demais.',
             'Clicando em "Relatório" eu gero um PDF atualizado desse registro na hora.',
         ],

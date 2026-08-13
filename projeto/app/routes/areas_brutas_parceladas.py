@@ -54,6 +54,18 @@ def _familia_config(familia):
     return config
 
 
+# tela de listagem para onde cada familia volta depois de criar/editar/excluir
+REDIRECT_ENDPOINT = {
+    'regularizadas': 'dashboard.distritos_regulares',
+    'irregulares': 'dashboard.distritos_em_regularizacao',
+    'galerias': 'dashboard.galerias',
+}
+
+
+def _redirect_listagem(familia):
+    return redirect(url_for(REDIRECT_ENDPOINT[familia]))
+
+
 MATRICULAS = {'num_matricula', 'matricula_parcelamento'}
 
 
@@ -127,7 +139,7 @@ def nova(familia):
             f"Tipo: {config['label']} | "
             f"Descrição: {request.form.get('descricao_area') or '-'}"
         ))
-        return redirect(url_for('dashboard.areas_brutas_parceladas'))
+        return _redirect_listagem(familia)
     return render_template('areas_brutas_parceladas_form.html', registro=None, campos=campos,
                            familia=familia, familia_label=config['label'],
                            titulo=f"Nova {config['titulo_base']}", municipios=listar_municipios())
@@ -153,11 +165,11 @@ def editar(familia, registro_id):
                     f"Tipo: {config['label']} | "
                     f"Descrição: {request.form.get('descricao_area') or '-'}"
                 ))
-                return redirect(url_for('dashboard.areas_brutas_parceladas'))
+                return _redirect_listagem(familia)
             cursor.execute(f'SELECT * FROM {tabela} WHERE id=%s', (registro_id,))
             registro = cursor.fetchone()
     if not registro:
-        return redirect(url_for('dashboard.areas_brutas_parceladas'))
+        return _redirect_listagem(familia)
     return render_template('areas_brutas_parceladas_form.html', registro=_formato_display(registro),
                            campos=campos, familia=familia, familia_label=config['label'],
                            titulo=f"Editar {config['titulo_base']}", municipios=listar_municipios())
@@ -180,4 +192,4 @@ def excluir(familia, registro_id):
         f"Tipo: {config['label']} | "
         f"Descrição: {r.get('descricao_area') or '-'}"
     ))
-    return redirect(url_for('dashboard.areas_brutas_parceladas'))
+    return _redirect_listagem(familia)

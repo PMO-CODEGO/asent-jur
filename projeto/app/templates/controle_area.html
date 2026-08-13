@@ -198,8 +198,10 @@
             text-decoration: none;
             font-size: 0.85rem;
             font-weight: 600;
+            text-align: left;
             transition: all 0.18s ease;
         }
+        .sub-link span { text-align: left; }
 
         .sub-link-amber { background-color: #fef3c7; color: #92400e; }
         .sub-link-amber:hover { background-color: #fde68a; }
@@ -270,11 +272,16 @@
                     <i data-lucide="map"></i>
                 </div>
                 <h2>Distritos</h2>
-                <p style="font-size:0.85rem;color:#6b7280;">Áreas parceladas e módulos cadastrados nos distritos industriais.</p>
+                <p style="font-size:0.85rem;color:#6b7280;">Loteamentos regulares, em regularização e módulos cadastrados nos distritos industriais.</p>
                 <div class="sub-links">
-                    <a href="{{ url_for('dashboard.areas_brutas_parceladas') }}" class="sub-link sub-link-green">
-                        <i data-lucide="layout-grid" style="width:15px;height:15px;flex-shrink:0;"></i>
-                        <span>Áreas Parceladas</span>
+                    <a href="{{ url_for('dashboard.distritos_regulares') }}" class="sub-link sub-link-green">
+                        <i data-lucide="check-circle" style="width:15px;height:15px;flex-shrink:0;"></i>
+                        <span>Distritos Regulares</span>
+                        <i data-lucide="arrow-right" style="width:15px;height:15px;margin-left:auto;"></i>
+                    </a>
+                    <a href="{{ url_for('dashboard.distritos_em_regularizacao') }}" class="sub-link sub-link-amber">
+                        <i data-lucide="alert-triangle" style="width:15px;height:15px;flex-shrink:0;"></i>
+                        <span>Distritos em Regularização</span>
                         <i data-lucide="arrow-right" style="width:15px;height:15px;margin-left:auto;"></i>
                     </a>
                     <a href="{{ url_for('dashboard.cadastro_modulos') }}" class="sub-link sub-link-amber">

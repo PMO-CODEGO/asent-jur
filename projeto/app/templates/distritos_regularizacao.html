@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Distritos em Regularização - CODEGO</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='imagens_empresas/asentjur.png') }}" type="image/png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body, html { height: 100%; font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+
+        .topbar { background-color: #002b5c; color: white; padding: 0 32px; height: 68px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); position: sticky; top: 0; z-index: 100; }
+        .topbar-left { display: flex; align-items: center; gap: 16px; }
+        .topbar img { height: 56px; }
+        .topbar-title { font-size: 1rem; font-weight: 600; opacity: 0.9; }
+        .topbar-actions { display: flex; gap: 10px; align-items: center; }
+
+        .btn-topbar { text-decoration: none; padding: 9px 18px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 7px; transition: all 0.2s ease; color: white !important; }
+        .btn-back { background-color: #4b5563; }
+        .btn-back:hover { background-color: #374151; }
+        .btn-logout { background-color: #ef4444; }
+        .btn-logout:hover { background-color: #dc2626; }
+
+        .page-body { padding: 32px; max-width: 1600px; margin: 0 auto; }
+
+        .page-header { margin-bottom: 24px; display: flex; align-items: center; gap: 10px; }
+        .page-header h1 { font-size: 1.6rem; font-weight: 800; color: #002b5c; }
+        .page-header p { color: #6b7280; font-size: 0.9rem; margin-top: 4px; }
+
+        .stats-row { display: flex; gap: 16px; margin-bottom: 28px; flex-wrap: wrap; }
+        .stat-card { background: white; border-radius: 12px; padding: 16px 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); display: flex; align-items: center; gap: 14px; min-width: 180px; }
+        .stat-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+        .stat-icon-amber { background-color: #fef3c7; color: #92400e; }
+        .stat-icon-red   { background-color: #fee2e2; color: #991b1b; }
+        .stat-value { font-size: 1.4rem; font-weight: 800; color: #111827; }
+        .stat-label { font-size: 0.78rem; color: #6b7280; font-weight: 500; }
+
+        .controls { display: flex; gap: 12px; margin-bottom: 20px; align-items: center; flex-wrap: wrap; justify-content: space-between; }
+        .ms-filter { position: relative; }
+        .ms-filter-btn { display: flex; align-items: center; gap: 8px; background: white; border: 1.5px solid #e5e7eb; border-radius: 8px; padding: 9px 14px; font-size: 0.88rem; cursor: pointer; min-width: 210px; color: #374151; }
+        .ms-filter-btn:hover { border-color: #002b5c; }
+        .ms-filter-panel { display: none; position: absolute; top: calc(100% + 6px); left: 0; background: white; border: 1.5px solid #e5e7eb; border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); max-height: 280px; overflow-y: auto; min-width: 240px; z-index: 50; padding: 8px; }
+        .ms-filter-panel.open { display: block; }
+        .ms-filter-actions { display: flex; justify-content: flex-end; padding: 2px 6px 8px; border-bottom: 1px solid #f3f4f6; margin-bottom: 6px; }
+        .ms-filter-actions button { background: none; border: none; color: #2563eb; font-size: 0.78rem; font-weight: 600; cursor: pointer; }
+        .ms-filter-option { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 6px; font-size: 0.85rem; cursor: pointer; }
+        .ms-filter-option:hover { background: #f3f4f6; }
+        .btn-nova { display: flex; align-items: center; gap: 6px; padding: 8px 18px; background: #d97706; color: white; border-radius: 8px; text-decoration: none; font-size: 0.85rem; font-weight: 600; }
+
+        .table-wrap { background: white; border-radius: 14px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); overflow: hidden; }
+        .table-scroll { overflow-x: auto; overflow-y: auto; max-height: 65vh; border-radius: 14px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+        thead tr { background-color: #002b5c; color: white; }
+        thead th { padding: 11px 14px; text-align: left; font-weight: 600; white-space: nowrap; font-size: 0.75rem; letter-spacing: 0.02em; position: sticky; top: 0; z-index: 10; background-color: #002b5c; }
+        tbody tr { border-bottom: 1px solid #f3f4f6; transition: background 0.12s; }
+        tbody tr:hover { background-color: #f8faff; }
+        tbody tr:last-child { border-bottom: none; }
+        td { padding: 10px 14px; color: #374151; vertical-align: middle; }
+        th.col-fix, td.col-fix { position: sticky; z-index: 5; background-color: white; }
+        thead th.col-fix { background-color: #002b5c; z-index: 11; }
+        th.col-fix-1, td.col-fix-1 { left: 0; }
+        td.col-fix::after, th.col-fix-1::after { content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 3px; background: linear-gradient(to right, rgba(0,0,0,0.08), transparent); pointer-events: none; }
+        tbody tr:hover td.col-fix { background-color: #f8faff; }
+        .municipio-badge { display: inline-block; background-color: #eff6ff; color: #1e40af; border-radius: 6px; padding: 2px 8px; font-size: 0.75rem; font-weight: 600; white-space: nowrap; }
+        .lote-sim { display: inline-block; background-color: #d1fae5; color: #065f46; border-radius: 6px; padding: 2px 8px; font-size: 0.73rem; font-weight: 700; }
+        .lote-nao { display: inline-block; background-color: #fee2e2; color: #991b1b; border-radius: 6px; padding: 2px 8px; font-size: 0.73rem; font-weight: 700; }
+        .lote-outro { font-size: 0.73rem; color: #6b7280; }
+        .empty { padding: 48px; text-align: center; color: #9ca3af; }
+        .data-row { cursor: pointer; }
+        .data-row:hover { background-color: #f0f7ff; }
+        .data-row.open { background-color: #eff6ff; }
+        .row-toggle { display: inline-flex; align-items: center; gap: 6px; color: #6b7280; font-size: 0.75rem; }
+        .row-toggle svg { transition: transform 0.2s ease; flex-shrink: 0; }
+        .data-row.open .row-toggle svg { transform: rotate(90deg); }
+        .data-row:hover .row-toggle { color: #1e3a5f; }
+        .detail-row td { background-color: #f8fafc; padding: 0 !important; border-bottom: 2px solid #bfdbfe; }
+        .detail-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; padding: 16px 24px; }
+        .detail-item-wide { grid-column: span 2; }
+        .detail-item { display: flex; flex-direction: column; gap: 4px; }
+        .detail-label { font-size: 0.7rem; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; }
+        .detail-value { font-size: 0.82rem; color: #1e293b; }
+
+        @media (max-width: 768px) {
+            .page-body { padding: 16px; }
+            .topbar { padding: 0 16px; }
+            .topbar-title { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="topbar">
+        <div class="topbar-left">
+            <a href="{{ url_for('dashboard.inicio_assent') }}" style="display:inline-block;line-height:0;" aria-label="Voltar ao início">
+                <img src="{{ url_for('static', filename='logo_codego.png') }}" alt="Logo CodeGO">
+            </a>
+            <span class="topbar-title">Distritos em Regularização</span>
+        </div>
+        <div class="topbar-actions">
+            <a href="{{ url_for('dashboard.controle_area') }}" class="btn-topbar btn-back">
+                <i data-lucide="arrow-left" style="width:16px;height:16px;"></i>
+                <span>Voltar</span>
+            </a>
+            <a href="{{ url_for('auth_login.logout') }}" class="btn-topbar btn-logout">
+                <i data-lucide="log-out" style="width:16px;height:16px;"></i>
+                <span>Sair</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="page-body">
+        <div class="page-header">
+            <div>
+                <h1><i data-lucide="alert-triangle" style="width:22px;height:22px;color:#d97706;vertical-align:-3px;margin-right:6px;"></i>Distritos em Regularização</h1>
+                <p>Loteamentos ainda em processo de regularização, de propriedade da CODEGO</p>
+            </div>
+        </div>
+
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-icon stat-icon-amber"><i data-lucide="alert-triangle" style="width:22px;height:22px;"></i></div>
+                <div>
+                    <div class="stat-value" id="stat-total">{{ registros | length }}</div>
+                    <div class="stat-label">Total em regularização</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon stat-icon-red"><i data-lucide="map" style="width:22px;height:22px;"></i></div>
+                <div>
+                    <div class="stat-value" id="stat-municipios">{{ registros | map(attribute='municipio') | select | unique | list | length }}</div>
+                    <div class="stat-label">Municípios</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="ms-filter" id="filtro-municipio-wrap">
+                <button type="button" class="ms-filter-btn" id="filtro-municipio-btn">
+                    <i data-lucide="map-pin" style="width:15px;height:15px;color:#9ca3af;"></i>
+                    <span id="filtro-municipio-label">Todos os municípios</span>
+                    <i data-lucide="chevron-down" style="width:14px;height:14px;margin-left:auto;color:#9ca3af;"></i>
+                </button>
+                <div class="ms-filter-panel" id="filtro-municipio-panel">
+                    <div class="ms-filter-actions">
+                        <button type="button" id="filtro-municipio-limpar">Limpar seleção</button>
+                    </div>
+                    {% for m in registros | map(attribute='municipio') | select | unique | sort %}
+                    <label class="ms-filter-option">
+                        <input type="checkbox" value="{{ m }}">
+                        <span>{{ m }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+            <a href="/assent/areas-parceladas/irregulares/nova" class="btn-nova">
+                <i data-lucide="plus" style="width:16px;height:16px;"></i> Nova Área
+            </a>
+        </div>
+
+        <div class="table-wrap">
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="col-fix col-fix-1">Município</th>
+                            <th>Nº Matrícula</th>
+                            <th>Ano Aquis.</th>
+                            <th>Área Total (m²)</th>
+                            <th>Valor do Imóvel</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in registros %}
+                        <tr class="data-row" data-municipio="{{ (r.municipio or '')|lower|trim }}" onclick="toggleDetalhe('p{{ r.id }}')">
+                            <td class="col-fix col-fix-1">
+                                <span class="row-toggle">
+                                    <i data-lucide="chevron-right" style="width:14px;height:14px;"></i>
+                                    <span class="municipio-badge">{{ r.municipio or '' }}</span>
+                                </span>
+                            </td>
+                            <td>{{ r.num_matricula_fmt or '-' }}</td>
+                            <td>{{ r.ano_aquisicao or '-' }}</td>
+                            <td>{{ r.area_total_m2_fmt or '-' }}</td>
+                            <td>{{ r.valor_imovel_fmt or '-' }}</td>
+                            <td style="white-space:nowrap;" onclick="event.stopPropagation()">
+                                <a href="{{ url_for('relatorio.relatorio_relgea_individual', familia='irregulares', registro_id=r.id) }}"
+                                   style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:#d1fae5;color:#065f46;border-radius:6px;font-size:0.72rem;font-weight:600;text-decoration:none;margin-right:4px;">
+                                    <i data-lucide="file-text" style="width:12px;height:12px;"></i> Relatório
+                                </a>
+                                <a href="/assent/areas-parceladas/irregulares/{{ r.id }}/editar"
+                                   style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:#dbeafe;color:#1e40af;border-radius:6px;font-size:0.72rem;font-weight:600;text-decoration:none;margin-right:4px;">
+                                    <i data-lucide="pencil" style="width:12px;height:12px;"></i> Editar
+                                </a>
+                                <form method="POST" action="/assent/areas-parceladas/irregulares/{{ r.id }}/excluir"
+                                      style="display:inline;" onsubmit="return confirm('Excluir este registro?')">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit"
+                                        style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:#fee2e2;color:#991b1b;border:none;border-radius:6px;font-size:0.72rem;font-weight:600;cursor:pointer;">
+                                        <i data-lucide="trash-2" style="width:12px;height:12px;"></i> Excluir
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        <tr id="p{{ r.id }}" class="detail-row" style="display:none;">
+                            <td colspan="6">
+                                <div class="detail-grid">
+                                    <div class="detail-item">
+                                        <span class="detail-label">Matr. Parcelamento</span>
+                                        <span class="detail-value">{{ r.matricula_parcelamento_fmt or '-' }}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Reg. Loteamento</span>
+                                        <span class="detail-value">
+                                            {% set rl = r.registro_loteamento or '' %}
+                                            {% if rl == 'SIM' %}
+                                                <span class="lote-sim">SIM</span>
+                                            {% elif rl in ('NÃO', 'NAO') %}
+                                                <span class="lote-nao">NÃO</span>
+                                            {% elif rl %}
+                                                <span class="lote-outro" title="{{ rl }}">{{ rl[:30] }}{% if rl|length > 30 %}…{% endif %}</span>
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        </span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Reg. Propriedade</span>
+                                        <span class="detail-value">{{ r.registro_propriedade or '-' }}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Ocupação / Distrito</span>
+                                        <span class="detail-value">{{ r.ocupacao or '-' }}</span>
+                                    </div>
+                                    <div class="detail-item detail-item-wide" style="grid-column: span 2;">
+                                        <span class="detail-label">Descrição da Área</span>
+                                        <span class="detail-value">{{ r.descricao_area or '-' }}</span>
+                                    </div>
+                                    <div class="detail-item detail-item-wide" style="grid-column: span 2;">
+                                        <span class="detail-label">Observações</span>
+                                        <span class="detail-value">{{ r.observacoes or '-' }}</span>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="6" class="empty">Nenhum registro encontrado.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        function toggleDetalhe(id) {
+            const row = document.getElementById(id);
+            const dataRow = row.previousElementSibling;
+            const isOpen = row.style.display !== 'none';
+            row.style.display = isOpen ? 'none' : 'table-row';
+            dataRow.classList.toggle('open', !isOpen);
+            if (!isOpen) lucide.createIcons();
+        }
+
+        (function() {
+            const btn = document.getElementById('filtro-municipio-btn');
+            const panel = document.getElementById('filtro-municipio-panel');
+            const label = document.getElementById('filtro-municipio-label');
+            const limpar = document.getElementById('filtro-municipio-limpar');
+            const checkboxes = panel.querySelectorAll('input[type="checkbox"]');
+
+            function aplicarFiltroMunicipio() {
+                const marcados = Array.from(checkboxes).filter(function(c) { return c.checked; });
+                if (marcados.length === 0) {
+                    label.textContent = 'Todos os municípios';
+                } else if (marcados.length === 1) {
+                    label.textContent = marcados[0].value;
+                } else {
+                    label.textContent = marcados.length + ' municípios selecionados';
+                }
+                const selecionados = marcados.map(function(c) { return c.value.toLowerCase(); });
+                const municipiosVisiveis = new Set();
+                let total = 0;
+
+                document.querySelectorAll('.data-row').forEach(function(row) {
+                    const visivel = selecionados.length === 0 || selecionados.indexOf(row.dataset.municipio) !== -1;
+                    row.style.display = visivel ? '' : 'none';
+
+                    if (visivel) {
+                        total++;
+                        if (row.dataset.municipio) municipiosVisiveis.add(row.dataset.municipio);
+                    }
+                });
+
+                document.getElementById('stat-total').textContent = total;
+                document.getElementById('stat-municipios').textContent = municipiosVisiveis.size;
+            }
+
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                panel.classList.toggle('open');
+            });
+            document.addEventListener('click', function(e) {
+                if (!panel.contains(e.target) && e.target !== btn) panel.classList.remove('open');
+            });
+            checkboxes.forEach(function(cb) { cb.addEventListener('change', aplicarFiltroMunicipio); });
+            limpar.addEventListener('click', function() {
+                checkboxes.forEach(function(cb) { cb.checked = false; });
+                aplicarFiltroMunicipio();
+            });
+        })();
+    </script>
+    {% set guia_pagina = 'distritos_regularizacao' %}{% include 'partials/guia_mascote.html' %}
+</body>
+</html>

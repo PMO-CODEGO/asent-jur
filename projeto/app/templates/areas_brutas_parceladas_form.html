@@ -1,3 +1,4 @@
+{% set voltar_endpoint = {'regularizadas': 'dashboard.distritos_regulares', 'irregulares': 'dashboard.distritos_em_regularizacao', 'galerias': 'dashboard.galerias'}[familia] %}
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -64,7 +65,7 @@
                 </h2>
                 <p class="text-blue-100 text-sm italic">Controle de Áreas Brutas Parceladas — CODEGO</p>
             </div>
-            <a href="{{ url_for('dashboard.areas_brutas_parceladas') }}"
+            <a href="{{ url_for(voltar_endpoint) }}"
                class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition-all text-sm font-bold">
                 VOLTAR
             </a>
@@ -216,7 +217,7 @@
                     <i data-lucide="save" class="w-4 h-4"></i>
                     {% if registro %}Salvar Alterações{% else %}Criar Registro{% endif %}
                 </button>
-                <a href="{{ url_for('dashboard.areas_brutas_parceladas') }}"
+                <a href="{{ url_for(voltar_endpoint) }}"
                     class="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl transition-all flex items-center gap-2">
                     <i data-lucide="x" class="w-4 h-4"></i>
                     Cancelar

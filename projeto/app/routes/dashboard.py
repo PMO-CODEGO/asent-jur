@@ -82,12 +82,18 @@ def _carregar_tabela_parcelada(tabela):
     return registros
 
 
-@dashboard_bp.route('/assent/areas-parceladas')
+@dashboard_bp.route('/assent/distritos-regulares')
 @role_required('assent', 'admin', 'assent_gestor')
-def areas_brutas_parceladas():
-    regularizadas = _carregar_tabela_parcelada('areas_parceladas_regularizadas')
-    irregulares = _carregar_tabela_parcelada('loteamentos_irregulares')
-    return render_template('areas_parceladas.html', regularizadas=regularizadas, irregulares=irregulares)
+def distritos_regulares():
+    registros = _carregar_tabela_parcelada('areas_parceladas_regularizadas')
+    return render_template('distritos_regulares.html', registros=registros)
+
+
+@dashboard_bp.route('/assent/distritos-em-regularizacao')
+@role_required('assent', 'admin', 'assent_gestor')
+def distritos_em_regularizacao():
+    registros = _carregar_tabela_parcelada('loteamentos_irregulares')
+    return render_template('distritos_regularizacao.html', registros=registros)
 
 
 @dashboard_bp.route('/assent/galerias')

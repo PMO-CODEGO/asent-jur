@@ -35,11 +35,12 @@ Esta pasta contém todos os arquivos de template HTML da aplicação, renderizad
 | `selecionar_edicao.html` | Listagem de empresas para seleção antes de editar — exibe indicadores visuais de atualização vencida (mais de 1 ano sem atualização) |
 | `editar.html` | Formulário de edição dos dados de assentamento de uma empresa |
 | `relatorios.html` | Página de geração de relatórios do módulo de Assentamento |
-| `controle_area.html` | Hub (rota `/assent/controle-area`) com cards de navegação para Áreas Brutas, Galerias/Condomínio, Áreas Parceladas e Cadastro de Módulos |
+| `controle_area.html` | Hub (rota `/assent/controle-area`) com cards de navegação para Áreas Brutas, Galerias/Condomínio, Distritos Regulares/em Regularização e Cadastro de Módulos |
 | `areas_brutas.html` | Listagem de imóveis das tabelas `areas_brutas` e `areas_brutas_judicial`, com avaliações de valor por ano (2021–2024) |
 | `areas_brutas_form.html` | Formulário de criação/edição de um registro de área bruta |
-| `areas_parceladas.html` | Listagem de `areas_parceladas_regularizadas` e `loteamentos_irregulares` lado a lado, com painéis de detalhe expansíveis por linha |
-| `areas_brutas_parceladas_form.html` | Formulário compartilhado de criação/edição para as três famílias de área parcelada (regularizadas, galerias/condomínio e loteamentos irregulares) |
+| `distritos_regulares.html` | Listagem de `areas_parceladas_regularizadas` (loteamentos com regularização concluída) |
+| `distritos_regularizacao.html` | Listagem de `loteamentos_irregulares` (loteamentos ainda em processo de regularização) — único dos três que exibe também o campo `observacoes` no painel de detalhe |
+| `areas_brutas_parceladas_form.html` | Formulário compartilhado de criação/edição para as três famílias de área parcelada (regularizadas, galerias/condomínio e loteamentos irregulares) — o botão "Voltar"/"Cancelar" resolve a tela de destino por `familia` (`voltar_endpoint`) |
 | `galerias.html` | Listagem dos registros de `galerias_condominios` |
 | `cadastro_modulos.html` | Listagem dos registros de `municipal_lots` por município/distrito/quadra/módulo |
 | `cadastro_modulos_form.html` | Formulário de criação/edição de um registro de módulo |
@@ -76,7 +77,7 @@ A subpasta `partials/` contém fragmentos HTML incluídos em outras páginas via
 | Arquivo | Incluído em | Descrição |
 |---|---|---|
 | `partials/processo_eventos_lista.html` | `detalhe_jur.html` | Renderiza a lista de eventos de um processo (prazos, movimentações, histórico de alterações) de forma reutilizável |
-| `partials/guia_mascote.html` | 17 telas principais (ver abaixo) | Codi — personagem-guia flutuante (mascote no canto inferior direito) com dicas contextuais por tela |
+| `partials/guia_mascote.html` | 18 telas principais (ver abaixo) | Codi — personagem-guia flutuante (mascote no canto inferior direito) com dicas contextuais por tela |
 
 ### Codi, o personagem-guia (`guia_mascote.html`)
 
