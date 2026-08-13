@@ -109,6 +109,7 @@ GUIA_CONTEUDO = {
         'pose': 'apontando_mapa',
         'dicas': [
             'Clica num distrito que eu te levo pros detalhes dele, com opção de baixar o relatório RELGEA.',
+            'Usa o filtro de município ali no canto pra achar mais rápido o distrito que você procura.',
         ],
     },
     'distrito_detalhe': {

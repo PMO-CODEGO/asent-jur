@@ -106,7 +106,7 @@
         .map-legend {
             position: absolute;
             bottom: 24px;
-            right: 16px;
+            left: 16px;
             background: white;
             border-radius: 10px;
             padding: 14px 18px;
@@ -139,6 +139,98 @@
             flex-shrink: 0;
             border: 2px solid rgba(0,0,0,0.15);
         }
+
+        /* Filtro por município — caixa ao lado do controle de zoom do Leaflet (que fica no topo esquerdo) */
+        .map-filter {
+            position: absolute;
+            top: 16px;
+            left: 64px;
+            z-index: 1000;
+            background: white;
+            border-radius: 10px;
+            padding: 12px 16px 14px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+            min-width: 260px;
+            box-sizing: border-box;
+        }
+
+        .map-filter h4 {
+            margin: 0 0 8px 0;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--accent-blue);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .ms-filter-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            background: #f0f5ff;
+            border: 1.5px solid #dbeafe;
+            border-radius: 8px;
+            padding: 9px 12px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #374151;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            box-sizing: border-box;
+        }
+
+        .ms-filter-btn:hover { background: #e0ecff; border-color: var(--accent-blue); }
+
+        .ms-filter-panel {
+            display: none;
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+            max-height: 320px;
+            overflow-y: auto;
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+
+        .ms-filter-panel.open { display: block; }
+
+        .ms-filter-actions {
+            display: flex;
+            justify-content: flex-end;
+            padding: 2px 6px 8px;
+            border-bottom: 1px solid #f3f4f6;
+            margin-bottom: 6px;
+        }
+
+        .ms-filter-actions button {
+            background: none;
+            border: none;
+            color: #2563eb;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .ms-filter-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 8px;
+            border-radius: 6px;
+            font-size: 13px;
+            color: #374151;
+            cursor: pointer;
+        }
+
+        .ms-filter-option:hover { background: #f3f4f6; }
 
         /* Contador de distritos */
         .map-counter {
@@ -196,8 +288,10 @@
             .welcome-text { font-size: 1rem; }
             .topbar-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
             .btn-topbar { justify-content: center; padding: 10px 12px; font-size: 0.8rem; }
-            .map-legend { bottom: 12px; right: 8px; }
+            .map-legend { bottom: 12px; left: 8px; }
             .map-counter { top: 8px; right: 8px; }
+            .map-filter { top: 74px; left: 8px; min-width: 0; width: calc(100% - 16px); max-width: 280px; padding: 10px 12px 12px; }
+            .ms-filter-btn { padding: 9px 10px; font-size: 12px; }
         }
     </style>
 </head>
@@ -226,6 +320,21 @@
 
         <div class="map-container">
             <div id="map"></div>
+
+            <div class="map-filter" id="filtro-municipio-wrap">
+                <h4><i data-lucide="filter" style="width:13px;height:13px;"></i> Filtrar por Município</h4>
+                <button type="button" class="ms-filter-btn" id="filtro-municipio-btn">
+                    <i data-lucide="map-pin" style="width:15px;height:15px;color:#9ca3af;"></i>
+                    <span id="filtro-municipio-label">Todos os municípios</span>
+                    <i data-lucide="chevron-down" style="width:14px;height:14px;margin-left:auto;color:#9ca3af;"></i>
+                </button>
+                <div class="ms-filter-panel" id="filtro-municipio-panel">
+                    <div class="ms-filter-actions">
+                        <button type="button" id="filtro-municipio-limpar">Limpar seleção</button>
+                    </div>
+                    <div id="filtro-municipio-opcoes"></div>
+                </div>
+            </div>
 
             <div class="map-counter">
                 <span id="total-count">—</span>
@@ -520,10 +629,66 @@
                 </a>
             </div>
         `;
-        L.marker([d.lat, d.lng], { icon: criarIcone(d.tipo) })
+        d.marker = L.marker([d.lat, d.lng], { icon: criarIcone(d.tipo) })
             .bindPopup(popupHtml, { maxWidth: 300 })
             .addTo(map);
     });
+
+    // ---- Filtro por município ----
+    (function() {
+        const btn = document.getElementById('filtro-municipio-btn');
+        const panel = document.getElementById('filtro-municipio-panel');
+        const label = document.getElementById('filtro-municipio-label');
+        const limpar = document.getElementById('filtro-municipio-limpar');
+        const opcoesContainer = document.getElementById('filtro-municipio-opcoes');
+
+        const municipios = [...new Set(distritos.map(d => d.municipio))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+        municipios.forEach(m => {
+            const opcao = document.createElement('label');
+            opcao.className = 'ms-filter-option';
+            opcao.innerHTML = `<input type="checkbox" value="${m}"><span>${m}</span>`;
+            opcoesContainer.appendChild(opcao);
+        });
+        const checkboxes = opcoesContainer.querySelectorAll('input[type="checkbox"]');
+
+        function aplicarFiltroMunicipio() {
+            const marcados = Array.from(checkboxes).filter(c => c.checked);
+            if (marcados.length === 0) {
+                label.textContent = 'Todos os municípios';
+            } else if (marcados.length === 1) {
+                label.textContent = marcados[0].value;
+            } else {
+                label.textContent = marcados.length + ' municípios selecionados';
+            }
+            const selecionados = marcados.map(c => c.value);
+            let visiveis = 0;
+
+            distritos.forEach(d => {
+                const mostrar = selecionados.length === 0 || selecionados.includes(d.municipio);
+                if (mostrar) {
+                    if (!map.hasLayer(d.marker)) d.marker.addTo(map);
+                    visiveis++;
+                } else if (map.hasLayer(d.marker)) {
+                    map.removeLayer(d.marker);
+                }
+            });
+
+            document.getElementById('total-count').textContent = visiveis;
+        }
+
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            panel.classList.toggle('open');
+        });
+        document.addEventListener('click', function(e) {
+            if (!panel.contains(e.target) && e.target !== btn) panel.classList.remove('open');
+        });
+        checkboxes.forEach(cb => cb.addEventListener('change', aplicarFiltroMunicipio));
+        limpar.addEventListener('click', function() {
+            checkboxes.forEach(cb => cb.checked = false);
+            aplicarFiltroMunicipio();
+        });
+    })();
 </script>
 
 {% set guia_pagina = 'mapa_distritos' %}{% include 'partials/guia_mascote.html' %}
