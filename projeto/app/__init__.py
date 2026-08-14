@@ -1,4 +1,4 @@
-from flask import Flask, flash, redirect, request
+from flask import Flask, flash, redirect, request, render_template
 from dotenv import load_dotenv
 from flask_wtf.csrf import CSRFError
 from app.extensions import bcrypt, csrf
@@ -19,6 +19,10 @@ def create_app():
     def erro_csrf(e):
         flash('Sua sessão expirou ou o formulário é inválido. Tente novamente.', 'danger')
         return redirect(request.referrer or '/')
+
+    @app.errorhandler(404)
+    def erro_404(e):
+        return render_template('erro_404.html'), 404
 
     # registrar blueprints
     from app.routes.auth_login import auth_login_bp

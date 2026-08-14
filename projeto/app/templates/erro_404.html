@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Página não encontrada - CODEGO</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='imagens_empresas/asentjur.png') }}" type="image/png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="min-h-screen bg-[#002b5c] flex items-center justify-center p-3 sm:p-4">
+
+    <div class="bg-white p-6 sm:p-10 rounded-2xl shadow-2xl w-full max-w-lg border border-white/10 text-center">
+        <img src="{{ url_for('static', filename='logo_codego.png') }}" alt="Logo CODEGO" class="h-20 w-auto mx-auto mb-6 object-contain">
+
+        <div class="text-[#002b5c] font-black text-7xl sm:text-8xl leading-none mb-2">404</div>
+        <h1 class="text-xl sm:text-2xl font-bold text-gray-800 mb-2">Essa página não existe</h1>
+        <p class="text-gray-500 text-sm mb-8">O endereço que você tentou acessar não foi encontrado. Ele pode ter sido movido, removido ou digitado errado.</p>
+
+        <div class="flex flex-col sm:flex-row gap-3 justify-center">
+            <a href="{{ url_for('auth_login.index') }}"
+               class="inline-flex items-center justify-center gap-2 bg-[#2563eb] hover:bg-[#002b5c] text-white font-bold py-3 px-6 rounded-lg shadow-lg transition active:scale-[0.98]">
+                <i data-lucide="home" class="w-5 h-5"></i>
+                Ir para o início
+            </a>
+            <button type="button" onclick="history.back()"
+                class="inline-flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-3 px-6 rounded-lg transition active:scale-[0.98]">
+                <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                Voltar
+            </button>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+    </script>
+    {% set guia_pagina = 'erro_404' %}{% include 'partials/guia_mascote.html' %}
+</body>
+</html>

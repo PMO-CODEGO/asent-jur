@@ -70,6 +70,14 @@ Esta pasta contém todos os arquivos de template HTML da aplicação, renderizad
 
 ---
 
+## Erros
+
+| Arquivo | Descrição |
+|---|---|
+| `erro_404.html` | Página customizada para rotas inexistentes (erro 404), registrada via `@app.errorhandler(404)` em `app/__init__.py`. Funciona com ou sem sessão ativa. |
+
+---
+
 ## Parciais (fragmentos reutilizáveis)
 
 A subpasta `partials/` contém fragmentos HTML incluídos em outras páginas via Jinja2:

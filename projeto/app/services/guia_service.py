@@ -152,6 +152,14 @@ GUIA_CONTEUDO = {
             'Você pode gerar o relatório de um processo específico, ou pedir o relatório geral com todos eles.',
         ],
     },
+    'erro_404': {
+        'titulo': 'sobre esta página',
+        'pose': 'duvida',
+        'dicas': [
+            'Ih, essa página não existe! Deve ter sido um link antigo ou um endereço digitado errado.',
+            'Clica em "Ir para o início" que eu te levo de volta pro lugar certo.',
+        ],
+    },
     'logs': {
         'titulo': 'sobre os Logs do Sistema',
         'pose': 'duvida',
