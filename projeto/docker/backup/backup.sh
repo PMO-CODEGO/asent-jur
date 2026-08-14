@@ -1,5 +1,6 @@
 #!/bin/sh
 set -e
+set -o pipefail
 
 BACKUP_DIR="/backups"
 DATE=$(date +%Y-%m-%d_%H-%M)
@@ -17,7 +18,14 @@ mysqldump \
   --triggers \
   "$MYSQL_DATABASE" | gzip > "$FILE"
 
-echo "[$(date)] Backup salvo: $FILE"
+TAMANHO=$(stat -c%s "$FILE" 2>/dev/null || stat -f%z "$FILE")
+if [ "$TAMANHO" -lt 200 ]; then
+  echo "[$(date)] ERRO: backup suspeito de vazio ($TAMANHO bytes). Removendo $FILE." >&2
+  rm -f "$FILE"
+  exit 1
+fi
+
+echo "[$(date)] Backup salvo: $FILE ($TAMANHO bytes)"
 
 # Remove backups com mais de 30 dias
 find "$BACKUP_DIR" -name "codego_db_*.sql.gz" -mtime +30 -delete
