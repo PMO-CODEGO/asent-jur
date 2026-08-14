@@ -28,7 +28,11 @@
         .page-header h1 { font-size: 1.6rem; font-weight: 800; color: #002b5c; }
         .page-header p { color: #6b7280; font-size: 0.9rem; margin-top: 4px; }
 
-        .stats-row { display: flex; gap: 16px; margin-bottom: 28px; flex-wrap: wrap; }
+        .stats-group { margin-bottom: 20px; }
+        .stats-group-title { display: flex; align-items: center; gap: 7px; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: #6b7280; margin-bottom: 10px; }
+        .stats-group-title.brutas { color: #92400e; }
+        .stats-group-title.judicial { color: #991b1b; }
+        .stats-row { display: flex; gap: 16px; margin-bottom: 8px; flex-wrap: wrap; }
         .stat-card { background: white; border-radius: 12px; padding: 16px 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); display: flex; align-items: center; gap: 14px; min-width: 200px; }
         .stat-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
         .stat-icon-amber { background-color: #fef3c7; color: #92400e; }
@@ -101,6 +105,15 @@
         .btn-del { background-color: #fff1f1; color: #991b1b; }
         .btn-del:hover { background-color: #fee2e2; }
         .actions-col { white-space: nowrap; }
+        .grupo-badge { display: inline-flex; align-items: center; gap: 5px; background-color: #eff6ff; color: #1e40af; border-radius: 6px; padding: 3px 8px; font-size: 0.75rem; font-weight: 600; white-space: nowrap; }
+        .sub-detail-wrap { margin: 0 24px 16px; border-top: 1px dashed #cbd5e1; padding-top: 14px; }
+        .sub-detail-title { display: flex; align-items: center; gap: 6px; font-size: 0.75rem; font-weight: 700; color: #002b5c; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 8px; }
+        .sub-table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
+        .sub-table thead tr { background-color: #eef2f7; }
+        .sub-table thead th { padding: 8px 12px; text-align: left; font-size: 0.68rem; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap; background-color: #eef2f7; position: static; }
+        .sub-table tbody tr { border-bottom: 1px solid #f1f5f9; }
+        .sub-table tbody tr:last-child { border-bottom: none; }
+        .sub-table td { padding: 8px 12px; font-size: 0.78rem; color: #334155; vertical-align: middle; }
         .modal-backdrop { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:200; align-items:center; justify-content:center; }
         .modal-backdrop.open { display:flex; }
         .modal { background:white; border-radius:16px; padding:28px; max-width:400px; width:90%; box-shadow:0 8px 40px rgba(0,0,0,0.2); }
@@ -140,42 +153,134 @@
 
         {% set registros = imoveis + judiciais %}
 
-        <div class="stats-row">
-            <div class="stat-card">
-                <div class="stat-icon stat-icon-amber"><i data-lucide="trees" style="width:22px;height:22px;"></i></div>
-                <div>
-                    <div class="stat-value" id="stat-total">{{ registros | length }}</div>
-                    <div class="stat-label">Imóveis cadastrados</div>
+        {# Agrupa imoveis e judiciais por município: uma linha por município na tabela,
+           com soma dos campos numéricos e sub-tabela expansível quando há mais de 1 registro. #}
+        {% set grupos_imoveis = [] %}
+        {% for municipio, items in imoveis|groupby('municipio') %}
+            {% set items_list = items|list %}
+            {% set principal = items_list[0] %}
+            {% set au_ns = namespace(total=0.0) %}
+            {% set rl_ns = namespace(total=0.0) %}
+            {% set at_ns = namespace(total=0.0) %}
+            {% set am_ns = namespace(total=0.0) %}
+            {% set as_ns = namespace(total=0.0) %}
+            {% for item in items_list %}
+                {% set au = (item.area_util_m2_fmt or '0')|string|replace('.', '')|replace(',', '.')|trim %}
+                {% set au_ns.total = au_ns.total + (au|float(0)) %}
+                {% set rl = (item.reserva_legal_m2_fmt or '0')|string|replace('.', '')|replace(',', '.')|trim %}
+                {% set rl_ns.total = rl_ns.total + (rl|float(0)) %}
+                {% set at = (item.area_total_m2_fmt or '0')|string|replace('.', '')|replace(',', '.')|trim %}
+                {% set at_ns.total = at_ns.total + (at|float(0)) %}
+                {% set am_ns.total = am_ns.total + (item.ultima_aval_mercado|float(0)) %}
+                {% set as_ns.total = as_ns.total + (item.ultima_aval_subsidiado|float(0)) %}
+            {% endfor %}
+            {{ grupos_imoveis.append({
+                'municipio': municipio,
+                'principal': principal,
+                'itens': items_list,
+                'area_total_total': at_ns.total,
+                'aval_mercado_total': am_ns.total,
+                'area_util_exibido': (('{:,.2f}'.format(au_ns.total)|replace(',', '§')|replace('.', ',')|replace('§', '.')) if au_ns.total else '-'),
+                'reserva_exibido': (('{:,.2f}'.format(rl_ns.total)|replace(',', '§')|replace('.', ',')|replace('§', '.')) if rl_ns.total else '-'),
+                'area_total_exibido': (('{:,.2f}'.format(at_ns.total)|replace(',', '§')|replace('.', ',')|replace('§', '.')) if at_ns.total else '-'),
+                'aval_mercado_exibido': (('R$ ' + ('{:,.2f}'.format(am_ns.total)|replace(',', '§')|replace('.', ',')|replace('§', '.'))) if am_ns.total else '-'),
+                'aval_subsidiado_exibido': (('R$ ' + ('{:,.2f}'.format(as_ns.total)|replace(',', '§')|replace('.', ',')|replace('§', '.'))) if as_ns.total else '-')
+            }) or '' }}
+        {% endfor %}
+
+        {% set grupos_judiciais = [] %}
+        {% for municipio, items in judiciais|groupby('municipio') %}
+            {% set items_list = items|list %}
+            {% set principal = items_list[0] %}
+            {% set at_ns = namespace(total=0.0) %}
+            {% set am_ns = namespace(total=0.0) %}
+            {% set as_ns = namespace(total=0.0) %}
+            {% for item in items_list %}
+                {% set at = (item.area_total_m2_fmt or '0')|string|replace('.', '')|replace(',', '.')|trim %}
+                {% set at_ns.total = at_ns.total + (at|float(0)) %}
+                {% set am_ns.total = am_ns.total + (item.ultima_aval_mercado|float(0)) %}
+                {% set as_ns.total = as_ns.total + (item.ultima_aval_subsidiado|float(0)) %}
+            {% endfor %}
+            {{ grupos_judiciais.append({
+                'municipio': municipio,
+                'principal': principal,
+                'itens': items_list,
+                'area_total_total': at_ns.total,
+                'aval_mercado_total': am_ns.total,
+                'area_total_exibido': (('{:,.2f}'.format(at_ns.total)|replace(',', '§')|replace('.', ',')|replace('§', '.')) if at_ns.total else '-'),
+                'aval_mercado_exibido': (('R$ ' + ('{:,.2f}'.format(am_ns.total)|replace(',', '§')|replace('.', ',')|replace('§', '.'))) if am_ns.total else '-'),
+                'aval_subsidiado_exibido': (('R$ ' + ('{:,.2f}'.format(as_ns.total)|replace(',', '§')|replace('.', ',')|replace('§', '.'))) if as_ns.total else '-')
+            }) or '' }}
+        {% endfor %}
+
+        <div class="stats-group">
+            <div class="stats-group-title brutas"><i data-lucide="trees" style="width:14px;height:14px;"></i> Áreas Brutas</div>
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-icon stat-icon-amber"><i data-lucide="trees" style="width:22px;height:22px;"></i></div>
+                    <div>
+                        <div class="stat-value" id="stat-imoveis-total">{{ imoveis | length }}</div>
+                        <div class="stat-label">Imóveis cadastrados</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon stat-icon-blue"><i data-lucide="map" style="width:22px;height:22px;"></i></div>
+                    <div>
+                        <div class="stat-value" id="stat-imoveis-municipios">{{ imoveis | map(attribute='municipio') | unique | list | length }}</div>
+                        <div class="stat-label">Municípios</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon stat-icon-green"><i data-lucide="ruler" style="width:22px;height:22px;"></i></div>
+                    <div>
+                        {% set total_m2 = imoveis | map(attribute='area_total_m2') | select('number') | sum %}
+                        <div class="stat-value" id="stat-imoveis-area">{{ '{:,.0f}'.format(total_m2).replace(',', '.') }} m²</div>
+                        <div class="stat-label">Área total</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon stat-icon-purple"><i data-lucide="landmark" style="width:22px;height:22px;"></i></div>
+                    <div>
+                        {% set total_aval = imoveis | map(attribute='ultima_aval_mercado') | select('number') | sum %}
+                        <div class="stat-value" id="stat-imoveis-aval" style="font-size:1rem;">{{ 'R$ {:,.2f}'.format(total_aval).replace(',', 'X').replace('.', ',').replace('X', '.') }}</div>
+                        <div class="stat-label">Total última avaliação</div>
+                    </div>
                 </div>
             </div>
-            <div class="stat-card">
-                <div class="stat-icon stat-icon-red"><i data-lucide="gavel" style="width:22px;height:22px;"></i></div>
-                <div>
-                    <div class="stat-value" id="stat-judiciais">{{ judiciais | length }}</div>
-                    <div class="stat-label">Em processo judicial</div>
+        </div>
+
+        <div class="stats-group">
+            <div class="stats-group-title judicial"><i data-lucide="gavel" style="width:14px;height:14px;"></i> Em Processo Judicial</div>
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-icon stat-icon-red"><i data-lucide="gavel" style="width:22px;height:22px;"></i></div>
+                    <div>
+                        <div class="stat-value" id="stat-judicial-total">{{ judiciais | length }}</div>
+                        <div class="stat-label">Imóveis em processo judicial</div>
+                    </div>
                 </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon stat-icon-blue"><i data-lucide="map" style="width:22px;height:22px;"></i></div>
-                <div>
-                    <div class="stat-value" id="stat-municipios">{{ registros | map(attribute='municipio') | unique | list | length }}</div>
-                    <div class="stat-label">Municípios</div>
+                <div class="stat-card">
+                    <div class="stat-icon stat-icon-blue"><i data-lucide="map" style="width:22px;height:22px;"></i></div>
+                    <div>
+                        <div class="stat-value" id="stat-judicial-municipios">{{ judiciais | map(attribute='municipio') | unique | list | length }}</div>
+                        <div class="stat-label">Municípios</div>
+                    </div>
                 </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon stat-icon-green"><i data-lucide="ruler" style="width:22px;height:22px;"></i></div>
-                <div>
-                    {% set total_m2 = imoveis | map(attribute='area_total_m2') | select('number') | sum %}
-                    <div class="stat-value" id="stat-area">{{ '{:,.0f}'.format(total_m2).replace(',', '.') }} m²</div>
-                    <div class="stat-label">Área total (sem judiciais)</div>
+                <div class="stat-card">
+                    <div class="stat-icon stat-icon-green"><i data-lucide="ruler" style="width:22px;height:22px;"></i></div>
+                    <div>
+                        {% set total_m2_judicial = judiciais | map(attribute='area_total_m2') | select('number') | sum %}
+                        <div class="stat-value" id="stat-judicial-area">{{ '{:,.0f}'.format(total_m2_judicial).replace(',', '.') }} m²</div>
+                        <div class="stat-label">Área total</div>
+                    </div>
                 </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon stat-icon-purple"><i data-lucide="landmark" style="width:22px;height:22px;"></i></div>
-                <div>
-                    {% set total_aval = imoveis | map(attribute='ultima_aval_mercado') | select('number') | sum %}
-                    <div class="stat-value" id="stat-aval" style="font-size:1rem;">{{ 'R$ {:,.2f}'.format(total_aval).replace(',', 'X').replace('.', ',').replace('X', '.') }}</div>
-                    <div class="stat-label">Total última avaliação</div>
+                <div class="stat-card">
+                    <div class="stat-icon stat-icon-purple"><i data-lucide="landmark" style="width:22px;height:22px;"></i></div>
+                    <div>
+                        {% set total_aval_judicial = judiciais | map(attribute='ultima_aval_mercado') | select('number') | sum %}
+                        <div class="stat-value" id="stat-judicial-aval" style="font-size:1rem;">{{ 'R$ {:,.2f}'.format(total_aval_judicial).replace(',', 'X').replace('.', ',').replace('X', '.') }}</div>
+                        <div class="stat-label">Total última avaliação</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -231,24 +336,35 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for r in imoveis %}
-                            <tr class="data-row" data-familia="imoveis" data-municipio="{{ (r.municipio or '')|lower|trim }}" data-area="{{ r.area_total_m2 or 0 }}" data-aval="{{ r.ultima_aval_mercado or 0 }}" onclick="toggleDetalhe('d{{ r.id }}')" style="cursor:pointer;">
+                            {% for grupo in grupos_imoveis %}
+                            {% set r = grupo.principal %}
+                            {% set multiplos = grupo.itens|length > 1 %}
+                            <tr class="data-row" data-familia="imoveis" data-municipio="{{ (grupo.municipio or '')|lower|trim }}" data-area="{{ grupo.area_total_total }}" data-aval="{{ grupo.aval_mercado_total }}" data-count="{{ grupo.itens|length }}" onclick="toggleDetalhe('d{{ r.id }}')" style="cursor:pointer;">
                                 <td class="col-fix col-fix-1">
                                     <span class="row-toggle">
                                         <i data-lucide="chevron-right" style="width:14px;height:14px;"></i>
-                                        <span class="municipio-badge">{{ r.municipio or '' }}</span>
+                                        <span class="municipio-badge">{{ grupo.municipio or '' }}</span>
                                     </span>
                                 </td>
-                                <td>{{ r.num_matricula_fmt or '' }}</td>
-                                <td class="num">{{ r.area_util_m2_fmt }}</td>
-                                <td class="num">{{ r.reserva_legal_m2_fmt }}</td>
-                                <td class="num">{{ r.area_total_m2_fmt }}</td>
-                                <td class="num">{{ 'R$ {:,.2f}'.format(r.ultima_aval_mercado).replace(',', 'X').replace('.', ',').replace('X', '.') if r.ultima_aval_mercado else '-' }}<br><small style="color:#9ca3af;font-size:0.68rem;">{{ r.ultima_aval_ano or '' }}</small></td>
-                                <td class="num">{{ 'R$ {:,.2f}'.format(r.ultima_aval_subsidiado).replace(',', 'X').replace('.', ',').replace('X', '.') if r.ultima_aval_subsidiado else '-' }}</td>
-                                <td class="link-cell">{% if r.link_geo %}<a href="{{ r.link_geo }}" target="_blank" onclick="event.stopPropagation()">Ver</a>{% else %}-{% endif %}</td>
-                                <td class="link-cell">{% if r.link_matricula %}<a href="{{ r.link_matricula }}" target="_blank" onclick="event.stopPropagation()">Ver</a>{% else %}-{% endif %}</td>
-                                <td class="obs-cell" title="{{ r.numero_processo or '' }}">{{ r.numero_processo or '-' }}</td>
+                                <td>
+                                    {% if multiplos %}
+                                    <span class="grupo-badge"><i data-lucide="layers" style="width:11px;height:11px;"></i> {{ grupo.itens|length }} matrículas</span>
+                                    {% else %}
+                                    {{ r.num_matricula_fmt or '' }}
+                                    {% endif %}
+                                </td>
+                                <td class="num">{{ grupo.area_util_exibido }}</td>
+                                <td class="num">{{ grupo.reserva_exibido }}</td>
+                                <td class="num">{{ grupo.area_total_exibido }}</td>
+                                <td class="num">{{ grupo.aval_mercado_exibido }}{% if not multiplos %}<br><small style="color:#9ca3af;font-size:0.68rem;">{{ r.ultima_aval_ano or '' }}</small>{% endif %}</td>
+                                <td class="num">{{ grupo.aval_subsidiado_exibido }}</td>
+                                <td class="link-cell">{% if not multiplos and r.link_geo %}<a href="{{ r.link_geo }}" target="_blank" onclick="event.stopPropagation()">Ver</a>{% else %}-{% endif %}</td>
+                                <td class="link-cell">{% if not multiplos and r.link_matricula %}<a href="{{ r.link_matricula }}" target="_blank" onclick="event.stopPropagation()">Ver</a>{% else %}-{% endif %}</td>
+                                <td class="obs-cell" title="{{ r.numero_processo or '' }}">{{ (r.numero_processo or '-') if not multiplos else '-' }}</td>
                                 <td class="actions-col" onclick="event.stopPropagation()">
+                                    {% if multiplos %}
+                                    <span style="color:#9ca3af;font-size:0.72rem;">ver detalhes</span>
+                                    {% else %}
                                     <a href="{{ url_for('areas_brutas.editar', familia='brutas', registro_id=r.id) }}" class="btn-action btn-edit">
                                         <i data-lucide="pencil" style="width:12px;height:12px;"></i> Editar
                                     </a>
@@ -259,6 +375,7 @@
                                     <button type="button" class="btn-action btn-del" onclick="abrirModal({{ r.id }}, '{{ (r.descricao_area or r.municipio or 'este registro') | replace("'","") }}', 'brutas')">
                                         <i data-lucide="trash-2" style="width:12px;height:12px;"></i> Excluir
                                     </button>
+                                    {% endif %}
                                     {% endif %}
                                 </td>
                             </tr>
@@ -334,6 +451,55 @@
                                         </div>
                                         {% endif %}
                                     </div>
+
+                                    {% if multiplos %}
+                                    <div class="sub-detail-wrap">
+                                        <div class="sub-detail-title">
+                                            <i data-lucide="layers" style="width:14px;height:14px;"></i>
+                                            Registros deste município ({{ grupo.itens|length }})
+                                        </div>
+                                        <table class="sub-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Matrícula</th>
+                                                    <th>Área Útil (m²)</th>
+                                                    <th>Reserva Legal (m²)</th>
+                                                    <th>Área Total (m²)</th>
+                                                    <th>V. Mercado</th>
+                                                    <th>V. Subsidiado</th>
+                                                    <th>Nº Processo</th>
+                                                    <th>Ações</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for o in grupo.itens %}
+                                                <tr>
+                                                    <td>{{ o.num_matricula_fmt or '-' }}</td>
+                                                    <td>{{ o.area_util_m2_fmt or '-' }}</td>
+                                                    <td>{{ o.reserva_legal_m2_fmt or '-' }}</td>
+                                                    <td>{{ o.area_total_m2_fmt or '-' }}</td>
+                                                    <td>{{ 'R$ {:,.2f}'.format(o.ultima_aval_mercado).replace(',', 'X').replace('.', ',').replace('X', '.') if o.ultima_aval_mercado else '-' }}</td>
+                                                    <td>{{ 'R$ {:,.2f}'.format(o.ultima_aval_subsidiado).replace(',', 'X').replace('.', ',').replace('X', '.') if o.ultima_aval_subsidiado else '-' }}</td>
+                                                    <td>{{ o.numero_processo or '-' }}</td>
+                                                    <td style="white-space:nowrap;">
+                                                        <a href="{{ url_for('areas_brutas.editar', familia='brutas', registro_id=o.id) }}" class="btn-action btn-edit">
+                                                            <i data-lucide="pencil" style="width:11px;height:11px;"></i> Editar
+                                                        </a>
+                                                        <a href="{{ url_for('areas_brutas.relatorio', familia='brutas', registro_id=o.id) }}" class="btn-action btn-pdf">
+                                                            <i data-lucide="file-text" style="width:11px;height:11px;"></i> PDF
+                                                        </a>
+                                                        {% if session.get('role') == 'admin' %}
+                                                        <button type="button" class="btn-action btn-del" onclick="abrirModal({{ o.id }}, '{{ (o.descricao_area or o.municipio or 'este registro') | replace("'","") }}', 'brutas')">
+                                                            <i data-lucide="trash-2" style="width:11px;height:11px;"></i> Excluir
+                                                        </button>
+                                                        {% endif %}
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    {% endif %}
                                 </td>
                             </tr>
                             {% else %}
@@ -370,19 +536,30 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for r in judiciais %}
-                            <tr class="data-row" data-familia="judicial" data-municipio="{{ (r.municipio or '')|lower|trim }}" onclick="toggleDetalhe('j{{ r.id }}')" style="cursor:pointer;">
+                            {% for grupo in grupos_judiciais %}
+                            {% set r = grupo.principal %}
+                            {% set multiplos = grupo.itens|length > 1 %}
+                            <tr class="data-row" data-familia="judicial" data-municipio="{{ (grupo.municipio or '')|lower|trim }}" data-area="{{ grupo.area_total_total }}" data-aval="{{ grupo.aval_mercado_total }}" data-count="{{ grupo.itens|length }}" onclick="toggleDetalhe('j{{ r.id }}')" style="cursor:pointer;">
                                 <td class="col-fix col-fix-1">
                                     <span class="row-toggle">
                                         <i data-lucide="chevron-right" style="width:14px;height:14px;"></i>
-                                        <span class="municipio-badge">{{ r.municipio or '' }}</span>
+                                        <span class="municipio-badge">{{ grupo.municipio or '' }}</span>
                                     </span>
                                 </td>
-                                <td>{{ r.num_matricula_fmt or '' }}</td>
-                                <td class="num">{{ r.area_total_m2_fmt }}</td>
-                                <td class="num">{{ 'R$ {:,.2f}'.format(r.ultima_aval_mercado).replace(',', 'X').replace('.', ',').replace('X', '.') if r.ultima_aval_mercado else '-' }}<br><small style="color:#9ca3af;font-size:0.68rem;">{{ r.ultima_aval_ano or '' }}</small></td>
-                                <td class="num">{{ 'R$ {:,.2f}'.format(r.ultima_aval_subsidiado).replace(',', 'X').replace('.', ',').replace('X', '.') if r.ultima_aval_subsidiado else '-' }}</td>
+                                <td>
+                                    {% if multiplos %}
+                                    <span class="grupo-badge"><i data-lucide="layers" style="width:11px;height:11px;"></i> {{ grupo.itens|length }} registros</span>
+                                    {% else %}
+                                    {{ r.num_matricula_fmt or '' }}
+                                    {% endif %}
+                                </td>
+                                <td class="num">{{ grupo.area_total_exibido }}</td>
+                                <td class="num">{{ grupo.aval_mercado_exibido }}{% if not multiplos %}<br><small style="color:#9ca3af;font-size:0.68rem;">{{ r.ultima_aval_ano or '' }}</small>{% endif %}</td>
+                                <td class="num">{{ grupo.aval_subsidiado_exibido }}</td>
                                 <td class="actions-col" onclick="event.stopPropagation()">
+                                    {% if multiplos %}
+                                    <span style="color:#9ca3af;font-size:0.72rem;">ver detalhes</span>
+                                    {% else %}
                                     <a href="{{ url_for('areas_brutas.editar', familia='judicial', registro_id=r.id) }}" class="btn-action btn-edit">
                                         <i data-lucide="pencil" style="width:12px;height:12px;"></i> Editar
                                     </a>
@@ -393,6 +570,7 @@
                                     <button type="button" class="btn-action btn-del" onclick="abrirModal({{ r.id }}, '{{ (r.descricao_area or r.municipio or 'este registro') | replace("'","") }}', 'judicial')">
                                         <i data-lucide="trash-2" style="width:12px;height:12px;"></i> Excluir
                                     </button>
+                                    {% endif %}
                                     {% endif %}
                                 </td>
                             </tr>
@@ -430,6 +608,51 @@
                                             <span class="detail-value">{{ r.descricao_area or '-' }}</span>
                                         </div>
                                     </div>
+
+                                    {% if multiplos %}
+                                    <div class="sub-detail-wrap">
+                                        <div class="sub-detail-title">
+                                            <i data-lucide="layers" style="width:14px;height:14px;"></i>
+                                            Registros deste município ({{ grupo.itens|length }})
+                                        </div>
+                                        <table class="sub-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Matrícula</th>
+                                                    <th>Área Total (m²)</th>
+                                                    <th>V. Mercado</th>
+                                                    <th>V. Subsidiado</th>
+                                                    <th>Nº Processo</th>
+                                                    <th>Ações</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for o in grupo.itens %}
+                                                <tr>
+                                                    <td>{{ o.num_matricula_fmt or '-' }}</td>
+                                                    <td>{{ o.area_total_m2_fmt or '-' }}</td>
+                                                    <td>{{ 'R$ {:,.2f}'.format(o.ultima_aval_mercado).replace(',', 'X').replace('.', ',').replace('X', '.') if o.ultima_aval_mercado else '-' }}</td>
+                                                    <td>{{ 'R$ {:,.2f}'.format(o.ultima_aval_subsidiado).replace(',', 'X').replace('.', ',').replace('X', '.') if o.ultima_aval_subsidiado else '-' }}</td>
+                                                    <td>{{ o.numero_processo or '-' }}</td>
+                                                    <td style="white-space:nowrap;">
+                                                        <a href="{{ url_for('areas_brutas.editar', familia='judicial', registro_id=o.id) }}" class="btn-action btn-edit">
+                                                            <i data-lucide="pencil" style="width:11px;height:11px;"></i> Editar
+                                                        </a>
+                                                        <a href="{{ url_for('areas_brutas.relatorio', familia='judicial', registro_id=o.id) }}" class="btn-action btn-pdf">
+                                                            <i data-lucide="file-text" style="width:11px;height:11px;"></i> PDF
+                                                        </a>
+                                                        {% if session.get('role') == 'admin' %}
+                                                        <button type="button" class="btn-action btn-del" onclick="abrirModal({{ o.id }}, '{{ (o.descricao_area or o.municipio or 'este registro') | replace("'","") }}', 'judicial')">
+                                                            <i data-lucide="trash-2" style="width:11px;height:11px;"></i> Excluir
+                                                        </button>
+                                                        {% endif %}
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    {% endif %}
                                 </td>
                             </tr>
                             {% else %}
@@ -555,30 +778,42 @@
                     label.textContent = marcados.length + ' municípios selecionados';
                 }
                 const selecionados = marcados.map(function(c) { return c.value.toLowerCase(); });
-                const municipiosVisiveis = new Set();
-                let total = 0, judiciais = 0, areaTotal = 0, avalTotal = 0;
+
+                const imoveisMunicipios = new Set(), judiciaisMunicipios = new Set();
+                let imoveisTotal = 0, imoveisArea = 0, imoveisAval = 0;
+                let judiciaisTotal = 0, judiciaisArea = 0, judiciaisAval = 0;
 
                 document.querySelectorAll('.data-row').forEach(function(row) {
                     const visivel = selecionados.length === 0 || selecionados.indexOf(row.dataset.municipio) !== -1;
                     row.style.display = visivel ? '' : 'none';
+                    if (!visivel) return;
 
-                    if (visivel) {
-                        total++;
-                        if (row.dataset.municipio) municipiosVisiveis.add(row.dataset.municipio);
-                        if (row.dataset.familia === 'judicial') {
-                            judiciais++;
-                        } else {
-                            areaTotal += parseFloat(row.dataset.area) || 0;
-                            avalTotal += parseFloat(row.dataset.aval) || 0;
-                        }
+                    const area = parseFloat(row.dataset.area) || 0;
+                    const aval = parseFloat(row.dataset.aval) || 0;
+                    const count = parseInt(row.dataset.count, 10) || 1;
+
+                    if (row.dataset.familia === 'judicial') {
+                        judiciaisTotal += count;
+                        if (row.dataset.municipio) judiciaisMunicipios.add(row.dataset.municipio);
+                        judiciaisArea += area;
+                        judiciaisAval += aval;
+                    } else {
+                        imoveisTotal += count;
+                        if (row.dataset.municipio) imoveisMunicipios.add(row.dataset.municipio);
+                        imoveisArea += area;
+                        imoveisAval += aval;
                     }
                 });
 
-                document.getElementById('stat-total').textContent = total;
-                document.getElementById('stat-judiciais').textContent = judiciais;
-                document.getElementById('stat-municipios').textContent = municipiosVisiveis.size;
-                document.getElementById('stat-area').textContent = Math.round(areaTotal).toLocaleString('pt-BR') + ' m²';
-                document.getElementById('stat-aval').textContent = 'R$ ' + avalTotal.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                document.getElementById('stat-imoveis-total').textContent = imoveisTotal;
+                document.getElementById('stat-imoveis-municipios').textContent = imoveisMunicipios.size;
+                document.getElementById('stat-imoveis-area').textContent = Math.round(imoveisArea).toLocaleString('pt-BR') + ' m²';
+                document.getElementById('stat-imoveis-aval').textContent = 'R$ ' + imoveisAval.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+                document.getElementById('stat-judicial-total').textContent = judiciaisTotal;
+                document.getElementById('stat-judicial-municipios').textContent = judiciaisMunicipios.size;
+                document.getElementById('stat-judicial-area').textContent = Math.round(judiciaisArea).toLocaleString('pt-BR') + ' m²';
+                document.getElementById('stat-judicial-aval').textContent = 'R$ ' + judiciaisAval.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
             }
 
             btn.addEventListener('click', function(e) {
