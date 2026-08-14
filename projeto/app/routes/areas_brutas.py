@@ -43,7 +43,7 @@ def _familia_config(familia):
     return config
 
 
-CAMPOS = [
+CAMPOS_ANTES_AVALIACAO = [
     ('municipio',              'Município'),
     ('num_matricula',          'Nº Matrícula do Imóvel'),
     ('ano_aquisicao',          'Ano de Aquisição'),
@@ -56,14 +56,9 @@ CAMPOS = [
     ('moeda_conjunto',         'Moeda do Conjunto'),
     ('descricao_area',         'Descrição da Área'),
     ('matricula_parcelamento',  'Matrícula do Parcelamento'),
-    ('valor_mercado_2021',     'V. Mercado 2021'),
-    ('valor_subsidiado_2021',  'V. Subsidiado 2021'),
-    ('valor_mercado_2022',     'V. Mercado 2022'),
-    ('valor_subsidiado_2022',  'V. Subsidiado 2022'),
-    ('valor_mercado_2023',     'V. Mercado 2023'),
-    ('valor_subsidiado_2023',  'V. Subsidiado 2023'),
-    ('valor_mercado_2024',     'V. Mercado 2024'),
-    ('valor_subsidiado_2024',  'V. Subsidiado 2024'),
+]
+
+CAMPOS_DEPOIS_AVALIACAO = [
     ('ocupacao',               'Ocupação'),
     ('tipo_aquisicao',         'Tipo de Aquisição'),
     ('registro_propriedade',   'Registro de Propriedade'),
@@ -73,15 +68,42 @@ CAMPOS = [
     ('loteamento',             'Loteamento'),
 ]
 
-DECIMAIS = {
-    'area_util_m2', 'area_total_m2', 'valor_conjunto',
-    'valor_mercado_2021', 'valor_subsidiado_2021',
-    'valor_mercado_2022', 'valor_subsidiado_2022',
-    'valor_mercado_2023', 'valor_subsidiado_2023',
-    'valor_mercado_2024', 'valor_subsidiado_2024',
-}
+DECIMAIS_BASE = {'area_util_m2', 'area_total_m2', 'valor_conjunto'}
 INTEIROS = {'ano_aquisicao', 'qtd'}
 MATRICULAS = {'num_matricula', 'matricula_parcelamento'}
+
+
+def _anos_disponiveis(tabela):
+    """Descobre, a partir do próprio schema da tabela, quais anos de avaliação
+    (colunas valor_mercado_<ano> / valor_subsidiado_<ano>) já existem."""
+    with get_db() as db:
+        with db.cursor() as cursor:
+            cursor.execute(f"SHOW COLUMNS FROM {tabela}")
+            rows = cursor.fetchall()
+    anos = []
+    for row in rows:
+        m = re.match(r'^valor_mercado_(\d{4})$', row[0])
+        if m:
+            anos.append(int(m.group(1)))
+    return sorted(anos)
+
+
+def _campos_avaliacao(anos):
+    campos = []
+    for ano in anos:
+        campos.append((f'valor_mercado_{ano}', f'V. Mercado {ano}'))
+        campos.append((f'valor_subsidiado_{ano}', f'V. Subsidiado {ano}'))
+    return campos
+
+
+def _campos_e_decimais(tabela):
+    anos = _anos_disponiveis(tabela)
+    campos = CAMPOS_ANTES_AVALIACAO + _campos_avaliacao(anos) + CAMPOS_DEPOIS_AVALIACAO
+    decimais = set(DECIMAIS_BASE)
+    for ano in anos:
+        decimais.add(f'valor_mercado_{ano}')
+        decimais.add(f'valor_subsidiado_{ano}')
+    return campos, decimais, anos
 
 
 def _parse_decimal_str(s):
@@ -123,10 +145,10 @@ def _fmt_int_br(val):
         return str(val)
 
 
-def _parse(field, value):
+def _parse(field, value, decimais):
     if value is None or str(value).strip() == '':
         return None
-    if field in DECIMAIS:
+    if field in decimais:
         return _parse_decimal_str(value)
     if field in INTEIROS:
         try:
@@ -138,14 +160,14 @@ def _parse(field, value):
     return str(value).strip() or None
 
 
-def _insert_values(form):
-    return tuple(_parse(f, form.get(f)) for f, _ in CAMPOS)
+def _insert_values(form, campos, decimais):
+    return tuple(_parse(f, form.get(f), decimais) for f, _ in campos)
 
 
-def _update_set(form):
-    fields = [f for f, _ in CAMPOS]
+def _update_set(form, campos, decimais):
+    fields = [f for f, _ in campos]
     set_clause = ', '.join(f'{f}=%s' for f in fields)
-    return set_clause, tuple(_parse(f, form.get(f)) for f in fields)
+    return set_clause, tuple(_parse(f, form.get(f), decimais) for f in fields)
 
 
 def _propagar_valor_grupo(cursor, tabela, form):
@@ -196,14 +218,15 @@ def _obter_municipios_e_grupos(tabela):
 def nova(familia):
     config = _familia_config(familia)
     tabela = config['tabela']
+    campos, decimais, anos = _campos_e_decimais(tabela)
     if request.method == 'POST':
-        cols = ', '.join(f for f, _ in CAMPOS)
-        placeholders = ', '.join('%s' for _ in CAMPOS)
+        cols = ', '.join(f for f, _ in campos)
+        placeholders = ', '.join('%s' for _ in campos)
         with get_db() as db:
             with db.cursor() as cursor:
                 cursor.execute(
                     f'INSERT INTO {tabela} ({cols}) VALUES ({placeholders})',
-                    _insert_values(request.form)
+                    _insert_values(request.form, campos, decimais)
                 )
                 _propagar_valor_grupo(cursor, tabela, request.form)
                 db.commit()
@@ -216,7 +239,7 @@ def nova(familia):
         return redirect(url_for(config['endpoint_lista']))
 
     municipios, grupos, grupos_valores = _obter_municipios_e_grupos(tabela)
-    return render_template('areas_brutas_form.html', registro=None, campos=CAMPOS,
+    return render_template('areas_brutas_form.html', registro=None, campos=campos, anos_avaliacao=anos,
                            familia=familia, familia_label=config['label'],
                            titulo=f"Nova {config['titulo_base']}", municipios=municipios, grupos=grupos, grupos_valores=grupos_valores)
 
@@ -226,10 +249,11 @@ def nova(familia):
 def editar(familia, registro_id):
     config = _familia_config(familia)
     tabela = config['tabela']
+    campos, decimais, anos = _campos_e_decimais(tabela)
     with get_db() as db:
         with db.cursor(dictionary=True) as cursor:
             if request.method == 'POST':
-                set_clause, values = _update_set(request.form)
+                set_clause, values = _update_set(request.form, campos, decimais)
                 cursor.execute(
                     f'UPDATE {tabela} SET {set_clause} WHERE id=%s',
                     values + (registro_id,)
@@ -252,7 +276,7 @@ def editar(familia, registro_id):
     municipios, grupos, grupos_valores = _obter_municipios_e_grupos(tabela)
 
     registro_display = dict(registro)
-    for field in DECIMAIS:
+    for field in decimais:
         if registro_display.get(field) is not None:
             registro_display[field] = _fmt_decimal_br(registro_display[field])
     for field in MATRICULAS:
@@ -264,10 +288,35 @@ def editar(familia, registro_id):
         if vi_parsed is not None:
             registro_display['valor_imovel'] = _fmt_decimal_br(vi_parsed)
 
-    return render_template('areas_brutas_form.html', registro=registro_display, campos=CAMPOS,
+    return render_template('areas_brutas_form.html', registro=registro_display, campos=campos, anos_avaliacao=anos,
                            familia=familia, familia_label=config['label'],
                            titulo=f"Editar {config['titulo_base']}", municipios=municipios,
                            grupos=grupos, grupos_valores=grupos_valores)
+
+
+@areas_brutas_bp.route('/assent/areas-brutas/adicionar-ano-avaliacao', methods=['POST'])
+@role_required('admin')
+def adicionar_ano_avaliacao():
+    anos_atuais = _anos_disponiveis('areas_brutas')
+    novo_ano = (max(anos_atuais) if anos_atuais else datetime.date.today().year - 1) + 1
+
+    for tabela in ('areas_brutas', 'areas_brutas_judicial'):
+        with get_db() as db:
+            with db.cursor() as cursor:
+                cursor.execute(
+                    f'ALTER TABLE {tabela} '
+                    f'ADD COLUMN valor_mercado_{novo_ano} DECIMAL(18,4) NULL, '
+                    f'ADD COLUMN valor_subsidiado_{novo_ano} DECIMAL(18,4) NULL'
+                )
+                db.commit()
+
+    gravar_log('AREA_BRUTA_ANO_AVALIACAO_ADICIONADO', f"Ano adicionado: {novo_ano}")
+
+    familia = request.values.get('familia', 'brutas')
+    registro_id = request.values.get('registro_id')
+    if registro_id:
+        return redirect(url_for('areas_brutas.editar', familia=familia, registro_id=registro_id))
+    return redirect(url_for('areas_brutas.nova', familia=familia))
 
 
 def _fmt_brl(val):

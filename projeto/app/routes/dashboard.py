@@ -162,7 +162,8 @@ def areas_brutas():
             int_formatted = '-' + int_formatted
         return (int_formatted + ',' + dec_part) if dec_part else int_formatted
 
-    ANOS_AVALIACAO = [2021, 2022, 2023, 2024]
+    from app.routes.areas_brutas import _anos_disponiveis
+    ANOS_AVALIACAO = _anos_disponiveis('areas_brutas')
 
     def _carregar(tabela):
         with get_db() as db:

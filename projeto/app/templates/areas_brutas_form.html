@@ -337,7 +337,9 @@
                     <span class="bg-teal-600 text-white p-2 rounded-lg"><i data-lucide="trending-up" class="w-4 h-4"></i></span>
                     <div>
                         <h3 class="font-bold text-teal-900 text-base">Avaliações de Mercado</h3>
-                        <p class="text-xs text-teal-700">Valores de mercado e subsidiado por ano (2021 a 2024).</p>
+                        <p class="text-xs text-teal-700">
+                            Valores de mercado e subsidiado por ano{% if anos_avaliacao %} ({{ anos_avaliacao[0] }} a {{ anos_avaliacao[-1] }}){% endif %}.
+                        </p>
                     </div>
                 </div>
 
@@ -348,7 +350,7 @@
                         <span class="flex-1 text-xs font-bold text-gray-500 uppercase">Valor Subsidiado (R$)</span>
                     </div>
                     <div class="flex flex-col gap-3">
-                        {% for ano in [2021, 2022, 2023, 2024] %}
+                        {% for ano in anos_avaliacao %}
                         <div class="flex gap-3 items-center">
                             <span class="w-28 p-3 text-center font-semibold text-gray-700">{{ ano }}</span>
                             <input type="text" name="valor_mercado_{{ ano }}" value="{{ fval('valor_mercado_' ~ ano) }}"
@@ -360,6 +362,19 @@
                         </div>
                         {% endfor %}
                     </div>
+                    {% if session.get('role') == 'admin' %}
+                    <div class="mt-4 pt-4 border-t border-teal-100">
+                        <button type="submit"
+                            formaction="{{ url_for('areas_brutas.adicionar_ano_avaliacao', familia=familia, registro_id=registro.id if registro else '') }}"
+                            formmethod="POST" formnovalidate
+                            onclick="return confirm('Isso vai adicionar os campos de {{ (anos_avaliacao[-1] + 1) if anos_avaliacao else 'um novo ano' }} para TODOS os registros de Áreas Brutas (imóveis e processos judiciais) do sistema. Deseja continuar?')"
+                            class="flex items-center gap-2 text-sm font-bold text-teal-700 hover:text-teal-900">
+                            <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                            Adicionar ano {{ (anos_avaliacao[-1] + 1) if anos_avaliacao else '' }}
+                        </button>
+                        <p class="hint">Cria os campos de avaliação do próximo ano para todo o sistema (não apenas este registro).</p>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
 
