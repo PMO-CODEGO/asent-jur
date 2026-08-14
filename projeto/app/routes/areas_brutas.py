@@ -102,19 +102,15 @@ def _fmt_decimal_br(val):
     if val is None:
         return ''
     try:
-        d = Decimal(str(val)).normalize()
-        s = format(d, 'f')
+        n = round(Decimal(str(val)), 2)
     except (InvalidOperation, ValueError, TypeError):
         return str(val) if val else ''
-    if '.' in s:
-        int_part, dec_part = s.split('.')
-    else:
-        int_part, dec_part = s, ''
-    neg = int_part.startswith('-')
-    int_formatted = '{:,}'.format(abs(int(int_part))).replace(',', '.')
+    neg = n < 0
+    int_part, dec_part = '{:.2f}'.format(abs(n)).split('.')
+    int_formatted = '{:,}'.format(int(int_part)).replace(',', '.')
     if neg:
         int_formatted = '-' + int_formatted
-    return (int_formatted + ',' + dec_part) if dec_part else int_formatted
+    return int_formatted + ',' + dec_part
 
 
 def _fmt_int_br(val):
