@@ -3,363 +3,383 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema ASSENTJUR</title>
+    <title>Menu Jurídico - CODEGO</title>
     <link rel="shortcut icon" href="{{ url_for('static', filename='imagens_empresas/asentjur.png') }}" type="image/png">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
-    
     <style>
-        :root {
-            --sidebar-bg: #ffffff;
-            --accent-blue: #002b5c; /* Azul Cobalto */
-            --button-red: #e57373; /* Tom avermelhado jurídico */
-            --button-red-hover: #d32f2f;
-            --text-white: #ffffff;
-            --logout-red: #ef4444;
-            --logout-red-hover: #dc2626;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body, html { height: 100%; font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
 
-        body, html {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            width: 100%;
-            font-family: 'Inter', sans-serif;
-            overflow: hidden;
-        }
+        .topbar { background-color: #c62828; color: white; padding: 0 32px; height: 68px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); position: sticky; top: 0; z-index: 100; }
+        .topbar-left { display: flex; align-items: center; gap: 16px; }
+        .topbar img { height: 56px; }
+        .topbar-title { font-size: 1rem; font-weight: 600; opacity: 0.9; }
+        .topbar-actions { display: flex; gap: 10px; align-items: center; }
+        .btn-topbar { text-decoration: none; padding: 9px 18px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; display: flex; align-items: center; gap: 7px; transition: all 0.2s ease; color: white; }
+        .btn-back { background-color: #4b5563; }
+        .btn-back:hover { background-color: #374151; }
+        .btn-logout { background-color: #ef4444; }
+        .btn-logout:hover { background-color: #dc2626; }
 
-        .wrapper {
-            display: flex;
-            height: 100vh;
-            width: 100vw;
-        }
+        .page-body { padding: 32px; max-width: 1600px; margin: 0 auto; }
 
-        /* --- SIDEBAR --- */
-        .sidebar {
-            width: 230px;
-            min-width: 230px;
-            background-color: var(--sidebar-bg);
-            border-right: 1px solid #ddd;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 20px;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.05);
-            z-index: 10;
-        }
+        .page-header { margin-bottom: 24px; }
+        .page-header h1 { font-size: 1.6rem; font-weight: 800; color: #c62828; }
+        .page-header p { color: #6b7280; font-size: 0.9rem; margin-top: 4px; }
 
-        .logo-link {
-            display: inline-block;
-            cursor: pointer;
-        }
+        .stats-row { display: flex; gap: 16px; margin-bottom: 28px; flex-wrap: wrap; }
+        .stat-card { background: white; border-radius: 12px; padding: 16px 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); display: flex; align-items: center; gap: 14px; min-width: 180px; }
+        .stat-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+        
+        .stat-icon-red    { background-color: #fdecec; color: #c62828; }
+        .stat-icon-green  { background-color: #d1fae5; color: #065f46; }
+        .stat-icon-amber  { background-color: #fef3c7; color: #92400e; }
+        .stat-icon-purple { background-color: #ede9fe; color: #4c1d95; }
+        .stat-value { font-size: 1.4rem; font-weight: 800; color: #111827; }
+        .stat-label { font-size: 0.78rem; color: #6b7280; font-weight: 500; }
 
-        .logo-container img {
-            width: 200px;
-            margin-bottom: 30px;
-            display: block;
-        }
+        .actions-row { margin-bottom: 20px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+        .btn-action { display: inline-flex; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-weight: 700; font-size: 0.88rem; color: white; gap: 8px; align-items: center; transition: background 0.2s; }
+        .btn-processos, .btn-consultar, .btn-prazos { background-color: #e57373; }
+        .btn-processos:hover, .btn-consultar:hover, .btn-prazos:hover { background-color: #d32f2f; }
+        .btn-bi         { background-color: #059669; }
+        .btn-bi:hover         { background-color: #047857; }
+        .btn-usuario    { background-color: #e0d7ff; color: #3b1fa8; }
+        .btn-usuario:hover    { background-color: #d0c2fb; }
 
-        .nav-menu {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
+        .controls { display: flex; gap: 12px; margin-bottom: 20px; align-items: center; flex-wrap: wrap; }
+        .filter-select { background: white; border: 1.5px solid #e5e7eb; border-radius: 8px; padding: 9px 14px; font-size: 0.88rem; outline: none; cursor: pointer; }
+        .ms-filter { position: relative; }
+        .ms-filter-btn { display: flex; align-items: center; gap: 8px; background: white; border: 1.5px solid #e5e7eb; border-radius: 8px; padding: 9px 14px; font-size: 0.88rem; cursor: pointer; min-width: 210px; color: #374151; }
+        .ms-filter-btn:hover { border-color: #c62828; }
+        .ms-filter-panel { display: none; position: absolute; top: calc(100% + 6px); left: 0; background: white; border: 1.5px solid #e5e7eb; border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); max-height: 280px; overflow-y: auto; min-width: 240px; z-index: 50; padding: 8px; }
+        .ms-filter-panel.open { display: block; }
+        .ms-filter-actions { display: flex; justify-content: flex-end; padding: 2px 6px 8px; border-bottom: 1px solid #f3f4f6; margin-bottom: 6px; }
+        .ms-filter-actions button { background: none; border: none; color: #2563eb; font-size: 0.78rem; font-weight: 600; cursor: pointer; }
+        .ms-filter-option { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 6px; font-size: 0.85rem; cursor: pointer; }
+        .ms-filter-option:hover { background: #f3f4f6; }
 
-        .nav-button {
-            background-color: var(--button-red);
-            color: white;
-            text-decoration: none;
-            padding: 13px 16px;
-            border-radius: 10px;
-            font-size: 13px;
-            font-weight: 600;
-            text-align: left;
-            transition: all 0.25s ease;
-            border: none;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            letter-spacing: 0.01em;
-        }
+        .table-wrap { background: white; border-radius: 14px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); overflow: hidden; }
+        .table-scroll { overflow-x: auto; overflow-y: auto; max-height: 70vh; border-radius: 14px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+        thead tr { background-color: #c62828; color: white; }
+        thead th { padding: 11px 14px; text-align: left; font-weight: 600; white-space: nowrap; font-size: 0.75rem; letter-spacing: 0.02em; position: sticky; top: 0; z-index: 10; background-color: #c62828; }
+        tbody tr { border-bottom: 1px solid #f3f4f6; transition: background 0.12s; }
+        tbody tr:hover { background-color: #fdf5f5; }
+        tbody tr:last-child { border-bottom: none; }
+        td { padding: 10px 14px; color: #374151; vertical-align: middle; }
+        th.col-fix, td.col-fix { position: sticky; z-index: 5; background-color: white; }
+        thead th.col-fix { background-color: #c62828; z-index: 11; }
+        th.col-fix-1, td.col-fix-1 { left: 0; }
+        td.col-fix::after, th.col-fix-1::after { content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 3px; background: linear-gradient(to right, rgba(0,0,0,0.08), transparent); pointer-events: none; }
+        tbody tr:hover td.col-fix { background-color: #fdf5f5; }
+        .processo-badge { display: inline-block; background-color: #fdecec; color: #c62828; border-radius: 6px; padding: 2px 8px; font-size: 0.75rem; font-weight: 600; white-space: nowrap; font-family: monospace; }
+        .status-badge { display: inline-block; border-radius: 6px; padding: 2px 8px; font-size: 0.73rem; font-weight: 700; white-space: nowrap; background-color: #f3f4f6; color: #374151; }
+        .titulo-cell { max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .empty { padding: 48px; text-align: center; color: #9ca3af; }
+        .data-row { cursor: pointer; }
+        .data-row:hover { background-color: #fdecec; }
+        .data-row.open { background-color: #fdecec; }
+        .row-toggle { display: inline-flex; align-items: center; gap: 6px; color: #6b7280; font-size: 0.75rem; }
+        .row-toggle svg { transition: transform 0.2s ease; flex-shrink: 0; }
+        .data-row.open .row-toggle svg { transform: rotate(90deg); }
+        .data-row:hover .row-toggle { color: #1e3a5f; }
+        .detail-row td { background-color: #f8fafc; padding: 0 !important; border-bottom: 2px solid #bfdbfe; }
+        .detail-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; padding: 16px 24px; }
+        .detail-item-wide { grid-column: span 2; }
+        .detail-item { display: flex; flex-direction: column; gap: 4px; }
+        .detail-label { font-size: 0.7rem; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; }
+        .detail-value { font-size: 0.82rem; color: #1e293b; }
 
-        .nav-button svg {
-            flex-shrink: 0;
-            opacity: 0.9;
-        }
-
-        .nav-button:hover {
-            background-color: var(--button-red-hover);
-            transform: translateX(6px);
-            box-shadow: 0 4px 12px rgba(180,30,30,0.2);
-        }
-
-        /* --- CONTEÚDO PRINCIPAL --- */
-        .main-content {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            background-color: #ffffff;
-        }
-
-        /* --- TOPBAR INVERTIDA (AZUL COBALTO COM LETRA BRANCA) --- */
-        .topbar {
-            background-color: var(--accent-blue);
-            color: var(--text-white);
-            padding: 15px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            height: 70px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            z-index: 5;
-        }
-
-        .welcome-text {
-            font-size: 1.6rem;
-            font-weight: 700;
-            color: var(--text-white);
-            letter-spacing: -0.025em;
-        }
-
-        .welcome-text span {
-            font-weight: 300;
-            opacity: 0.8;
-            font-size: 1.6rem;
-            margin-right: 5px;
-        }
-
-        .topbar-actions {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-        }
-
-        .btn-topbar {
-            color: white;
-            text-decoration: none;
-            padding: 10px 22px;
-            border-radius: 10px;
-            font-weight: 600;
-            font-size: 0.875rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
-            border: 2px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .btn-back {
-            background-color: #4b5563;
-        }
-
-        .btn-back:hover {
-            background-color: #374151;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
-        }
-
-        /* Botão de Logout Sólido */
-        .btn-logout {
-            background-color: var(--logout-red);
-        }
-
-        .btn-logout:hover {
-            background-color: var(--logout-red-hover);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
-        }
-
-        .btn-switch-menu {
-            background: linear-gradient(135deg, #f7cf63, #e7a73a);
-            color: #1a202c;
-            border: none;
-        }
-
-        .btn-switch-menu:hover {
-            background: linear-gradient(135deg, #efbe49, #d78f1d);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.25);
-        }
-
-        /* CONTAINER DO DASHBOARD */
-        .dashboard-container {
-            flex-grow: 1;
-            width: 100%;
-            height: calc(100vh - 70px);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .dashboard-img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-        }
-        .dashboard-container iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-            display: block;
-        }
-
-        @media (max-width: 900px) {
-            body, html {
-                height: auto;
-                min-height: 100%;
-                overflow: auto;
-            }
-
-            .wrapper {
-                width: 100%;
-                min-height: 100vh;
-                height: auto;
-                flex-direction: column;
-            }
-
-            .sidebar {
-                width: 100%;
-                min-width: 0;
-                box-sizing: border-box;
-                border-right: none;
-                border-bottom: 1px solid #ddd;
-                padding: 14px;
-            }
-
-            .logo-container img {
-                width: min(170px, 70vw);
-                margin-bottom: 14px;
-            }
-
-            .nav-menu {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-                gap: 8px;
-            }
-
-            .nav-button {
-                padding: 11px 10px;
-                font-size: 11px;
-                line-height: 1.25;
-            }
-
-            .nav-button:hover {
-                transform: none;
-            }
-
-            .main-content {
-                min-height: 0;
-            }
-
-            .topbar {
-                height: auto;
-                min-height: 64px;
-                padding: 12px 14px;
-                flex-direction: column;
-                align-items: stretch;
-                gap: 10px;
-            }
-
-            .welcome-text,
-            .welcome-text span {
-                font-size: 1.1rem;
-                overflow-wrap: anywhere;
-            }
-
-            .topbar-actions {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-                gap: 8px;
-            }
-
-            .btn-topbar {
-                justify-content: center;
-                padding: 10px 12px;
-                font-size: 0.8rem;
-            }
-
-            .dashboard-container {
-                height: 65vh;
-                min-height: 420px;
-            }
+        @media (max-width: 768px) {
+            .page-body { padding: 16px; }
+            .topbar { padding: 0 16px; }
+            .topbar-title { display: none; }
         }
     </style>
 </head>
 <body>
-    <div class="wrapper">
-        <div class="sidebar">
-            <div class="logo-container">
-                <a href="{{ url_for('dashboard.menu', modo='jur') }}" class="logo-link" aria-label="Voltar ao menu jurídico">
-                    <img src="{{ url_for('static', filename='logo_codego.png') }}" alt="Logo CodeGO">
-                </a>
-            </div>
-            <div class="nav-menu">
-                <a href="{{ url_for('cadastro.cadastro_jur') }}" class="nav-button">
-                    <i data-lucide="folder-plus" class="w-5 h-5"></i>
-                    Adicionar Processos
-                </a>
-                <a href="{{ url_for('edicao.selecionar_edicao', modo='jur') }}" class="nav-button">
-                    <i data-lucide="file-pen" class="w-5 h-5"></i>
-                    Editar Processos
-                </a>
-                <a href="{{ url_for('juridico.prazos_juridicos') }}" class="nav-button">
-                    <i data-lucide="bell" class="w-5 h-5"></i>
-                    Alertas de Prazos
-                </a>
-                <a href="{{ url_for('juridico.consultar_assentamento') }}" class="nav-button">
-                    <i data-lucide="search" class="w-5 h-5"></i>
-                    Consultar Assentamento
-                </a>
-                <a href="{{ url_for('relatorio.relatorios', modo='jur') }}" class="nav-button">
-                    <i data-lucide="file-bar-chart" class="w-5 h-5"></i>
-                    Gerar Relatório
-                </a>
-                {% if session.get('role') == 'jur_gestor' %}
-                <a href="{{ url_for('auth_user.registrar_colaborador') }}" class="nav-button" style="background-color: #e0d7ff; color: #3b1fa8; margin-top: 10px;">
-                    <i data-lucide="user-plus" class="w-5 h-5"></i>
-                    Registrar Usuário
-                </a>
-                {% endif %}
+    <div class="topbar">
+        <div class="topbar-left">
+            <a href="{{ url_for('dashboard.menu', modo='jur') }}" style="display:inline-block;line-height:0;" aria-label="Menu Jurídico">
+                <img src="{{ url_for('static', filename='logo_codego.png') }}" alt="Logo CodeGO">
+            </a>
+            <span class="topbar-title">Bem-vindo, {{ session['username'] }}</span>
+        </div>
+        <div class="topbar-actions">
+            {% if session.get('role') == 'admin' %}
+            <a href="{{ url_for('dashboard.inicio_assent') }}" class="btn-topbar btn-back">
+                <i data-lucide="arrow-left" style="width:16px;height:16px;"></i>
+                Voltar
+            </a>
+            {% endif %}
+            <a href="{{ url_for('auth_login.logout') }}" class="btn-topbar btn-logout">
+                <i data-lucide="log-out" style="width:16px;height:16px;"></i>
+                Sair
+            </a>
+        </div>
+    </div>
 
+    <div class="page-body">
+        <div class="page-header">
+            <h1>Menu Jurídico</h1>
+            <p>Processos jurídicos vinculados aos assentamentos e distritos industriais da CODEGO</p>
+        </div>
+
+        {% set total = processos | length %}
+        {% set tribunais_unicos = processos | map(attribute='tribunal') | select | unique | list | length %}
+        {% set comarcas_unicas = processos | map(attribute='comarca') | select | unique | list | length %}
+        {% set com_recurso = processos | selectattr('recurso_acionado') | list | length %}
+
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-icon stat-icon-red"><i data-lucide="gavel" style="width:22px;height:22px;"></i></div>
+                <div><div class="stat-value" id="stat-total">{{ total }}</div><div class="stat-label">Total de processos</div></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon stat-icon-amber"><i data-lucide="landmark" style="width:22px;height:22px;"></i></div>
+                <div><div class="stat-value" id="stat-tribunais">{{ tribunais_unicos }}</div><div class="stat-label">Tribunais</div></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon stat-icon-purple"><i data-lucide="map-pin" style="width:22px;height:22px;"></i></div>
+                <div><div class="stat-value" id="stat-comarcas">{{ comarcas_unicas }}</div><div class="stat-label">Comarcas</div></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon stat-icon-green"><i data-lucide="scale" style="width:22px;height:22px;"></i></div>
+                <div><div class="stat-value" id="stat-recurso">{{ com_recurso }}</div><div class="stat-label">Com recurso acionado</div></div>
             </div>
         </div>
 
-        <div class="main-content">
-            <div class="topbar">
-                <div class="welcome-text">
-                    <span> Bem-vindo,</span>{{ session['username'] }}
-                </div>
+        <div class="actions-row">
+            <a href="{{ url_for('cadastro.cadastro_jur') }}" class="btn-action btn-processos">
+                <i data-lucide="folder-plus" style="width:16px;height:16px;"></i>
+                Adicionar Processos
+            </a>
+            <a href="{{ url_for('juridico.consultar_assentamento') }}" class="btn-action btn-consultar">
+                <i data-lucide="search" style="width:16px;height:16px;"></i>
+                Consultar Assentamento
+            </a>
+            <a href="{{ url_for('juridico.prazos_juridicos') }}" class="btn-action btn-prazos">
+                <i data-lucide="bell" style="width:16px;height:16px;"></i>
+                Alerta de Prazos
+            </a>
+            <a href="https://app.powerbi.com/view?r=eyJrIjoiZTEwNjAxMGEtNDI3MC00ZTIyLWE3MTAtYjQ0NzM2ZTIzZDg5IiwidCI6ImZmY2UxNmU0LTFmZTUtNDlhMS1iOWUxLTEwNzQ4YzFlZWRjNSJ9&navContentPaneEnabled=false&filterPaneEnabled=false"
+               class="btn-action btn-bi" target="_blank" rel="noopener">
+                <i data-lucide="bar-chart-3" style="width:16px;height:16px;"></i>
+                Verificar Relatório BI
+            </a>
+            {% if session.get('role') == 'jur_gestor' %}
+            <a href="{{ url_for('auth_user.registrar_colaborador') }}" class="btn-action btn-usuario">
+                <i data-lucide="user-plus" style="width:16px;height:16px;"></i>
+                Registrar Usuário
+            </a>
+            {% endif %}
+        </div>
 
-                <div class="topbar-actions">
-                    {% if session.get('role') == 'admin' %}
-                    <a href="{{ url_for('dashboard.inicio_assent') }}" class="btn-topbar btn-back">
-                        <i data-lucide="arrow-left" class="w-4 h-4"></i>
-                        Voltar
-                    </a>
-                    {% endif %}
-                    <a href="{{ url_for('auth_login.logout') }}" class="btn-topbar btn-logout">
-                        <i data-lucide="log-out" class="w-4 h-4"></i>
-                        Sair do Sistema
-                    </a>
+        <div class="controls">
+            <div class="ms-filter" id="filtro-tribunal-wrap">
+                <button type="button" class="ms-filter-btn" id="filtro-tribunal-btn">
+                    <i data-lucide="landmark" style="width:15px;height:15px;color:#9ca3af;"></i>
+                    <span id="filtro-tribunal-label">Todos os tribunais</span>
+                    <i data-lucide="chevron-down" style="width:14px;height:14px;margin-left:auto;color:#9ca3af;"></i>
+                </button>
+                <div class="ms-filter-panel" id="filtro-tribunal-panel">
+                    <div class="ms-filter-actions">
+                        <button type="button" id="filtro-tribunal-limpar">Limpar seleção</button>
+                    </div>
+                    {% for t in processos | map(attribute='tribunal') | select | unique | sort %}
+                    <label class="ms-filter-option">
+                        <input type="checkbox" value="{{ t }}">
+                        <span>{{ t }}</span>
+                    </label>
+                    {% endfor %}
                 </div>
             </div>
-            
-            <div class="dashboard-container">
-                <iframe 
-                    title="Projeto PBI AssentJur" 
-                    src="https://app.powerbi.com/view?r=eyJrIjoiZTEwNjAxMGEtNDI3MC00ZTIyLWE3MTAtYjQ0NzM2ZTIzZDg5IiwidCI6ImZmY2UxNmU0LTFmZTUtNDlhMS1iOWUxLTEwNzQ4YzFlZWRjNSJ9&navContentPaneEnabled=false&filterPaneEnabled=false" 
-                    allowFullScreen>
-                </iframe>
+            <select class="filter-select" id="filtro-status">
+                <option value="">Todos os status</option>
+                {% for s in processos | map(attribute='status') | select | unique | sort %}
+                <option value="{{ s }}">{{ s }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="table-wrap">
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="col-fix col-fix-1">Processo</th>
+                            <th>Título</th>
+                            <th>Tipo de Ação</th>
+                            <th>Status</th>
+                            <th>Fase</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in processos %}
+                        <tr class="data-row" data-status="{{ (p.status or '')|trim }}" data-tribunal="{{ (p.tribunal or '')|lower|trim }}" onclick="toggleDetalhe('p{{ p.id }}')">
+                            <td class="col-fix col-fix-1">
+                                <span class="row-toggle">
+                                    <i data-lucide="chevron-right" style="width:14px;height:14px;"></i>
+                                    <span class="processo-badge">{{ p.numero_processo or '' }}</span>
+                                </span>
+                            </td>
+                            <td class="titulo-cell" title="{{ p.titulo or '' }}">{{ p.titulo or '-' }}</td>
+                            <td>{{ p.tipo_acao or p.tipo_processo or '-' }}</td>
+                            <td>
+                                {% if p.status %}<span class="status-badge">{{ p.status }}</span>{% else %}-{% endif %}
+                            </td>
+                            <td>{{ p.fase or '-' }}</td>
+                            <td style="white-space:nowrap;" onclick="event.stopPropagation()">
+                                <a href="{{ url_for('edicao.editar_jur', processo_id=p.id) }}"
+                                   style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:#fdecec;color:#c62828;border-radius:6px;font-size:0.75rem;font-weight:600;text-decoration:none;margin-right:4px;">
+                                    <i data-lucide="pencil" style="width:13px;height:13px;"></i> Edita
+                                </a>
+                                <form method="POST" action="{{ url_for('relatorio.relatorios', modo='jur') }}"
+                                      style="display:inline;" target="_blank">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <input type="hidden" name="processo" value="{{ p.id }}">
+                                    <button type="submit"
+                                        style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:#d1fae5;color:#065f46;border:none;border-radius:6px;font-size:0.75rem;font-weight:600;cursor:pointer;">
+                                        <i data-lucide="file-text" style="width:13px;height:13px;"></i> Relatório
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        <tr id="p{{ p.id }}" class="detail-row" style="display:none;">
+                            <td colspan="6">
+                                <div class="detail-grid">
+                                    <div class="detail-item">
+                                        <span class="detail-label">Tribunal</span>
+                                        <span class="detail-value">{{ p.tribunal or '-' }}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Vara</span>
+                                        <span class="detail-value">{{ p.vara or '-' }}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Comarca</span>
+                                        <span class="detail-value">{{ p.comarca or '-' }}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Valor da Causa</span>
+                                        <span class="detail-value">{{ 'R$ {:,.2f}'.format(p.valor_da_causa).replace(',','X').replace('.',',').replace('X','.') if p.valor_da_causa else '-' }}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Data Criação</span>
+                                        <span class="detail-value">{{ p.data_criacao or '-' }}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Recurso Acionado</span>
+                                        <span class="detail-value">{{ p.recurso_acionado or '-' }}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Tipo de Recurso</span>
+                                        <span class="detail-value">{{ p.tipo_recurso or '-' }}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Assunto Judicial</span>
+                                        <span class="detail-value">{{ p.assunto_judicial or '-' }}</span>
+                                    </div>
+                                    <div class="detail-item detail-item-wide">
+                                        <span class="detail-label">Descrição</span>
+                                        <span class="detail-value">{{ p.descricao or '-' }}</span>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="6" class="empty">Nenhum processo encontrado.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 
     <script>
         lucide.createIcons();
+
+        function toggleDetalhe(id) {
+            const row = document.getElementById(id);
+            const dataRow = row.previousElementSibling;
+            const isOpen = row.style.display !== 'none';
+            row.style.display = isOpen ? 'none' : 'table-row';
+            dataRow.classList.toggle('open', !isOpen);
+            if (!isOpen) lucide.createIcons();
+        }
+
+        const filtroStatus = document.getElementById('filtro-status');
+        const tribBtn = document.getElementById('filtro-tribunal-btn');
+        const tribPanel = document.getElementById('filtro-tribunal-panel');
+        const tribLabel = document.getElementById('filtro-tribunal-label');
+        const tribLimpar = document.getElementById('filtro-tribunal-limpar');
+        const tribChecks = tribPanel.querySelectorAll('input[type="checkbox"]');
+
+        function tribunaisSelecionados() {
+            return Array.from(tribChecks).filter(c => c.checked).map(c => c.value.toLowerCase());
+        }
+
+        function atualizarLabelTribunal() {
+            const marcados = Array.from(tribChecks).filter(c => c.checked);
+            if (marcados.length === 0) {
+                tribLabel.textContent = 'Todos os tribunais';
+            } else if (marcados.length === 1) {
+                tribLabel.textContent = marcados[0].value;
+            } else {
+                tribLabel.textContent = marcados.length + ' tribunais selecionados';
+            }
+        }
+
+        function filtrar() {
+            const sel = tribunaisSelecionados();
+            const st = filtroStatus.value.trim();
+            let total = 0;
+            const tribunaisVisiveis = new Set();
+
+            document.querySelectorAll('.data-row').forEach(function(row) {
+                const tribMatch = sel.length === 0 || sel.indexOf(row.dataset.tribunal) !== -1;
+                const stMatch = !st || row.dataset.status.trim() === st;
+                const visivel = tribMatch && stMatch;
+                row.style.display = visivel ? '' : 'none';
+
+                if (visivel) {
+                    total++;
+                    if (row.dataset.tribunal) tribunaisVisiveis.add(row.dataset.tribunal);
+                }
+            });
+
+            document.getElementById('stat-total').textContent = total;
+            document.getElementById('stat-tribunais').textContent = tribunaisVisiveis.size;
+        }
+
+        tribChecks.forEach(function(chk) {
+            chk.addEventListener('change', function() {
+                atualizarLabelTribunal();
+                filtrar();
+            });
+        });
+
+        tribBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            tribPanel.classList.toggle('open');
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!tribPanel.contains(e.target) && e.target !== tribBtn) {
+                tribPanel.classList.remove('open');
+            }
+        });
+
+        tribLimpar.addEventListener('click', function() {
+            tribChecks.forEach(c => c.checked = false);
+            atualizarLabelTribunal();
+            filtrar();
+        });
+
+        filtroStatus.addEventListener('change', filtrar);
     </script>
     {% set guia_pagina = 'menu_jur' %}{% include 'partials/guia_mascote.html' %}
 </body>
