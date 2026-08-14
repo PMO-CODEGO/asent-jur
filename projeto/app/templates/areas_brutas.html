@@ -494,7 +494,7 @@
                                             </thead>
                                             <tbody>
                                                 {% for o in grupo.itens %}
-                                                <tr class="data-row" onclick="toggleDetalhe('sub-d{{ o.id }}')" style="cursor:pointer;">
+                                                <tr class="data-row sub-row" onclick="toggleDetalhe('sub-d{{ o.id }}')" style="cursor:pointer;">
                                                     <td>
                                                         <span class="row-toggle">
                                                             <i data-lucide="chevron-right" style="width:12px;height:12px;"></i>
@@ -781,7 +781,7 @@
                                             </thead>
                                             <tbody>
                                                 {% for o in grupo.itens %}
-                                                <tr class="data-row" onclick="toggleDetalhe('sub-j{{ o.id }}')" style="cursor:pointer;">
+                                                <tr class="data-row sub-row" onclick="toggleDetalhe('sub-j{{ o.id }}')" style="cursor:pointer;">
                                                     <td>
                                                         <span class="row-toggle">
                                                             <i data-lucide="chevron-right" style="width:12px;height:12px;"></i>
@@ -964,7 +964,7 @@
             });
 
             // Atualiza o data-municipio (usado no filtro) para casar com o valor corrigido em minúsculas
-            document.querySelectorAll('.data-row').forEach(function (row) {
+            document.querySelectorAll('.data-row:not(.sub-row)').forEach(function (row) {
                 const corrigido = corrigirMunicipio(row.dataset.municipio);
                 row.dataset.municipio = corrigido.toLowerCase().trim();
             });
@@ -1012,7 +1012,7 @@
                 let imoveisTotal = 0, imoveisArea = 0, imoveisAval = 0;
                 let judiciaisTotal = 0, judiciaisArea = 0, judiciaisAval = 0;
 
-                document.querySelectorAll('.data-row').forEach(function(row) {
+                document.querySelectorAll('.data-row:not(.sub-row)').forEach(function(row) {
                     const visivel = selecionados.length === 0 || selecionados.indexOf(row.dataset.municipio) !== -1;
                     row.style.display = visivel ? '' : 'none';
                     if (!visivel) return;

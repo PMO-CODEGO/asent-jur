@@ -340,7 +340,7 @@
                                         </thead>
                                         <tbody>
                                             {% for o in grupo.itens %}
-                                            <tr class="data-row" onclick="toggleDetalhe('sub-p{{ o.id }}')" style="cursor:pointer;">
+                                            <tr class="data-row sub-row" onclick="toggleDetalhe('sub-p{{ o.id }}')" style="cursor:pointer;">
                                                 <td>
                                                     <span class="row-toggle">
                                                         <i data-lucide="chevron-right" style="width:12px;height:12px;"></i>
@@ -454,7 +454,7 @@
                 const municipiosVisiveis = new Set();
                 let total = 0;
 
-                document.querySelectorAll('.data-row').forEach(function(row) {
+                document.querySelectorAll('.data-row:not(.sub-row)').forEach(function(row) {
                     const visivel = selecionados.length === 0 || selecionados.indexOf(row.dataset.municipio) !== -1;
                     row.style.display = visivel ? '' : 'none';
 
