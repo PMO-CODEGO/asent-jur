@@ -153,6 +153,13 @@
 
         {% set registros = imoveis + judiciais %}
 
+        {# Ano mais recente com avaliação preenchida em cada tabela — usado no cabeçalho
+           das colunas de V. Mercado/V. Subsidiado, no lugar de um ano fixo no código. #}
+        {% set anos_imoveis = imoveis | map(attribute='ultima_aval_ano') | select('number') | list %}
+        {% set ano_col_imoveis = anos_imoveis | max if anos_imoveis else None %}
+        {% set anos_judiciais = judiciais | map(attribute='ultima_aval_ano') | select('number') | list %}
+        {% set ano_col_judiciais = anos_judiciais | max if anos_judiciais else None %}
+
         {# Agrupa imoveis e judiciais por município: uma linha por município na tabela,
            com soma dos campos numéricos e sub-tabela expansível quando há mais de 1 registro. #}
         {% set grupos_imoveis = [] %}
@@ -327,8 +334,8 @@
                                 <th>Área Útil (m²)</th>
                                 <th>Reserva Legal (m²)</th>
                                 <th>Área Total (m²)</th>
-                                <th>V. Mercado 2024</th>
-                                <th>V. Subsidiado 2024</th>
+                                <th>V. Mercado{% if ano_col_imoveis %} {{ ano_col_imoveis }}{% endif %}</th>
+                                <th>V. Subsidiado{% if ano_col_imoveis %} {{ ano_col_imoveis }}{% endif %}</th>
                                 <th>Geo</th>
                                 <th>Link da Matrícula</th>
                                 <th>Nº Processo</th>
@@ -532,8 +539,8 @@
                                 <th class="col-fix col-fix-1">Município</th>
                                 <th>Matrícula</th>
                                 <th>Área Total (m²)</th>
-                                <th>V. Mercado 2024</th>
-                                <th>V. Subsidiado 2024</th>
+                                <th>V. Mercado{% if ano_col_judiciais %} {{ ano_col_judiciais }}{% endif %}</th>
+                                <th>V. Subsidiado{% if ano_col_judiciais %} {{ ano_col_judiciais }}{% endif %}</th>
                                 <th>Ações</th>
                             </tr>
                         </thead>
