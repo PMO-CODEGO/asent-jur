@@ -34,6 +34,8 @@
         .stat-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
         .stat-icon-blue   { background-color: #dbeafe; color: #002b5c; }
         .stat-icon-red    { background-color: #fee2e2; color: #991b1b; }
+        .stat-icon-green  { background-color: #d1fae5; color: #065f46; }
+        .stat-icon-purple { background-color: #ede9fe; color: #4c1d95; }
         .stat-value { font-size: 1.4rem; font-weight: 800; color: #111827; }
         .stat-label { font-size: 0.78rem; color: #6b7280; font-weight: 500; }
 
@@ -118,6 +120,15 @@
             <p>Imóveis urbanos em galerias e condomínios de propriedade da CODEGO</p>
         </div>
 
+        {% set area_ns = namespace(total=0.0) %}
+        {% set valor_ns = namespace(total=0.0) %}
+        {% for item in registros %}
+            {% set area_limpa = (item.area_total_m2_fmt or '0')|string|replace('m²', '')|replace('M²', '')|replace('.', '')|replace(',', '.')|trim %}
+            {% set area_ns.total = area_ns.total + (area_limpa|float(0)) %}
+            {% set valor_limpo = (item.valor_imovel_fmt or '0')|string|replace('R$', '')|replace('.', '')|replace(',', '.')|trim %}
+            {% set valor_ns.total = valor_ns.total + (valor_limpo|float(0)) %}
+        {% endfor %}
+
         <div class="stats-row">
             <div class="stat-card">
                 <div class="stat-icon stat-icon-blue"><i data-lucide="building-2" style="width:22px;height:22px;"></i></div>
@@ -131,6 +142,20 @@
                 <div>
                     <div class="stat-value" id="stat-municipios">{{ registros | map(attribute='municipio') | select | unique | list | length }}</div>
                     <div class="stat-label">Municípios</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon stat-icon-green"><i data-lucide="ruler" style="width:22px;height:22px;"></i></div>
+                <div>
+                    <div class="stat-value" id="stat-area">{{ '{:,.0f}'.format(area_ns.total).replace(',', '.') }} m²</div>
+                    <div class="stat-label">Área total</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon stat-icon-purple"><i data-lucide="landmark" style="width:22px;height:22px;"></i></div>
+                <div>
+                    <div class="stat-value" id="stat-valor" style="font-size:1rem;">{{ 'R$ {:,.2f}'.format(valor_ns.total).replace(',', 'X').replace('.', ',').replace('X', '.') }}</div>
+                    <div class="stat-label">Valor total dos imóveis</div>
                 </div>
             </div>
         </div>
@@ -174,7 +199,9 @@
                     </thead>
                     <tbody>
                         {% for r in registros %}
-                        <tr class="data-row" data-municipio="{{ (r.municipio or '')|lower|trim }}" onclick="toggleDetalhe('p{{ r.id }}')">
+                        {% set area_limpa_r = (r.area_total_m2_fmt or '0')|string|replace('m²', '')|replace('M²', '')|replace('.', '')|replace(',', '.')|trim %}
+                        {% set valor_limpo_r = (r.valor_imovel_fmt or '0')|string|replace('R$', '')|replace('.', '')|replace(',', '.')|trim %}
+                        <tr class="data-row" data-municipio="{{ (r.municipio or '')|lower|trim }}" data-area="{{ area_limpa_r|float(0) }}" data-valor="{{ valor_limpo_r|float(0) }}" onclick="toggleDetalhe('p{{ r.id }}')">
                             <td class="col-fix col-fix-1">
                                 <span class="row-toggle">
                                     <i data-lucide="chevron-right" style="width:14px;height:14px;"></i>
@@ -328,7 +355,7 @@
                 }
                 const selecionados = marcados.map(function(c) { return c.value.toLowerCase(); });
                 const municipiosVisiveis = new Set();
-                let total = 0;
+                let total = 0, areaTotal = 0, valorTotal = 0;
 
                 document.querySelectorAll('.data-row').forEach(function(row) {
                     const visivel = selecionados.length === 0 || selecionados.indexOf(row.dataset.municipio) !== -1;
@@ -337,11 +364,15 @@
                     if (visivel) {
                         total++;
                         if (row.dataset.municipio) municipiosVisiveis.add(row.dataset.municipio);
+                        areaTotal += parseFloat(row.dataset.area) || 0;
+                        valorTotal += parseFloat(row.dataset.valor) || 0;
                     }
                 });
 
                 document.getElementById('stat-total').textContent = total;
                 document.getElementById('stat-municipios').textContent = municipiosVisiveis.size;
+                document.getElementById('stat-area').textContent = Math.round(areaTotal).toLocaleString('pt-BR') + ' m²';
+                document.getElementById('stat-valor').textContent = 'R$ ' + valorTotal.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
             }
 
             btn.addEventListener('click', function(e) {
