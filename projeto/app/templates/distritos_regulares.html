@@ -333,17 +333,76 @@
                                                 <th>Ano de Aquisição</th>
                                                 <th>Área Total (m²)</th>
                                                 <th>Valor do Imóvel (R$)</th>
-                                                <th>Descrição da Área</th>
+                                                <th>Ações</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {% for o in grupo.itens %}
-                                            <tr>
-                                                <td>{{ o.num_matricula_fmt or '-' }}</td>
+                                            <tr class="data-row" onclick="toggleDetalhe('sub-p{{ o.id }}')" style="cursor:pointer;">
+                                                <td>
+                                                    <span class="row-toggle">
+                                                        <i data-lucide="chevron-right" style="width:12px;height:12px;"></i>
+                                                        {{ o.num_matricula_fmt or '-' }}
+                                                    </span>
+                                                </td>
                                                 <td>{{ o.ano_aquisicao or '-' }}</td>
                                                 <td>{{ o.area_total_m2_fmt or '-' }}</td>
                                                 <td>{{ o.valor_imovel_fmt or '-' }}</td>
-                                                <td>{{ o.descricao_area or '-' }}</td>
+                                                <td style="white-space:nowrap;" onclick="event.stopPropagation()">
+                                                    <a href="{{ url_for('relatorio.relatorio_relgea_individual', familia='regularizadas', registro_id=o.id) }}"
+                                                       style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;background:#d1fae5;color:#065f46;border-radius:6px;font-size:0.7rem;font-weight:600;text-decoration:none;margin-right:4px;">
+                                                        <i data-lucide="file-text" style="width:11px;height:11px;"></i> Relatório
+                                                    </a>
+                                                    <a href="/assent/areas-parceladas/regularizadas/{{ o.id }}/editar"
+                                                       style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;background:#dbeafe;color:#1e40af;border-radius:6px;font-size:0.7rem;font-weight:600;text-decoration:none;margin-right:4px;">
+                                                        <i data-lucide="pencil" style="width:11px;height:11px;"></i> Editar
+                                                    </a>
+                                                    <form method="POST" action="/assent/areas-parceladas/regularizadas/{{ o.id }}/excluir"
+                                                          style="display:inline;" onsubmit="return confirm('Excluir este registro?')">
+                                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                        <button type="submit"
+                                                            style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;background:#fee2e2;color:#991b1b;border:none;border-radius:6px;font-size:0.7rem;font-weight:600;cursor:pointer;">
+                                                            <i data-lucide="trash-2" style="width:11px;height:11px;"></i> Excluir
+                                                        </button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                            <tr id="sub-p{{ o.id }}" class="detail-row" style="display:none;">
+                                                <td colspan="5">
+                                                    <div class="detail-grid" style="padding:12px 16px;">
+                                                        <div class="detail-item">
+                                                            <span class="detail-label">Matr. Parcelamento</span>
+                                                            <span class="detail-value">{{ o.matricula_parcelamento_fmt or '-' }}</span>
+                                                        </div>
+                                                        <div class="detail-item">
+                                                            <span class="detail-label">Reg. Loteamento</span>
+                                                            <span class="detail-value">
+                                                                {% set rl_o = o.registro_loteamento or '' %}
+                                                                {% if rl_o == 'SIM' %}
+                                                                    <span class="lote-sim">SIM</span>
+                                                                {% elif rl_o in ('NÃO', 'NAO') %}
+                                                                    <span class="lote-nao">NÃO</span>
+                                                                {% elif rl_o %}
+                                                                    <span class="lote-outro" title="{{ rl_o }}">{{ rl_o[:30] }}{% if rl_o|length > 30 %}…{% endif %}</span>
+                                                                {% else %}
+                                                                    -
+                                                                {% endif %}
+                                                            </span>
+                                                        </div>
+                                                        <div class="detail-item">
+                                                            <span class="detail-label">Reg. Propriedade</span>
+                                                            <span class="detail-value">{{ o.registro_propriedade or '-' }}</span>
+                                                        </div>
+                                                        <div class="detail-item">
+                                                            <span class="detail-label">Ocupação / Distrito</span>
+                                                            <span class="detail-value">{{ o.ocupacao or '-' }}</span>
+                                                        </div>
+                                                        <div class="detail-item detail-item-wide" style="grid-column: span 4;">
+                                                            <span class="detail-label">Descrição da Área</span>
+                                                            <span class="detail-value">{{ o.descricao_area or '-' }}</span>
+                                                        </div>
+                                                    </div>
+                                                </td>
                                             </tr>
                                             {% endfor %}
                                         </tbody>
