@@ -38,6 +38,8 @@
         .stat-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
         .stat-icon-green { background-color: #d1fae5; color: #065f46; }
         .stat-icon-red   { background-color: #fee2e2; color: #991b1b; }
+        .stat-icon-blue   { background-color: #dbeafe; color: #002b5c; }
+        .stat-icon-purple { background-color: #ede9fe; color: #4c1d95; }
         .stat-value { font-size: 1.4rem; font-weight: 800; color: #111827; }
         .stat-label { font-size: 0.78rem; color: #6b7280; font-weight: 500; }
 
@@ -185,6 +187,8 @@
                 'principal': principal,
                 'outros': outros,
                 'itens': items_list,
+                'area_total': area_ns.total,
+                'valor_total': valor_ns.total,
                 'area_total_exibida': area_total_exibida,
                 'valor_total_exibido': valor_total_exibido
             }) or '' }}
@@ -210,6 +214,20 @@
                 <div>
                     <div class="stat-value" id="stat-municipios">{{ grupos | map(attribute='municipio') | unique | list | length }}</div>
                     <div class="stat-label">Municípios</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon stat-icon-blue"><i data-lucide="ruler" style="width:22px;height:22px;"></i></div>
+                <div>
+                    <div class="stat-value" id="stat-area">{{ '{:,.0f}'.format(grupos | sum(attribute='area_total')).replace(',', '.') }} m²</div>
+                    <div class="stat-label">Área total</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon stat-icon-purple"><i data-lucide="landmark" style="width:22px;height:22px;"></i></div>
+                <div>
+                    <div class="stat-value" id="stat-valor" style="font-size:1rem;">{{ 'R$ {:,.2f}'.format(grupos | sum(attribute='valor_total')).replace(',', 'X').replace('.', ',').replace('X', '.') }}</div>
+                    <div class="stat-label">Valor total dos imóveis</div>
                 </div>
             </div>
         </div>
@@ -254,7 +272,7 @@
                     <tbody>
                         {% for grupo in grupos %}
                         {% set r = grupo.principal %}
-                        <tr class="data-row" data-municipio="{{ (r.municipio or '')|lower|trim }}" onclick="toggleDetalhe('p{{ r.id }}')">
+                        <tr class="data-row" data-municipio="{{ (r.municipio or '')|lower|trim }}" data-area="{{ grupo.area_total }}" data-valor="{{ grupo.valor_total }}" onclick="toggleDetalhe('p{{ r.id }}')">
                             <td class="col-fix col-fix-1">
                                 <span class="row-toggle">
                                     <i data-lucide="chevron-right" style="width:14px;height:14px;"></i>
@@ -452,7 +470,7 @@
                 }
                 const selecionados = marcados.map(function(c) { return c.value.toLowerCase(); });
                 const municipiosVisiveis = new Set();
-                let total = 0;
+                let total = 0, areaTotal = 0, valorTotal = 0;
 
                 document.querySelectorAll('.data-row:not(.sub-row)').forEach(function(row) {
                     const visivel = selecionados.length === 0 || selecionados.indexOf(row.dataset.municipio) !== -1;
@@ -461,11 +479,15 @@
                     if (visivel) {
                         total++;
                         if (row.dataset.municipio) municipiosVisiveis.add(row.dataset.municipio);
+                        areaTotal += parseFloat(row.dataset.area) || 0;
+                        valorTotal += parseFloat(row.dataset.valor) || 0;
                     }
                 });
 
                 document.getElementById('stat-total').textContent = total;
                 document.getElementById('stat-municipios').textContent = municipiosVisiveis.size;
+                document.getElementById('stat-area').textContent = Math.round(areaTotal).toLocaleString('pt-BR') + ' m²';
+                document.getElementById('stat-valor').textContent = 'R$ ' + valorTotal.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
             }
 
             btn.addEventListener('click', function(e) {
