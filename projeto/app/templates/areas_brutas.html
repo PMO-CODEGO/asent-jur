@@ -381,6 +381,7 @@
                             </tr>
                             <tr id="d{{ r.id }}" class="detail-row" style="display:none;">
                                 <td colspan="11">
+                                    {% if not multiplos %}
                                     <div class="detail-grid">
                                         <div class="detail-item">
                                             <span class="detail-label">Ano da Aquisição</span>
@@ -451,6 +452,7 @@
                                         </div>
                                         {% endif %}
                                     </div>
+                                    {% endif %}
 
                                     {% if multiplos %}
                                     <div class="sub-detail-wrap">
@@ -576,6 +578,7 @@
                             </tr>
                             <tr id="j{{ r.id }}" class="detail-row" style="display:none;">
                                 <td colspan="6">
+                                    {% if not multiplos %}
                                     <div class="detail-grid">
                                         <div class="detail-item">
                                             <span class="detail-label">Matrícula Parcelamento</span>
@@ -608,6 +611,7 @@
                                             <span class="detail-value">{{ r.descricao_area or '-' }}</span>
                                         </div>
                                     </div>
+                                    {% endif %}
 
                                     {% if multiplos %}
                                     <div class="sub-detail-wrap">
