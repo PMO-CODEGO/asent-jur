@@ -421,6 +421,10 @@
                                                 {% endif %}
                                             </span>
                                         </div>
+                                        <div class="detail-item">
+                                            <span class="detail-label">Matrícula do Parcelamento</span>
+                                            <span class="detail-value">{{ r.matricula_parcelamento_fmt or '-' }}</span>
+                                        </div>
                                         <div class="detail-item detail-item-wide">
                                             <span class="detail-label">Descrição</span>
                                             <span class="detail-value">{{ r.descricao_area or '-' }}</span>
@@ -432,6 +436,14 @@
                                         <div class="detail-item">
                                             <span class="detail-label">Loteamento</span>
                                             <span class="detail-value">{{ r.loteamento or '-' }}</span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="detail-label">Geo</span>
+                                            <span class="detail-value">{% if r.link_geo %}<a href="{{ r.link_geo }}" target="_blank">Ver</a>{% else %}-{% endif %}</span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="detail-label">Link da Matrícula</span>
+                                            <span class="detail-value">{% if r.link_matricula %}<a href="{{ r.link_matricula }}" target="_blank">Ver</a>{% else %}-{% endif %}</span>
                                         </div>
                                         {% if r.avaliacoes %}
                                         <div class="detail-item" style="grid-column: span 4; margin-top: 8px;">
@@ -482,15 +494,20 @@
                                             </thead>
                                             <tbody>
                                                 {% for o in grupo.itens %}
-                                                <tr>
-                                                    <td>{{ o.num_matricula_fmt or '-' }}</td>
+                                                <tr class="data-row" onclick="toggleDetalhe('sub-d{{ o.id }}')" style="cursor:pointer;">
+                                                    <td>
+                                                        <span class="row-toggle">
+                                                            <i data-lucide="chevron-right" style="width:12px;height:12px;"></i>
+                                                            {{ o.num_matricula_fmt or '-' }}
+                                                        </span>
+                                                    </td>
                                                     <td>{{ o.area_util_m2_fmt or '-' }}</td>
                                                     <td>{{ o.reserva_legal_m2_fmt or '-' }}</td>
                                                     <td>{{ o.area_total_m2_fmt or '-' }}</td>
                                                     <td>{{ 'R$ {:,.2f}'.format(o.ultima_aval_mercado).replace(',', 'X').replace('.', ',').replace('X', '.') if o.ultima_aval_mercado else '-' }}</td>
                                                     <td>{{ 'R$ {:,.2f}'.format(o.ultima_aval_subsidiado).replace(',', 'X').replace('.', ',').replace('X', '.') if o.ultima_aval_subsidiado else '-' }}</td>
                                                     <td>{{ o.numero_processo or '-' }}</td>
-                                                    <td style="white-space:nowrap;">
+                                                    <td style="white-space:nowrap;" onclick="event.stopPropagation()">
                                                         <a href="{{ url_for('areas_brutas.editar', familia='brutas', registro_id=o.id) }}" class="btn-action btn-edit">
                                                             <i data-lucide="pencil" style="width:11px;height:11px;"></i> Editar
                                                         </a>
@@ -502,6 +519,86 @@
                                                             <i data-lucide="trash-2" style="width:11px;height:11px;"></i> Excluir
                                                         </button>
                                                         {% endif %}
+                                                    </td>
+                                                </tr>
+                                                <tr id="sub-d{{ o.id }}" class="detail-row" style="display:none;">
+                                                    <td colspan="8">
+                                                        <div class="detail-grid" style="padding:12px 16px;">
+                                                            <div class="detail-item">
+                                                                <span class="detail-label">Ano da Aquisição</span>
+                                                                <span class="detail-value">{{ o.ano_aquisicao or '-' }}</span>
+                                                            </div>
+                                                            <div class="detail-item">
+                                                                <span class="detail-label">Valor do Imóvel — Aquisição</span>
+                                                                <span class="detail-value">
+                                                                    {% if o.valor_conjunto %}
+                                                                    <span class="valor-grupo" title="Valor compartilhado: {{ o.grupo or '' }}">
+                                                                        <i data-lucide="link-2" style="width:11px;height:11px;"></i>
+                                                                        {{ o.moeda_conjunto or 'R$' }} {{ '{:,.2f}'.format(o.valor_conjunto).replace(',', 'X').replace('.', ',').replace('X', '.') }}
+                                                                    </span>
+                                                                    {% else %}
+                                                                    {{ o.valor_imovel_fmt or o.valor_imovel or '-' }}
+                                                                    {% endif %}
+                                                                </span>
+                                                            </div>
+                                                            <div class="detail-item">
+                                                                <span class="detail-label">Tipo de Aquisição</span>
+                                                                <span class="detail-value">{{ o.tipo_aquisicao or '-' }}</span>
+                                                            </div>
+                                                            <div class="detail-item">
+                                                                <span class="detail-label">Subsídio</span>
+                                                                <span class="detail-value">{{ o.ocupacao_fmt or o.ocupacao or '-' }}</span>
+                                                            </div>
+                                                            <div class="detail-item">
+                                                                <span class="detail-label">Matrícula do Parcelamento</span>
+                                                                <span class="detail-value">{{ o.matricula_parcelamento_fmt or '-' }}</span>
+                                                            </div>
+                                                            <div class="detail-item">
+                                                                <span class="detail-label">Loteamento</span>
+                                                                <span class="detail-value">{{ o.loteamento or '-' }}</span>
+                                                            </div>
+                                                            <div class="detail-item">
+                                                                <span class="detail-label">Geo</span>
+                                                                <span class="detail-value">{% if o.link_geo %}<a href="{{ o.link_geo }}" target="_blank">Ver</a>{% else %}-{% endif %}</span>
+                                                            </div>
+                                                            <div class="detail-item">
+                                                                <span class="detail-label">Link da Matrícula</span>
+                                                                <span class="detail-value">{% if o.link_matricula %}<a href="{{ o.link_matricula }}" target="_blank">Ver</a>{% else %}-{% endif %}</span>
+                                                            </div>
+                                                            <div class="detail-item detail-item-wide">
+                                                                <span class="detail-label">Descrição</span>
+                                                                <span class="detail-value">{{ o.descricao_area or '-' }}</span>
+                                                            </div>
+                                                            <div class="detail-item detail-item-wide">
+                                                                <span class="detail-label">Registro de Propriedade</span>
+                                                                <span class="detail-value">{{ o.registro_propriedade or '-' }}</span>
+                                                            </div>
+                                                            {% if o.avaliacoes %}
+                                                            <div class="detail-item" style="grid-column: span 4; margin-top: 8px;">
+                                                                <span class="detail-label">Avaliações de Mercado</span>
+                                                                <div style="overflow-x:auto; margin-top:6px;">
+                                                                    <table style="border-collapse:collapse; font-size:0.78rem; width:100%;">
+                                                                        <thead>
+                                                                            <tr style="background:#e0e7ef;">
+                                                                                <th style="padding:3px 12px; text-align:left; font-weight:700; color:#002b5c; background:#e0e7ef; position:static;">Ano</th>
+                                                                                <th style="padding:3px 12px; text-align:right; font-weight:700; color:#002b5c; background:#e0e7ef; position:static;">V. Mercado</th>
+                                                                                <th style="padding:3px 12px; text-align:right; font-weight:700; color:#002b5c; background:#e0e7ef; position:static;">V. Subsidiado</th>
+                                                                            </tr>
+                                                                        </thead>
+                                                                        <tbody>
+                                                                            {% for av in o.avaliacoes %}
+                                                                            <tr style="border-bottom:1px solid #e5e7eb;">
+                                                                                <td style="padding:4px 12px; font-weight:600;">{{ av.ano }}</td>
+                                                                                <td style="padding:4px 12px; text-align:right; font-variant-numeric:tabular-nums;">{{ 'R$ {:,.2f}'.format(av.valor_mercado).replace(',','X').replace('.',',').replace('X','.') if av.valor_mercado else '-' }}</td>
+                                                                                <td style="padding:4px 12px; text-align:right; font-variant-numeric:tabular-nums;">{{ 'R$ {:,.2f}'.format(av.valor_subsidiado).replace(',','X').replace('.',',').replace('X','.') if av.valor_subsidiado else '-' }}</td>
+                                                                            </tr>
+                                                                            {% endfor %}
+                                                                        </tbody>
+                                                                    </table>
+                                                                </div>
+                                                            </div>
+                                                            {% endif %}
+                                                        </div>
                                                     </td>
                                                 </tr>
                                                 {% endfor %}
@@ -588,6 +685,18 @@
                                     {% if not multiplos %}
                                     <div class="detail-grid">
                                         <div class="detail-item">
+                                            <span class="detail-label">Ano da Aquisição</span>
+                                            <span class="detail-value">{{ r.ano_aquisicao or '-' }}</span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="detail-label">Valor do Imóvel — Aquisição</span>
+                                            <span class="detail-value">{{ r.valor_imovel_fmt or r.valor_imovel or '-' }}</span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="detail-label">Tipo de Aquisição</span>
+                                            <span class="detail-value">{{ r.tipo_aquisicao or '-' }}</span>
+                                        </div>
+                                        <div class="detail-item">
                                             <span class="detail-label">Matrícula Parcelamento</span>
                                             <span class="detail-value">{{ r.matricula_parcelamento_fmt or '-' }}</span>
                                         </div>
@@ -606,6 +715,10 @@
                                             <span class="detail-value">{{ r.numero_processo or '-' }}</span>
                                         </div>
                                         <div class="detail-item">
+                                            <span class="detail-label">Loteamento</span>
+                                            <span class="detail-value">{{ r.loteamento or '-' }}</span>
+                                        </div>
+                                        <div class="detail-item">
                                             <span class="detail-label">Geo</span>
                                             <span class="detail-value">{% if r.link_geo %}<a href="{{ r.link_geo }}" target="_blank">Ver</a>{% else %}-{% endif %}</span>
                                         </div>
@@ -617,6 +730,35 @@
                                             <span class="detail-label">Descrição</span>
                                             <span class="detail-value">{{ r.descricao_area or '-' }}</span>
                                         </div>
+                                        <div class="detail-item detail-item-wide">
+                                            <span class="detail-label">Registro de Propriedade</span>
+                                            <span class="detail-value">{{ r.registro_propriedade or '-' }}</span>
+                                        </div>
+                                        {% if r.avaliacoes %}
+                                        <div class="detail-item" style="grid-column: span 4; margin-top: 8px;">
+                                            <span class="detail-label">Avaliações de Mercado</span>
+                                            <div style="overflow-x:auto; margin-top:6px;">
+                                                <table style="border-collapse:collapse; font-size:0.78rem; width:100%;">
+                                                    <thead>
+                                                        <tr style="background:#e0e7ef;">
+                                                            <th style="padding:3px 12px; text-align:left; font-weight:700; color:#002b5c; background:#e0e7ef; position:static;">Ano</th>
+                                                            <th style="padding:3px 12px; text-align:right; font-weight:700; color:#002b5c; background:#e0e7ef; position:static;">V. Mercado</th>
+                                                            <th style="padding:3px 12px; text-align:right; font-weight:700; color:#002b5c; background:#e0e7ef; position:static;">V. Subsidiado</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {% for av in r.avaliacoes %}
+                                                        <tr style="border-bottom:1px solid #e5e7eb;">
+                                                            <td style="padding:4px 12px; font-weight:600;">{{ av.ano }}</td>
+                                                            <td style="padding:4px 12px; text-align:right; font-variant-numeric:tabular-nums;">{{ 'R$ {:,.2f}'.format(av.valor_mercado).replace(',','X').replace('.',',').replace('X','.') if av.valor_mercado else '-' }}</td>
+                                                            <td style="padding:4px 12px; text-align:right; font-variant-numeric:tabular-nums;">{{ 'R$ {:,.2f}'.format(av.valor_subsidiado).replace(',','X').replace('.',',').replace('X','.') if av.valor_subsidiado else '-' }}</td>
+                                                        </tr>
+                                                        {% endfor %}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                        {% endif %}
                                     </div>
                                     {% endif %}
 
@@ -639,13 +781,18 @@
                                             </thead>
                                             <tbody>
                                                 {% for o in grupo.itens %}
-                                                <tr>
-                                                    <td>{{ o.num_matricula_fmt or '-' }}</td>
+                                                <tr class="data-row" onclick="toggleDetalhe('sub-j{{ o.id }}')" style="cursor:pointer;">
+                                                    <td>
+                                                        <span class="row-toggle">
+                                                            <i data-lucide="chevron-right" style="width:12px;height:12px;"></i>
+                                                            {{ o.num_matricula_fmt or '-' }}
+                                                        </span>
+                                                    </td>
                                                     <td>{{ o.area_total_m2_fmt or '-' }}</td>
                                                     <td>{{ 'R$ {:,.2f}'.format(o.ultima_aval_mercado).replace(',', 'X').replace('.', ',').replace('X', '.') if o.ultima_aval_mercado else '-' }}</td>
                                                     <td>{{ 'R$ {:,.2f}'.format(o.ultima_aval_subsidiado).replace(',', 'X').replace('.', ',').replace('X', '.') if o.ultima_aval_subsidiado else '-' }}</td>
                                                     <td>{{ o.numero_processo or '-' }}</td>
-                                                    <td style="white-space:nowrap;">
+                                                    <td style="white-space:nowrap;" onclick="event.stopPropagation()">
                                                         <a href="{{ url_for('areas_brutas.editar', familia='judicial', registro_id=o.id) }}" class="btn-action btn-edit">
                                                             <i data-lucide="pencil" style="width:11px;height:11px;"></i> Editar
                                                         </a>
@@ -657,6 +804,77 @@
                                                             <i data-lucide="trash-2" style="width:11px;height:11px;"></i> Excluir
                                                         </button>
                                                         {% endif %}
+                                                    </td>
+                                                </tr>
+                                                <tr id="sub-j{{ o.id }}" class="detail-row" style="display:none;">
+                                                    <td colspan="6">
+                                                        <div class="detail-grid" style="padding:12px 16px;">
+                                                            <div class="detail-item">
+                                                                <span class="detail-label">Ano da Aquisição</span>
+                                                                <span class="detail-value">{{ o.ano_aquisicao or '-' }}</span>
+                                                            </div>
+                                                            <div class="detail-item">
+                                                                <span class="detail-label">Valor do Imóvel — Aquisição</span>
+                                                                <span class="detail-value">{{ o.valor_imovel_fmt or o.valor_imovel or '-' }}</span>
+                                                            </div>
+                                                            <div class="detail-item">
+                                                                <span class="detail-label">Tipo de Aquisição</span>
+                                                                <span class="detail-value">{{ o.tipo_aquisicao or '-' }}</span>
+                                                            </div>
+                                                            <div class="detail-item">
+                                                                <span class="detail-label">Matrícula Parcelamento</span>
+                                                                <span class="detail-value">{{ o.matricula_parcelamento_fmt or '-' }}</span>
+                                                            </div>
+                                                            <div class="detail-item">
+                                                                <span class="detail-label">Subsídio</span>
+                                                                <span class="detail-value">{{ o.ocupacao_fmt or o.ocupacao or '-' }}</span>
+                                                            </div>
+                                                            <div class="detail-item">
+                                                                <span class="detail-label">Loteamento</span>
+                                                                <span class="detail-value">{{ o.loteamento or '-' }}</span>
+                                                            </div>
+                                                            <div class="detail-item">
+                                                                <span class="detail-label">Geo</span>
+                                                                <span class="detail-value">{% if o.link_geo %}<a href="{{ o.link_geo }}" target="_blank">Ver</a>{% else %}-{% endif %}</span>
+                                                            </div>
+                                                            <div class="detail-item">
+                                                                <span class="detail-label">Link da Matrícula</span>
+                                                                <span class="detail-value">{% if o.link_matricula %}<a href="{{ o.link_matricula }}" target="_blank">Ver</a>{% else %}-{% endif %}</span>
+                                                            </div>
+                                                            <div class="detail-item detail-item-wide">
+                                                                <span class="detail-label">Descrição</span>
+                                                                <span class="detail-value">{{ o.descricao_area or '-' }}</span>
+                                                            </div>
+                                                            <div class="detail-item detail-item-wide">
+                                                                <span class="detail-label">Registro de Propriedade</span>
+                                                                <span class="detail-value">{{ o.registro_propriedade or '-' }}</span>
+                                                            </div>
+                                                            {% if o.avaliacoes %}
+                                                            <div class="detail-item" style="grid-column: span 4; margin-top: 8px;">
+                                                                <span class="detail-label">Avaliações de Mercado</span>
+                                                                <div style="overflow-x:auto; margin-top:6px;">
+                                                                    <table style="border-collapse:collapse; font-size:0.78rem; width:100%;">
+                                                                        <thead>
+                                                                            <tr style="background:#e0e7ef;">
+                                                                                <th style="padding:3px 12px; text-align:left; font-weight:700; color:#002b5c; background:#e0e7ef; position:static;">Ano</th>
+                                                                                <th style="padding:3px 12px; text-align:right; font-weight:700; color:#002b5c; background:#e0e7ef; position:static;">V. Mercado</th>
+                                                                                <th style="padding:3px 12px; text-align:right; font-weight:700; color:#002b5c; background:#e0e7ef; position:static;">V. Subsidiado</th>
+                                                                            </tr>
+                                                                        </thead>
+                                                                        <tbody>
+                                                                            {% for av in o.avaliacoes %}
+                                                                            <tr style="border-bottom:1px solid #e5e7eb;">
+                                                                                <td style="padding:4px 12px; font-weight:600;">{{ av.ano }}</td>
+                                                                                <td style="padding:4px 12px; text-align:right; font-variant-numeric:tabular-nums;">{{ 'R$ {:,.2f}'.format(av.valor_mercado).replace(',','X').replace('.',',').replace('X','.') if av.valor_mercado else '-' }}</td>
+                                                                                <td style="padding:4px 12px; text-align:right; font-variant-numeric:tabular-nums;">{{ 'R$ {:,.2f}'.format(av.valor_subsidiado).replace(',','X').replace('.',',').replace('X','.') if av.valor_subsidiado else '-' }}</td>
+                                                                            </tr>
+                                                                            {% endfor %}
+                                                                        </tbody>
+                                                                    </table>
+                                                                </div>
+                                                            </div>
+                                                            {% endif %}
+                                                        </div>
                                                     </td>
                                                 </tr>
                                                 {% endfor %}
