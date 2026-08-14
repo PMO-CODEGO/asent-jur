@@ -286,6 +286,7 @@
                         </tr>
                         <tr id="p{{ r.id }}" class="detail-row" style="display:none;">
                             <td colspan="6">
+                                {% if grupo.itens|length == 1 %}
                                 <div class="detail-grid">
                                     <div class="detail-item">
                                         <span class="detail-label">Matr. Parcelamento</span>
@@ -319,6 +320,7 @@
                                         <span class="detail-value">{{ r.descricao_area or '-' }}</span>
                                     </div>
                                 </div>
+                                {% endif %}
 
                                 {% if grupo.itens and grupo.itens|length > 1 %}
                                 <div class="sub-detail-wrap">
