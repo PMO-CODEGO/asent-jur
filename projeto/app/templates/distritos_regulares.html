@@ -441,6 +441,62 @@
     <script>
         lucide.createIcons();
 
+        // Mapa de correção de acentuação dos municípios (chave sem acento -> nome correto)
+        const CORRECOES_MUNICIPIO = {
+            'ABADIANIA': 'ABADIÂNIA',
+            'ANAPOLIS': 'ANÁPOLIS',
+            'APARECIDA DE GOIANIA': 'APARECIDA DE GOIÂNIA',
+            'BELA VISTA DE GOIAS': 'BELA VISTA DE GOIÁS',
+            'CATALAO': 'CATALÃO',
+            'GOIANESIA': 'GOIANÉSIA',
+            'GOIAS': 'GOIÁS',
+            'LUZIANIA': 'LUZIÂNIA',
+            'SAO LUIZ DO NORTE': 'SÃO LUIZ DO NORTE',
+            'URUACU': 'URUAÇU',
+            'CAMPO LIMPO DE GOIAS': 'CAMPO LIMPO DE GOIÁS',
+            'IPORA': 'IPORÁ',
+            'PETROLINA DE GOIAS': 'PETROLINA DE GOIÁS',
+            'PIRENOPOLIS': 'PIRENÓPOLIS', 
+           'SAO MIGUEL DO ARAGUAIA': 'SÃO MIGUEL DO ARAGUAIA' 
+        };
+
+        function normalizarSemAcento(str) {
+            return (str || '')
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .toUpperCase()
+                .trim();
+        }
+
+        function corrigirMunicipio(nome) {
+            const chave = normalizarSemAcento(nome);
+            return CORRECOES_MUNICIPIO[chave] || nome;
+        }
+
+        function aplicarCorrecoesAcentuacao() {
+            // Badges na tabela
+            document.querySelectorAll('.municipio-badge').forEach(function (el) {
+                el.textContent = corrigirMunicipio(el.textContent);
+            });
+
+            // Atualiza o data-municipio (usado no filtro) para casar com o valor corrigido em minúsculas
+            document.querySelectorAll('.data-row:not(.sub-row)').forEach(function (row) {
+                const corrigido = corrigirMunicipio(row.dataset.municipio);
+                row.dataset.municipio = corrigido.toLowerCase().trim();
+            });
+
+            // Opções do filtro (checkbox + texto)
+            document.querySelectorAll('#filtro-municipio-panel .ms-filter-option').forEach(function (label) {
+                const input = label.querySelector('input[type="checkbox"]');
+                const span = label.querySelector('span');
+                const corrigido = corrigirMunicipio(input.value);
+                input.value = corrigido;
+                span.textContent = corrigido;
+            });
+        }
+
+        aplicarCorrecoesAcentuacao();
+
         function toggleDetalhe(id) {
             const row = document.getElementById(id);
             const dataRow = row.previousElementSibling;
