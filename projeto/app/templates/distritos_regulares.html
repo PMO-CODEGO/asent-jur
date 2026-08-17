@@ -266,7 +266,6 @@
                             <th>Ano Aquis.</th>
                             <th>Área Total (m²)</th>
                             <th>Valor do Imóvel</th>
-                            <th>Ações</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -283,28 +282,28 @@
                             <td>{{ r.ano_aquisicao or '-' }}</td>
                             <td>{{ grupo.area_total_exibida }}</td>
                             <td>{{ grupo.valor_total_exibido }}</td>
-                            <td style="white-space:nowrap;" onclick="event.stopPropagation()">
-                                <a href="{{ url_for('relatorio.relatorio_relgea_individual', familia='regularizadas', registro_id=r.id) }}"
-                                   style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:#d1fae5;color:#065f46;border-radius:6px;font-size:0.72rem;font-weight:600;text-decoration:none;margin-right:4px;">
-                                    <i data-lucide="file-text" style="width:12px;height:12px;"></i> Relatório
-                                </a>
-                                <a href="/assent/areas-parceladas/regularizadas/{{ r.id }}/editar"
-                                   style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:#dbeafe;color:#1e40af;border-radius:6px;font-size:0.72rem;font-weight:600;text-decoration:none;margin-right:4px;">
-                                    <i data-lucide="pencil" style="width:12px;height:12px;"></i> Editar
-                                </a>
-                                <form method="POST" action="/assent/areas-parceladas/regularizadas/{{ r.id }}/excluir"
-                                      style="display:inline;" onsubmit="return confirm('Excluir este registro?')">
-                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                    <button type="submit"
-                                        style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:#fee2e2;color:#991b1b;border:none;border-radius:6px;font-size:0.72rem;font-weight:600;cursor:pointer;">
-                                        <i data-lucide="trash-2" style="width:12px;height:12px;"></i> Excluir
-                                    </button>
-                                </form>
-                            </td>
                         </tr>
                         <tr id="p{{ r.id }}" class="detail-row" style="display:none;">
-                            <td colspan="6">
+                            <td colspan="5">
                                 {% if grupo.itens|length == 1 %}
+                                <div style="padding:14px 24px 0;" onclick="event.stopPropagation()">
+                                    <a href="{{ url_for('relatorio.relatorio_relgea_individual', familia='regularizadas', registro_id=r.id) }}"
+                                       style="display:inline-flex;align-items:center;gap:4px;padding:5px 12px;background:#d1fae5;color:#065f46;border-radius:6px;font-size:0.78rem;font-weight:600;text-decoration:none;margin-right:6px;">
+                                        <i data-lucide="file-text" style="width:13px;height:13px;"></i> Relatório
+                                    </a>
+                                    <a href="/assent/areas-parceladas/regularizadas/{{ r.id }}/editar"
+                                       style="display:inline-flex;align-items:center;gap:4px;padding:5px 12px;background:#dbeafe;color:#1e40af;border-radius:6px;font-size:0.78rem;font-weight:600;text-decoration:none;margin-right:6px;">
+                                        <i data-lucide="pencil" style="width:13px;height:13px;"></i> Editar
+                                    </a>
+                                    <form method="POST" action="/assent/areas-parceladas/regularizadas/{{ r.id }}/excluir"
+                                          style="display:inline;" onsubmit="return confirm('Excluir este registro?')">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit"
+                                            style="display:inline-flex;align-items:center;gap:4px;padding:5px 12px;background:#fee2e2;color:#991b1b;border:none;border-radius:6px;font-size:0.78rem;font-weight:600;cursor:pointer;">
+                                            <i data-lucide="trash-2" style="width:13px;height:13px;"></i> Excluir
+                                        </button>
+                                    </form>
+                                </div>
                                 <div class="detail-grid">
                                     <div class="detail-item">
                                         <span class="detail-label">Matr. Parcelamento</span>
@@ -353,7 +352,6 @@
                                                 <th>Ano de Aquisição</th>
                                                 <th>Área Total (m²)</th>
                                                 <th>Valor do Imóvel (R$)</th>
-                                                <th>Ações</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -368,27 +366,27 @@
                                                 <td>{{ o.ano_aquisicao or '-' }}</td>
                                                 <td>{{ o.area_total_m2_fmt or '-' }}</td>
                                                 <td>{{ o.valor_imovel_fmt or '-' }}</td>
-                                                <td style="white-space:nowrap;" onclick="event.stopPropagation()">
-                                                    <a href="{{ url_for('relatorio.relatorio_relgea_individual', familia='regularizadas', registro_id=o.id) }}"
-                                                       style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;background:#d1fae5;color:#065f46;border-radius:6px;font-size:0.7rem;font-weight:600;text-decoration:none;margin-right:4px;">
-                                                        <i data-lucide="file-text" style="width:11px;height:11px;"></i> Relatório
-                                                    </a>
-                                                    <a href="/assent/areas-parceladas/regularizadas/{{ o.id }}/editar"
-                                                       style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;background:#dbeafe;color:#1e40af;border-radius:6px;font-size:0.7rem;font-weight:600;text-decoration:none;margin-right:4px;">
-                                                        <i data-lucide="pencil" style="width:11px;height:11px;"></i> Editar
-                                                    </a>
-                                                    <form method="POST" action="/assent/areas-parceladas/regularizadas/{{ o.id }}/excluir"
-                                                          style="display:inline;" onsubmit="return confirm('Excluir este registro?')">
-                                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                                        <button type="submit"
-                                                            style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;background:#fee2e2;color:#991b1b;border:none;border-radius:6px;font-size:0.7rem;font-weight:600;cursor:pointer;">
-                                                            <i data-lucide="trash-2" style="width:11px;height:11px;"></i> Excluir
-                                                        </button>
-                                                    </form>
-                                                </td>
                                             </tr>
                                             <tr id="sub-p{{ o.id }}" class="detail-row" style="display:none;">
-                                                <td colspan="5">
+                                                <td colspan="4">
+                                                    <div style="padding:12px 16px 0;" onclick="event.stopPropagation()">
+                                                        <a href="{{ url_for('relatorio.relatorio_relgea_individual', familia='regularizadas', registro_id=o.id) }}"
+                                                           style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:#d1fae5;color:#065f46;border-radius:6px;font-size:0.72rem;font-weight:600;text-decoration:none;margin-right:5px;">
+                                                            <i data-lucide="file-text" style="width:12px;height:12px;"></i> Relatório
+                                                        </a>
+                                                        <a href="/assent/areas-parceladas/regularizadas/{{ o.id }}/editar"
+                                                           style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:#dbeafe;color:#1e40af;border-radius:6px;font-size:0.72rem;font-weight:600;text-decoration:none;margin-right:5px;">
+                                                            <i data-lucide="pencil" style="width:12px;height:12px;"></i> Editar
+                                                        </a>
+                                                        <form method="POST" action="/assent/areas-parceladas/regularizadas/{{ o.id }}/excluir"
+                                                              style="display:inline;" onsubmit="return confirm('Excluir este registro?')">
+                                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                            <button type="submit"
+                                                                style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:#fee2e2;color:#991b1b;border:none;border-radius:6px;font-size:0.72rem;font-weight:600;cursor:pointer;">
+                                                                <i data-lucide="trash-2" style="width:12px;height:12px;"></i> Excluir
+                                                            </button>
+                                                        </form>
+                                                    </div>
                                                     <div class="detail-grid" style="padding:12px 16px;">
                                                         <div class="detail-item">
                                                             <span class="detail-label">Matr. Parcelamento</span>
@@ -432,7 +430,7 @@
                             </td>
                         </tr>
                         {% else %}
-                        <tr><td colspan="6" class="empty">Nenhum registro encontrado.</td></tr>
+                        <tr><td colspan="5" class="empty">Nenhum registro encontrado.</td></tr>
                         {% endfor %}
                     </tbody>
                 </table>
