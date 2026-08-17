@@ -228,29 +228,6 @@
                         </tr>
                         <tr id="m{{ r.id }}" class="detail-row" style="display:none;">
                             <td colspan="5">
-                                <div style="padding:14px 24px 0;" onclick="event.stopPropagation()">
-                                    <a href="{{ url_for('cadastro_modulos.editar', registro_id=r.id) }}"
-                                       style="display:inline-flex;align-items:center;gap:4px;padding:5px 12px;background:#eff6ff;color:#1e40af;border-radius:6px;font-size:0.78rem;font-weight:600;text-decoration:none;margin-right:6px;">
-                                        <i data-lucide="pencil" style="width:13px;height:13px;"></i> Editar
-                                    </a>
-                                    <form method="POST" action="{{ url_for('relatorio.relatorios', modo='assent') }}"
-                                          style="display:inline;" target="_blank">
-                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                        <input type="hidden" name="empresa" value="{{ r.id }}">
-                                        <button type="submit"
-                                            style="display:inline-flex;align-items:center;gap:4px;padding:5px 12px;background:#d1fae5;color:#065f46;border:none;border-radius:6px;font-size:0.78rem;font-weight:600;cursor:pointer;margin-right:6px;">
-                                            <i data-lucide="file-text" style="width:13px;height:13px;"></i> PDF
-                                        </button>
-                                    </form>
-                                    <form method="POST" action="{{ url_for('cadastro_modulos.excluir', registro_id=r.id) }}"
-                                          style="display:inline;" onsubmit="return confirm('Excluir este módulo?')">
-                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                        <button type="submit"
-                                            style="display:inline-flex;align-items:center;gap:4px;padding:5px 12px;background:#fee2e2;color:#991b1b;border:none;border-radius:6px;font-size:0.78rem;font-weight:600;cursor:pointer;">
-                                            <i data-lucide="trash-2" style="width:13px;height:13px;"></i> Excluir
-                                        </button>
-                                    </form>
-                                </div>
                                 <div class="detail-grid">
                                     <div class="detail-item">
                                         <span class="detail-label">Distrito</span>
@@ -292,6 +269,29 @@
                                         <span class="detail-label">Data Escrituração</span>
                                         <span class="detail-value">{{ r.data_escrituracao or '-' }}</span>
                                     </div>
+                                </div>
+                                <div style="padding:14px 24px;" onclick="event.stopPropagation()">
+                                    <a href="{{ url_for('cadastro_modulos.editar', registro_id=r.id) }}"
+                                       style="display:inline-flex;align-items:center;gap:4px;padding:5px 12px;background:#eff6ff;color:#1e40af;border-radius:6px;font-size:0.78rem;font-weight:600;text-decoration:none;margin-right:6px;">
+                                        <i data-lucide="pencil" style="width:13px;height:13px;"></i> Editar
+                                    </a>
+                                    <form method="POST" action="{{ url_for('relatorio.relatorios', modo='assent') }}"
+                                          style="display:inline;" target="_blank">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <input type="hidden" name="empresa" value="{{ r.id }}">
+                                        <button type="submit"
+                                            style="display:inline-flex;align-items:center;gap:4px;padding:5px 12px;background:#d1fae5;color:#065f46;border:none;border-radius:6px;font-size:0.78rem;font-weight:600;cursor:pointer;margin-right:6px;">
+                                            <i data-lucide="file-text" style="width:13px;height:13px;"></i> PDF
+                                        </button>
+                                    </form>
+                                    <form method="POST" action="{{ url_for('cadastro_modulos.excluir', registro_id=r.id) }}"
+                                          style="display:inline;" onsubmit="return confirm('Excluir este módulo?')">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit"
+                                            style="display:inline-flex;align-items:center;gap:4px;padding:5px 12px;background:#fee2e2;color:#991b1b;border:none;border-radius:6px;font-size:0.78rem;font-weight:600;cursor:pointer;">
+                                            <i data-lucide="trash-2" style="width:13px;height:13px;"></i> Excluir
+                                        </button>
+                                    </form>
                                 </div>
                             </td>
                         </tr>
