@@ -398,5 +398,16 @@ def distrito_detalhe(slug):
 @dashboard_bp.route('/menu/<modo>')
 @role_required('assent', 'jur', 'admin','assent_gestor','jur_gestor')
 def menu(modo):
-    return render_template('menu_jur.html')
+    from app.db import get_db
+    with get_db() as db:
+        with db.cursor(dictionary=True) as cursor:
+            cursor.execute("""
+                SELECT id, numero_processo, titulo, tipo_acao, tipo_processo, tribunal,
+                       vara, comarca, valor_da_causa, status, fase, data_criacao,
+                       assunto_judicial, recurso_acionado, tipo_recurso, descricao
+                FROM processos
+                ORDER BY numero_processo
+            """)
+            processos = cursor.fetchall()
+    return render_template('menu_jur.html', processos=processos)
 
