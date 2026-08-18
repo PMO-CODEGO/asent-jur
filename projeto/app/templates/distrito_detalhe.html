@@ -185,6 +185,23 @@
 
         {% set pode_editar_perimetros = session.get('role') in ['assent', 'admin', 'assent_gestor'] %}
         <div class="split-row">
+        <div class="map-placeholder split-col">
+            <div class="map-placeholder-header">
+                <h2>
+                    <i data-lucide="map" style="width:16px;height:16px;"></i>
+                    Mapa Detalhado do Distrito
+                </h2>
+                <span class="badge-em-breve">Em breve</span>
+            </div>
+            <div class="map-area">
+                <div class="map-area-icon">
+                    <i data-lucide="map-pin" style="width:28px;height:28px;color:#94a3b8;"></i>
+                </div>
+                <p>Mapa detalhado em desenvolvimento</p>
+                <span>Esta seção será preenchida em breve com o mapa interativo do distrito</span>
+            </div>
+        </div>
+
         {% if slug == 'daia' %}
         <div class="map-placeholder split-col">
             <div class="map-placeholder-header">
@@ -252,23 +269,6 @@
             </div>
         </div>
         {% endif %}
-
-        <div class="map-placeholder split-col">
-            <div class="map-placeholder-header">
-                <h2>
-                    <i data-lucide="map" style="width:16px;height:16px;"></i>
-                    Mapa Detalhado do Distrito
-                </h2>
-                <span class="badge-em-breve">Em breve</span>
-            </div>
-            <div class="map-area">
-                <div class="map-area-icon">
-                    <i data-lucide="map-pin" style="width:28px;height:28px;color:#94a3b8;"></i>
-                </div>
-                <p>Mapa detalhado em desenvolvimento</p>
-                <span>Esta seção será preenchida em breve com o mapa interativo do distrito</span>
-            </div>
-        </div>
         </div>
     </div>
 
