@@ -53,10 +53,23 @@
         .map-placeholder-header { padding: 16px 22px; border-bottom: 1px solid #f3f4f6; display: flex; align-items: center; justify-content: space-between; }
         .map-placeholder-header h2 { font-size: 1rem; font-weight: 700; color: #002b5c; display: flex; align-items: center; gap: 8px; }
         .badge-em-breve { background-color: #fef3c7; color: #92400e; font-size: 0.68rem; font-weight: 700; padding: 3px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.04em; }
+        .badge-count { background-color: #d1fae5; color: #065f46; font-size: 0.68rem; font-weight: 700; padding: 3px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.04em; }
         .map-area { height: 320px; background: linear-gradient(135deg, #e8edf5 0%, #d1daea 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; color: #94a3b8; }
         .map-area-icon { width: 60px; height: 60px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         .map-area p { font-size: 0.88rem; font-weight: 600; color: #64748b; }
         .map-area span { font-size: 0.78rem; color: #94a3b8; }
+
+        .perimetros-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+        .perimetros-table thead tr { background-color: #002b5c; color: white; }
+        .perimetros-table thead th { padding: 10px 16px; text-align: left; font-weight: 600; font-size: 0.72rem; letter-spacing: 0.03em; text-transform: uppercase; white-space: nowrap; }
+        .perimetros-table tbody tr { border-bottom: 1px solid #f3f4f6; }
+        .perimetros-table tbody tr:last-child { border-bottom: none; }
+        .perimetros-table tbody tr:hover { background-color: #f8faff; }
+        .perimetros-table td { padding: 10px 16px; color: #374151; vertical-align: middle; }
+        .perimetros-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
+        .status-badge { display: inline-block; border-radius: 6px; padding: 2px 10px; font-size: 0.72rem; font-weight: 700; white-space: nowrap; }
+        .status-livre { background-color: #d1fae5; color: #065f46; }
+        .status-ocupado { background-color: #fee2e2; color: #991b1b; }
 
         @media (max-width: 768px) {
             .page-body { padding: 16px; }
@@ -141,6 +154,48 @@
                 <p>{{ tipo_label }}</p>
             </div>
         </div>
+
+        {% if perimetros %}
+        <div class="map-placeholder" style="margin-bottom: 20px;">
+            <div class="map-placeholder-header">
+                <h2>
+                    <i data-lucide="layout-grid" style="width:16px;height:16px;"></i>
+                    Perímetros e Áreas Mapeadas
+                </h2>
+                <span class="badge-count">{{ perimetros|length }} {{ 'área' if perimetros|length == 1 else 'áreas' }}</span>
+            </div>
+            <div style="overflow-x:auto;">
+                <table class="perimetros-table">
+                    <thead>
+                        <tr>
+                            <th>Perímetro</th>
+                            <th>Área</th>
+                            <th>Coordenadas</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in perimetros %}
+                        <tr>
+                            <td>{{ p.perimetro or '-' }}</td>
+                            <td class="num">{{ p.area or '-' }}</td>
+                            <td>{{ p.coordenadas or '-' }}</td>
+                            <td>
+                                {% if p.status == 'Livre' %}
+                                <span class="status-badge status-livre">Livre</span>
+                                {% elif p.status == 'Ocupado' %}
+                                <span class="status-badge status-ocupado">Ocupado</span>
+                                {% else %}
+                                -
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
 
         <div class="map-placeholder">
             <div class="map-placeholder-header">

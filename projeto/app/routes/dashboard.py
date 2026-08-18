@@ -393,7 +393,16 @@ def distrito_detalhe(slug):
     if not distrito:
         abort(404)
     tipo_label = TIPO_LABELS.get(distrito['tipo'], distrito['tipo'])
-    return render_template('distrito_detalhe.html', distrito=distrito, slug=slug, tipo_label=tipo_label)
+
+    perimetros = None
+    if slug == 'daia':
+        from app.db import get_db
+        with get_db() as db:
+            with db.cursor(dictionary=True) as cursor:
+                cursor.execute("SELECT id, perimetro, area, coordenadas, status FROM mapas_interativo_anapolis ORDER BY id")
+                perimetros = cursor.fetchall()
+
+    return render_template('distrito_detalhe.html', distrito=distrito, slug=slug, tipo_label=tipo_label, perimetros=perimetros)
 
 @dashboard_bp.route('/menu/<modo>')
 @role_required('assent', 'jur', 'admin','assent_gestor','jur_gestor')
