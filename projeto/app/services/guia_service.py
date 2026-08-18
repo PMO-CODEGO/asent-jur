@@ -108,7 +108,7 @@ GUIA_CONTEUDO = {
         'titulo': 'sobre o Mapa de Distritos',
         'pose': 'apontando_mapa',
         'dicas': [
-            'Clica num distrito que eu te levo pros detalhes dele, com opção de baixar o relatório RELGEA.',
+            'Clica num distrito que eu te levo pros detalhes dele, com opção de baixar o relatório.',
             'Usa o filtro de município ali no canto pra achar mais rápido o distrito que você procura.',
         ],
     },
@@ -116,7 +116,7 @@ GUIA_CONTEUDO = {
         'titulo': 'sobre este distrito',
         'pose': 'thumbs_phone',
         'dicas': [
-            'Clicando em "Baixar Relatório RELGEA" eu monto um PDF com todas as empresas cadastradas nesse distrito.',
+            'Clicando em "Baixar Relatório" eu monto um PDF com todas as empresas cadastradas nesse distrito.',
             'Se ainda não tiver nenhum registro aqui, esse relatório não vai ser gerado — é só aguardar o cadastro.',
         ],
     },
