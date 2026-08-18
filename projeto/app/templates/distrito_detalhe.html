@@ -1,496 +1,169 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ distrito.nome }} — Distritos Industriais de Goiás</title>
     <link rel="shortcut icon" href="{{ url_for('static', filename='imagens_empresas/asentjur.png') }}" type="image/png">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
 
     <style>
-        :root {
-            --sidebar-bg: #ffffff;
-            --accent-blue: #002b5c;
-            --button-blue: #7a97bb;
-            --text-white: #ffffff;
-            --logout-red: #ef4444;
-            --logout-red-hover: #dc2626;
-            --admin-amber: #f59e0b;
-            --cor-agroindustrial: #002b5c;
-            --cor-industrial: #2563eb;
-            --cor-tecnologico: #059669;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body, html { height: 100%; font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
 
-        body, html {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
-        }
+        .topbar { background-color: #002b5c; color: white; padding: 0 32px; height: 68px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); position: sticky; top: 0; z-index: 100; }
+        .topbar-left { display: flex; align-items: center; gap: 16px; }
+        .topbar img { height: 56px; }
+        .topbar-title { font-size: 1rem; font-weight: 600; opacity: 0.9; }
+        .topbar-actions { display: flex; gap: 10px; align-items: center; }
+        .btn-topbar { text-decoration: none; padding: 9px 18px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; display: flex; align-items: center; gap: 7px; transition: background-color 0.18s ease, transform 0.18s ease; color: white; }
+        .btn-back { background-color: #4b5563; }
+        .btn-back:hover { background-color: #374151; transform: translateY(-1px); }
+        .btn-logs { background-color: #f59e0b; color: #1a202c; }
+        .btn-logs:hover { background-color: #d97706; transform: translateY(-1px); }
+        .btn-logout { background-color: #ef4444; }
+        .btn-logout:hover { background-color: #dc2626; transform: translateY(-1px); }
 
-        .wrapper {
-            display: flex;
-            min-height: 100vh;
-        }
+        .page-body { padding: 32px; max-width: 1600px; margin: 0 auto; }
 
-        /* ── Sidebar ── */
-        .sidebar {
-            width: 230px;
-            min-width: 230px;
-            background-color: var(--sidebar-bg);
-            border-right: 1px solid #ddd;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 20px;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.05);
-            z-index: 10;
-        }
-
-        .logo-container { margin-bottom: 30px; text-align: center; }
-        .logo-link { display: inline-block; cursor: pointer; }
-        .logo-container img { width: 200px; display: block; }
-
-        .nav-menu {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-                .nav-button {
-            background-color: var(--button-blue);
-            color: white;
-            text-decoration: none;
-            padding: 13px 16px;
-            border-radius: 10px;
-            font-size: 13px;
-            font-weight: 600;
-            text-align: left;
-            transition: all 0.25s ease;
-            border: none;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            letter-spacing: 0.01em;
-        }
-
-        .nav-button svg {
-            flex-shrink: 0;
-            opacity: 0.9;
-        }
-
-        .nav-button:hover {
-            background-color: var(--accent-blue);
-            transform: translateX(6px);
-            box-shadow: 0 4px 12px rgba(0,43,92,0.25);
-        }
-        .nav-button.active { background-color: var(--accent-blue); }
-
-        /* ── Main ── */
-        .main-content {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .topbar {
-            background-color: var(--accent-blue);
-            color: var(--text-white);
-            padding: 15px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            height: 70px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            flex-shrink: 0;
-        }
-
-        .topbar-actions { display: flex; gap: 12px; align-items: center; }
-
-        .welcome-text {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: var(--text-white);
-        }
-
-        .welcome-text span { font-weight: 400; opacity: 0.85; }
-
-        .btn-topbar {
-            text-decoration: none;
-            padding: 10px 22px;
-            border-radius: 10px;
-            font-weight: 600;
-            font-size: 0.875rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.2);
-            border: 2px solid rgba(255,255,255,0.1);
-            color: white;
-        }
-
-        .btn-logout { background-color: var(--logout-red); }
-        .btn-logout:hover { background-color: var(--logout-red-hover); transform: translateY(-2px); }
-
-        /* ── Conteúdo da página ── */
-        .page-body {
-            padding: 40px 48px;
-            flex-grow: 1;
-        }
-
-        /* Breadcrumb */
-        .breadcrumb {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 13px;
-            color: #6b7280;
-            margin-bottom: 28px;
-        }
-
-        .breadcrumb a {
-            color: var(--accent-blue);
-            text-decoration: none;
-            font-weight: 600;
-        }
-
+        .breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: #6b7280; margin-bottom: 20px; }
+        .breadcrumb a { color: #002b5c; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
         .breadcrumb a:hover { text-decoration: underline; }
         .breadcrumb-sep { color: #d1d5db; }
 
-        /* Header do distrito */
-        .distrito-header {
-            display: flex;
-            align-items: flex-start;
-            gap: 20px;
-            margin-bottom: 32px;
-        }
+        .page-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; margin-bottom: 28px; flex-wrap: wrap; }
+        .page-header h1 { font-size: 1.6rem; font-weight: 800; color: #002b5c; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; line-height: 1.3; }
+        .distrito-municipio { font-size: 0.9rem; color: #6b7280; margin-top: 8px; display: flex; align-items: center; gap: 6px; }
 
-        .tipo-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 5px 14px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 700;
-            color: white;
-            white-space: nowrap;
-            margin-top: 6px;
-        }
+        .tipo-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; color: white; white-space: nowrap; }
+        .tipo-agroindustrial { background-color: #002b5c; }
+        .tipo-industrial { background-color: #2563eb; }
+        .tipo-tecnologico { background-color: #059669; }
 
-        .tipo-agroindustrial { background-color: var(--cor-agroindustrial); }
-        .tipo-industrial     { background-color: var(--cor-industrial); }
-        .tipo-tecnologico    { background-color: var(--cor-tecnologico); }
+        .btn-relgea { display: inline-flex; align-items: center; gap: 8px; background-color: #059669; color: white; text-decoration: none; padding: 10px 18px; border-radius: 8px; font-size: 0.82rem; font-weight: 600; transition: background-color 0.18s ease; white-space: nowrap; }
+        .btn-relgea:hover { background-color: #047857; }
 
-        .distrito-titulo {
-            font-size: 1.9rem;
-            font-weight: 700;
-            color: var(--accent-blue);
-            margin: 0 0 8px 0;
-            line-height: 1.2;
-        }
+        .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-bottom: 28px; }
+        .info-card { background: white; border-radius: 14px; padding: 20px 22px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+        .info-card h3 { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #9ca3af; margin-bottom: 8px; }
+        .info-card p { font-size: 0.9rem; color: #1f2937; line-height: 1.6; }
 
-        .distrito-municipio {
-            font-size: 1rem;
-            color: #6b7280;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
+        .map-placeholder { background: white; border-radius: 14px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); overflow: hidden; }
+        .map-placeholder-header { padding: 16px 22px; border-bottom: 1px solid #f3f4f6; display: flex; align-items: center; justify-content: space-between; }
+        .map-placeholder-header h2 { font-size: 1rem; font-weight: 700; color: #002b5c; display: flex; align-items: center; gap: 8px; }
+        .badge-em-breve { background-color: #fef3c7; color: #92400e; font-size: 0.68rem; font-weight: 700; padding: 3px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.04em; }
+        .map-area { height: 320px; background: linear-gradient(135deg, #e8edf5 0%, #d1daea 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; color: #94a3b8; }
+        .map-area-icon { width: 60px; height: 60px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .map-area p { font-size: 0.88rem; font-weight: 600; color: #64748b; }
+        .map-area span { font-size: 0.78rem; color: #94a3b8; }
 
-        /* Cards de info */
-        .info-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-            gap: 20px;
-            margin-bottom: 32px;
-        }
-
-        .info-card {
-            background: white;
-            border-radius: 12px;
-            padding: 24px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-            border-left: 4px solid var(--accent-blue);
-        }
-
-        .info-card h3 {
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            color: #9ca3af;
-            margin: 0 0 10px 0;
-        }
-
-        .info-card p {
-            font-size: 15px;
-            color: #1f2937;
-            margin: 0;
-            line-height: 1.6;
-        }
-
-        /* Seção de mapa (placeholder) */
-        .map-placeholder {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-            overflow: hidden;
-        }
-
-        .map-placeholder-header {
-            padding: 20px 24px;
-            border-bottom: 1px solid #f3f4f6;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .map-placeholder-header h2 {
-            font-size: 16px;
-            font-weight: 700;
-            color: var(--accent-blue);
-            margin: 0;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .badge-em-breve {
-            background-color: #fef3c7;
-            color: #92400e;
-            font-size: 11px;
-            font-weight: 700;
-            padding: 3px 10px;
-            border-radius: 20px;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .map-area {
-            height: 340px;
-            background: linear-gradient(135deg, #e8edf5 0%, #d1daea 100%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 14px;
-            color: #94a3b8;
-        }
-
-        .map-area-icon {
-            width: 64px;
-            height: 64px;
-            background: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-
-        .map-area p {
-            margin: 0;
-            font-size: 14px;
-            font-weight: 600;
-            color: #64748b;
-        }
-
-        .map-area span {
-            font-size: 12px;
-            color: #94a3b8;
-        }
-
-        /* Botão voltar */
-        .btn-voltar {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background-color: var(--accent-blue);
-            color: white;
-            text-decoration: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: 600;
-            margin-bottom: 28px;
-            transition: background 0.2s;
-        }
-
-        .btn-voltar:hover { background-color: #003d80; }
-
-        @media (max-width: 900px) {
-            .wrapper { flex-direction: column; }
-            .sidebar { width: 100%; min-width: 0; box-sizing: border-box; border-right: none; border-bottom: 1px solid #ddd; padding: 14px; }
-            .logo-container { margin-bottom: 14px; }
-            .logo-container img { width: min(170px, 70vw); }
-            .nav-menu { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
-            .nav-button { padding: 11px 10px; font-size: 11px; }
-            .page-body { padding: 20px 16px; }
-            .distrito-titulo { font-size: 1.4rem; }
+        @media (max-width: 768px) {
+            .page-body { padding: 16px; }
+            .topbar { padding: 0 16px; }
+            .topbar-title { display: none; }
+            .page-header { flex-direction: column; }
         }
     </style>
 </head>
 <body>
 
-<div class="wrapper">
-    <div class="sidebar">
-        <div class="logo-container">
-            <a href="{{ url_for('dashboard.inicio_assent') }}" class="logo-link">
+    <div class="topbar">
+        <div class="topbar-left">
+            <a href="{{ url_for('dashboard.inicio_assent') }}" style="display:inline-block;line-height:0;" aria-label="Voltar ao início">
                 <img src="{{ url_for('static', filename='logo_codego.png') }}" alt="Logo CodeGO">
             </a>
+            <span class="topbar-title">{{ distrito.nome }}</span>
         </div>
-
-        <div class="nav-menu">
-                        {%- if session.get('role') in ['admin', 'assent_gestor'] %}
-            <a href="{{ url_for('cadastro.cadastro') }}" class="nav-button">
-                <i data-lucide="building-2" class="w-5 h-5"></i>
-                Cadastrar Nova Empresa
-            </a>
-            <a href="{{ url_for('edicao.selecionar_edicao', modo='assent') }}" class="nav-button">
-                <i data-lucide="file-pen" class="w-5 h-5"></i>
-                Editar Cadastro
-            </a>
-            {%- endif %}
-            <a href="{{ url_for('juridico.consultar_assentamento') }}" class="nav-button">
-                <i data-lucide="search" class="w-5 h-5"></i>
-                Consultar Assentamento
-            </a>
-            <a href="{{ url_for('relatorio.relatorios', modo='assent') }}" class="nav-button">
-                <i data-lucide="file-bar-chart" class="w-5 h-5"></i>
-                Gerar Relatório
-            </a>
-            <a href="{{ url_for('dashboard.mapa_distritos') }}" class="nav-button active">
-                <i data-lucide="map" class="w-5 h-5"></i>
-                Mapa de Distritos
-            </a>
-
-            {%- if session.get('role') == 'admin' %}
-            <a href="{{ url_for('auth_user.registrar_usuario') }}" class="nav-button" style="background-color: #bfdbfe; color: #1e3a5f; margin-top: 10px;">
-                <i data-lucide="user-plus" class="w-5 h-5"></i>
-                Registrar Usuário
-            </a>
-            {%- endif %}
-            {%- if session.get('role') == 'assent_gestor' %}
-            <a href="{{ url_for('auth_user.registrar_colaborador') }}" class="nav-button" style="background-color: #bfdbfe; color: #1e3a5f; margin-top: 10px;">
-                <i data-lucide="user-plus" class="w-5 h-5"></i>
-                Registrar Usuário
-            </a>
-            {%- endif %}
-        </div>
-    </div>
-
-    <div class="main-content">
-        <div class="topbar">
-            <div class="welcome-text">
-                <i data-lucide="map-pin" style="display:inline; vertical-align:middle; margin-right:8px;"></i>
-                Distritos Industriais de <span>Goiás</span>
-            </div>
-            <div class="topbar-actions">
-                {% if session.get('role') == 'admin' %}
-                <a href="{{ url_for('logs.logs') }}" class="btn-topbar" style="background-color: var(--admin-amber); color: #1a202c; border:none;">
-                    <i data-lucide="database-zap" class="w-4 h-4"></i>
-                    Logs do Sistema
-                </a>
-                {% endif %}
-                <a href="{{ url_for('auth_login.logout') }}" class="btn-topbar btn-logout">
-                    <i data-lucide="log-out" class="w-4 h-4"></i>
-                    Sair do Sistema
-                </a>
-            </div>
-        </div>
-
-        <div class="page-body">
-
-            <!-- Breadcrumb -->
-            <div class="breadcrumb">
-                <a href="{{ url_for('dashboard.mapa_distritos') }}">
-                    <i data-lucide="map" style="display:inline; vertical-align:middle; width:14px; height:14px; margin-right:4px;"></i>
-                    Mapa de Distritos
-                </a>
-                <span class="breadcrumb-sep">/</span>
-                <span>{{ distrito.municipio }}</span>
-            </div>
-
-            <!-- Botão voltar -->
-            <a href="{{ url_for('dashboard.mapa_distritos') }}" class="btn-voltar">
-                <i data-lucide="arrow-left" style="width:16px; height:16px;"></i>
+        <div class="topbar-actions">
+            <a href="{{ url_for('dashboard.mapa_distritos') }}" class="btn-topbar btn-back">
+                <i data-lucide="arrow-left" style="width:16px;height:16px;"></i>
                 Voltar ao Mapa
             </a>
-
-            <!-- Header -->
-            <div class="distrito-header">
-                <div>
-                    <h1 class="distrito-titulo">{{ distrito.nome }}</h1>
-                    <div class="distrito-municipio">
-                        <i data-lucide="building-2" style="width:16px; height:16px;"></i>
-                        {{ distrito.municipio }}, Goiás
-                    </div>
-                </div>
-                <div style="display:flex; flex-direction:column; align-items:flex-end; gap:10px;">
-                    <span class="tipo-badge tipo-{{ distrito.tipo }}">
-                        <i data-lucide="{% if distrito.tipo == 'tecnologico' %}cpu{% elif distrito.tipo == 'agroindustrial' %}wheat{% else %}factory{% endif %}" style="width:13px; height:13px;"></i>
-                        {{ tipo_label }}
-                    </span>
-                    <a href="{{ url_for('relatorio.relatorio_relgea_distrito', slug=slug) }}" class="btn-voltar" style="margin-bottom:0; background-color:#059669;">
-                        <i data-lucide="file-text" style="width:16px; height:16px;"></i>
-                        Baixar Relatório RELGEA
-                    </a>
-                </div>
-            </div>
-
-            <!-- Cards de informação -->
-            <div class="info-grid">
-                <div class="info-card">
-                    <h3>Descrição</h3>
-                    <p>{{ distrito.descricao }}</p>
-                </div>
-                <div class="info-card">
-                    <h3>Perfil Industrial</h3>
-                    <p>{{ distrito.empresas }}</p>
-                </div>
-                <div class="info-card">
-                    <h3>Município</h3>
-                    <p>{{ distrito.municipio }} — Estado de Goiás</p>
-                </div>
-                <div class="info-card">
-                    <h3>Tipo</h3>
-                    <p>{{ tipo_label }}</p>
-                </div>
-            </div>
-
-            <!-- Mapa detalhado (placeholder) -->
-            <div class="map-placeholder">
-                <div class="map-placeholder-header">
-                    <h2>
-                        <i data-lucide="map" style="width:18px; height:18px;"></i>
-                        Mapa Detalhado do Distrito
-                    </h2>
-                    <span class="badge-em-breve">Em breve</span>
-                </div>
-                <div class="map-area">
-                    <div class="map-area-icon">
-                        <i data-lucide="map-pin" style="width:32px; height:32px; color:#7a97bb;"></i>
-                    </div>
-                    <p>Mapa detalhado em desenvolvimento</p>
-                    <span>Esta seção será preenchida em breve com o mapa interativo do distrito</span>
-                </div>
-            </div>
-
+            {% if session.get('role') == 'admin' %}
+            <a href="{{ url_for('logs.logs') }}" class="btn-topbar btn-logs">
+                <i data-lucide="database-zap" style="width:16px;height:16px;"></i>
+                Logs do Sistema
+            </a>
+            {% endif %}
+            <a href="{{ url_for('auth_login.logout') }}" class="btn-topbar btn-logout">
+                <i data-lucide="log-out" style="width:16px;height:16px;"></i>
+                Sair
+            </a>
         </div>
     </div>
-</div>
 
-<script>
-    lucide.createIcons();
-</script>
+    <div class="page-body">
+        <div class="breadcrumb">
+            <a href="{{ url_for('dashboard.mapa_distritos') }}">
+                <i data-lucide="map" style="width:14px;height:14px;"></i>
+                Mapa de Distritos
+            </a>
+            <span class="breadcrumb-sep">/</span>
+            <span>{{ distrito.municipio }}</span>
+        </div>
 
-{% set guia_pagina = 'distrito_detalhe' %}{% include 'partials/guia_mascote.html' %}
+        <div class="page-header">
+            <div>
+                <h1>
+                    {{ distrito.nome }}
+                    <span class="tipo-badge tipo-{{ distrito.tipo }}">
+                        <i data-lucide="{% if distrito.tipo == 'tecnologico' %}cpu{% elif distrito.tipo == 'agroindustrial' %}wheat{% else %}factory{% endif %}" style="width:12px;height:12px;"></i>
+                        {{ tipo_label }}
+                    </span>
+                </h1>
+                <div class="distrito-municipio">
+                    <i data-lucide="building-2" style="width:15px;height:15px;"></i>
+                    {{ distrito.municipio }}, Goiás
+                </div>
+            </div>
+            <a href="{{ url_for('relatorio.relatorio_relgea_distrito', slug=slug) }}" class="btn-relgea">
+                <i data-lucide="file-text" style="width:16px;height:16px;"></i>
+                Baixar Relatório RELGEA
+            </a>
+        </div>
+
+        <div class="info-grid">
+            <div class="info-card">
+                <h3>Descrição</h3>
+                <p>{{ distrito.descricao }}</p>
+            </div>
+            <div class="info-card">
+                <h3>Perfil Industrial</h3>
+                <p>{{ distrito.empresas }}</p>
+            </div>
+            <div class="info-card">
+                <h3>Município</h3>
+                <p>{{ distrito.municipio }} — Estado de Goiás</p>
+            </div>
+            <div class="info-card">
+                <h3>Tipo</h3>
+                <p>{{ tipo_label }}</p>
+            </div>
+        </div>
+
+        <div class="map-placeholder">
+            <div class="map-placeholder-header">
+                <h2>
+                    <i data-lucide="map" style="width:16px;height:16px;"></i>
+                    Mapa Detalhado do Distrito
+                </h2>
+                <span class="badge-em-breve">Em breve</span>
+            </div>
+            <div class="map-area">
+                <div class="map-area-icon">
+                    <i data-lucide="map-pin" style="width:28px;height:28px;color:#94a3b8;"></i>
+                </div>
+                <p>Mapa detalhado em desenvolvimento</p>
+                <span>Esta seção será preenchida em breve com o mapa interativo do distrito</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+    </script>
+
+    {% set guia_pagina = 'distrito_detalhe' %}{% include 'partials/guia_mascote.html' %}
 </body>
 </html>
