@@ -54,7 +54,13 @@
         .map-placeholder-header h2 { font-size: 1rem; font-weight: 700; color: #002b5c; display: flex; align-items: center; gap: 8px; }
         .badge-em-breve { background-color: #fef3c7; color: #92400e; font-size: 0.68rem; font-weight: 700; padding: 3px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.04em; }
         .badge-count { background-color: #d1fae5; color: #065f46; font-size: 0.68rem; font-weight: 700; padding: 3px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.04em; }
-        .map-area { height: 320px; background: linear-gradient(135deg, #e8edf5 0%, #d1daea 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; color: #94a3b8; }
+        .map-area { height: 50vh; min-height: 320px; background: linear-gradient(135deg, #e8edf5 0%, #d1daea 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; color: #94a3b8; }
+        .split-row { display: flex; gap: 20px; align-items: flex-start; margin-bottom: 20px; }
+        .split-col { flex: 1 1 0; min-width: 0; }
+
+        @media (max-width: 900px) {
+            .split-row { flex-direction: column; }
+        }
         .map-area-icon { width: 60px; height: 60px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         .map-area p { font-size: 0.88rem; font-weight: 600; color: #64748b; }
         .map-area span { font-size: 0.78rem; color: #94a3b8; }
@@ -178,8 +184,9 @@
         </div>
 
         {% set pode_editar_perimetros = session.get('role') in ['assent', 'admin', 'assent_gestor'] %}
+        <div class="split-row">
         {% if slug == 'daia' %}
-        <div class="map-placeholder" style="margin-bottom: 20px;">
+        <div class="map-placeholder split-col">
             <div class="map-placeholder-header">
                 <h2>
                     <i data-lucide="layout-grid" style="width:16px;height:16px;"></i>
@@ -246,7 +253,7 @@
         </div>
         {% endif %}
 
-        <div class="map-placeholder">
+        <div class="map-placeholder split-col">
             <div class="map-placeholder-header">
                 <h2>
                     <i data-lucide="map" style="width:16px;height:16px;"></i>
@@ -261,6 +268,7 @@
                 <p>Mapa detalhado em desenvolvimento</p>
                 <span>Esta seção será preenchida em breve com o mapa interativo do distrito</span>
             </div>
+        </div>
         </div>
     </div>
 
