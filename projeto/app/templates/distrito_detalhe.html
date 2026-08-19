@@ -78,6 +78,13 @@
         .map-area p { font-size: 0.88rem; font-weight: 600; color: #64748b; }
         .map-area span { font-size: 0.78rem; color: #94a3b8; }
 
+        .map-fullscreen-btn { position: absolute; top: 14px; right: 68px; width: 36px; height: 36px; background: white; border: none; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 1000; transition: background-color 0.15s ease; }
+        .map-fullscreen-btn:hover { background-color: #f3f4f6; }
+        .map-canvas:fullscreen { border-radius: 0; border: none; padding: 0; }
+        .map-canvas:-webkit-full-screen { border-radius: 0; border: none; padding: 0; }
+        .map-canvas:fullscreen .map-leaflet { border-radius: 0; }
+        .map-canvas:-webkit-full-screen .map-leaflet { border-radius: 0; }
+
         .perimetros-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
         .perimetros-table thead tr { background-color: #002b5c; color: white; }
         .perimetros-table thead th { padding: 10px 16px; text-align: left; font-weight: 600; font-size: 0.72rem; letter-spacing: 0.03em; text-transform: uppercase; white-space: nowrap; }
@@ -211,7 +218,12 @@
                 {% endif %}
             </div>
             <div class="map-area">
-                <div class="map-canvas">
+                <div class="map-canvas" id="mapaCanvasDaia">
+                    {% if slug == 'daia' %}
+                    <button type="button" class="map-fullscreen-btn" id="btnFullscreenMapa" title="Tela cheia" onclick="toggleFullscreenMapa()">
+                        <i data-lucide="maximize" id="iconFullscreenMapa" style="width:18px;height:18px;color:#002b5c;"></i>
+                    </button>
+                    {% endif %}
                     <div class="map-canvas-title">
                         <i data-lucide="map" style="width:14px;height:14px;"></i>
                         {{ distrito.nome }}
@@ -390,7 +402,8 @@
                 return '#95a5a6';
             }
 
-            const map = L.map('mapaLeaflet', { crs: L.CRS.Simple, minZoom: -5, maxZoom: 5, attributionControl: false });
+            window.mapaDaia = L.map('mapaLeaflet', { crs: L.CRS.Simple, minZoom: -5, maxZoom: 5, attributionControl: false });
+            const map = window.mapaDaia;
 
             fetch("{{ url_for('mapas_interativo.geojson') }}")
                 .then(function(res) { return res.json(); })
@@ -421,6 +434,33 @@
                 })
                 .catch(function(err) { console.error('Erro ao carregar o mapa:', err); });
         })();
+
+        function toggleFullscreenMapa() {
+            const el = document.getElementById('mapaCanvasDaia');
+            const emTelaCheia = document.fullscreenElement || document.webkitFullscreenElement;
+            if (!emTelaCheia) {
+                if (el.requestFullscreen) el.requestFullscreen();
+                else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen();
+                else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+            }
+        }
+
+        function atualizarIconeFullscreen() {
+            const isFull = !!(document.fullscreenElement || document.webkitFullscreenElement);
+            const iconEl = document.getElementById('iconFullscreenMapa');
+            const btn = document.getElementById('btnFullscreenMapa');
+            if (iconEl) iconEl.setAttribute('data-lucide', isFull ? 'minimize' : 'maximize');
+            if (btn) btn.title = isFull ? 'Sair da tela cheia' : 'Tela cheia';
+            lucide.createIcons();
+            setTimeout(function() {
+                if (window.mapaDaia) window.mapaDaia.invalidateSize();
+            }, 150);
+        }
+
+        document.addEventListener('fullscreenchange', atualizarIconeFullscreen);
+        document.addEventListener('webkitfullscreenchange', atualizarIconeFullscreen);
         {% endif %}
 
         {% if slug == 'daia' and pode_editar_perimetros %}
