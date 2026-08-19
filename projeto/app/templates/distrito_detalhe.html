@@ -54,7 +54,10 @@
         .map-placeholder-header h2 { font-size: 1rem; font-weight: 700; color: #002b5c; display: flex; align-items: center; gap: 8px; }
         .badge-em-breve { background-color: #fef3c7; color: #92400e; font-size: 0.68rem; font-weight: 700; padding: 3px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.04em; }
         .badge-count { background-color: #d1fae5; color: #065f46; font-size: 0.68rem; font-weight: 700; padding: 3px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.04em; }
-        .map-area { flex: 1 1 auto; min-height: 320px; background: linear-gradient(135deg, #e8edf5 0%, #d1daea 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; color: #94a3b8; }
+        .map-area { flex: 1 1 auto; min-height: 320px; padding: 18px; display: flex; }
+        .map-canvas { position: relative; width: 100%; flex: 1; background: linear-gradient(135deg, #e8edf5 0%, #d1daea 100%); border: 1px dashed #c2cde0; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; color: #94a3b8; overflow: hidden; }
+        .map-canvas-title { position: absolute; top: 14px; left: 14px; display: flex; align-items: center; gap: 6px; background: white; padding: 7px 14px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); font-size: 0.8rem; font-weight: 700; color: #002b5c; }
+        .map-compass { position: absolute; top: 14px; right: 14px; width: 46px; height: 46px; background: white; border-radius: 50%; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 5px; }
         .split-row { display: flex; gap: 20px; align-items: stretch; margin-bottom: 20px; }
         .split-col { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; }
 
@@ -194,11 +197,28 @@
                 <span class="badge-em-breve">Em breve</span>
             </div>
             <div class="map-area">
-                <div class="map-area-icon">
-                    <i data-lucide="map-pin" style="width:28px;height:28px;color:#94a3b8;"></i>
+                <div class="map-canvas">
+                    <div class="map-canvas-title">
+                        <i data-lucide="map" style="width:14px;height:14px;"></i>
+                        {{ distrito.nome }}
+                    </div>
+                    <div class="map-compass" title="Norte">
+                        <svg viewBox="0 0 100 100" width="100%" height="100%">
+                            <circle cx="50" cy="50" r="47" fill="white" stroke="#dbe2ea" stroke-width="2"/>
+                            <polygon points="50,8 60,50 50,50 40,50" fill="#002b5c"/>
+                            <polygon points="50,92 60,50 50,50 40,50" fill="#cbd5e1"/>
+                            <polygon points="8,50 50,42 50,58" fill="#e2e8f0"/>
+                            <polygon points="92,50 50,42 50,58" fill="#e2e8f0"/>
+                            <circle cx="50" cy="50" r="4" fill="#002b5c"/>
+                            <text x="50" y="23" text-anchor="middle" font-size="16" font-weight="800" fill="#002b5c">N</text>
+                        </svg>
+                    </div>
+                    <div class="map-area-icon">
+                        <i data-lucide="map-pin" style="width:28px;height:28px;color:#94a3b8;"></i>
+                    </div>
+                    <p>Mapa detalhado em desenvolvimento</p>
+                    <span>Esta seção será preenchida em breve com o mapa interativo do distrito</span>
                 </div>
-                <p>Mapa detalhado em desenvolvimento</p>
-                <span>Esta seção será preenchida em breve com o mapa interativo do distrito</span>
             </div>
         </div>
 
