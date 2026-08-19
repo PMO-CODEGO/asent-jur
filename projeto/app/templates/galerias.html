@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Galerias / Condomínio - CODEGO</title>
+    <title>Remanescentes / Desafetação - CODEGO</title>
     <link rel="shortcut icon" href="{{ url_for('static', filename='imagens_empresas/asentjur.png') }}" type="image/png">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -39,7 +39,8 @@
         .stat-value { font-size: 1.4rem; font-weight: 800; color: #111827; }
         .stat-label { font-size: 0.78rem; color: #6b7280; font-weight: 500; }
 
-        .controls { display: flex; gap: 12px; margin-bottom: 20px; align-items: center; flex-wrap: wrap; justify-content: space-between; }
+        /* Controles - Distanciamento mantido idêntico ao primeiro arquivo */
+        .controls { display: flex; gap: 12px; margin-bottom: 20px; align-items: center; flex-wrap: wrap; }
         .search-box { display: flex; align-items: center; gap: 8px; background: white; border: 1.5px solid #e5e7eb; border-radius: 8px; padding: 8px 14px; flex: 1; min-width: 220px; max-width: 360px; }
         .search-box input { border: none; outline: none; font-size: 0.88rem; width: 100%; background: transparent; }
         .filter-select { background: white; border: 1.5px solid #e5e7eb; border-radius: 8px; padding: 9px 14px; font-size: 0.88rem; outline: none; cursor: pointer; }
@@ -52,7 +53,10 @@
         .ms-filter-actions button { background: none; border: none; color: #2563eb; font-size: 0.78rem; font-weight: 600; cursor: pointer; }
         .ms-filter-option { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 6px; font-size: 0.85rem; cursor: pointer; }
         .ms-filter-option:hover { background: #f3f4f6; }
-        .btn-nova { display: flex; align-items: center; gap: 6px; padding: 8px 18px; background: #1d4ed8; color: white; border-radius: 8px; text-decoration: none; font-size: 0.85rem; font-weight: 600; }
+        
+        /* Cor azul original restaurada */
+        .btn-nova { display: flex; align-items: center; gap: 6px; padding: 8px 18px; background: #1d4ed8; color: white; border-radius: 8px; text-decoration: none; font-size: 0.85rem; font-weight: 600; transition: background 0.2s ease; }
+        .btn-nova:hover { background: #1e40af; }
 
         .table-wrap { background: white; border-radius: 14px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); overflow: hidden; }
         .table-scroll { overflow-x: auto; overflow-y: auto; max-height: 65vh; border-radius: 14px; }
@@ -100,7 +104,7 @@
             <a href="{{ url_for('dashboard.inicio_assent') }}" style="display:inline-block;line-height:0;" aria-label="Voltar ao início">
                 <img src="{{ url_for('static', filename='logo_codego.png') }}" alt="Logo CodeGO">
             </a>
-            <span class="topbar-title">Galerias / Condomínio</span>
+            <span class="topbar-title">Remanescentes / Desafetação</span>
         </div>
         <div class="topbar-actions">
             <a href="{{ url_for('dashboard.controle_area') }}" class="btn-topbar btn-back">
@@ -116,8 +120,8 @@
 
     <div class="page-body">
         <div class="page-header">
-            <h1>Galerias / Condomínio</h1>
-            <p>Imóveis urbanos em galerias e condomínios de propriedade da CODEGO</p>
+            <h1>Remanescentes / Desafetação</h1>
+            <p>Áreas remanescentes de obras e desafetações de propriedade da CODEGO</p>
         </div>
 
         {% set area_ns = namespace(total=0.0) %}
@@ -179,7 +183,7 @@
                     {% endfor %}
                 </div>
             </div>
-            <a href="/assent/areas-parceladas/galerias/nova" class="btn-nova">
+            <a href="/assent/areas-parceladas/remanescentes/nova" class="btn-nova">
                 <i data-lucide="plus" style="width:16px;height:16px;"></i> Nova Área
             </a>
         </div>
@@ -248,15 +252,15 @@
                                     </div>
                                 </div>
                                 <div style="padding:14px 24px;" onclick="event.stopPropagation()">
-                                    <a href="{{ url_for('relatorio.relatorio_relgea_individual', familia='galerias', registro_id=r.id) }}"
+                                    <a href="{{ url_for('relatorio.relatorio_relgea_individual', familia='remanescentes', registro_id=r.id) }}"
                                        style="display:inline-flex;align-items:center;gap:4px;padding:5px 12px;background:#d1fae5;color:#065f46;border-radius:6px;font-size:0.78rem;font-weight:600;text-decoration:none;margin-right:6px;">
                                         <i data-lucide="file-text" style="width:13px;height:13px;"></i> Relatório
                                     </a>
-                                    <a href="/assent/areas-parceladas/galerias/{{ r.id }}/editar"
+                                    <a href="/assent/areas-parceladas/remanescentes/{{ r.id }}/editar"
                                        style="display:inline-flex;align-items:center;gap:4px;padding:5px 12px;background:#dbeafe;color:#1e40af;border-radius:6px;font-size:0.78rem;font-weight:600;text-decoration:none;margin-right:6px;">
                                         <i data-lucide="pencil" style="width:13px;height:13px;"></i> Editar
                                     </a>
-                                    <form method="POST" action="/assent/areas-parceladas/galerias/{{ r.id }}/excluir"
+                                    <form method="POST" action="/assent/areas-parceladas/remanescentes/{{ r.id }}/excluir"
                                           style="display:inline;" onsubmit="return confirm('Excluir este registro?')">
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                         <button type="submit"
@@ -279,7 +283,7 @@
     <script>
         lucide.createIcons();
 
-        // Mapa de correção de acentuação dos municípios (chave sem acento -> nome correto)
+        // Mapa de correção de acentuação dos municípios
         const CORRECOES_MUNICIPIO = {
             'ABADIANIA': 'ABADIÂNIA',
             'ANAPOLIS': 'ANÁPOLIS',
@@ -388,6 +392,6 @@
             });
         })();
     </script>
-    {% set guia_pagina = 'galerias' %}{% include 'partials/guia_mascote.html' %}
+    {% set guia_pagina = 'remanescentes' %}{% include 'partials/guia_mascote.html' %}
 </body>
 </html>
