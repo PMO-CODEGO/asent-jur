@@ -1,4 +1,6 @@
-from flask import Blueprint, request, redirect, url_for
+import json
+import os
+from flask import Blueprint, request, redirect, url_for, jsonify, current_app
 from app.utils.decorators import role_required
 from app.db import get_db
 from app.services.log_service import gravar_log
@@ -10,6 +12,31 @@ STATUS_VALIDOS = {'Livre', 'Ocupado'}
 
 def _campo(form, nome):
     return form.get(nome, '').strip() or None
+
+
+@mapas_interativo_bp.route('/mapa-distritos/daia/geojson')
+@role_required('assent', 'jur', 'admin', 'assent_gestor', 'jur_gestor')
+def geojson():
+    caminho = os.path.join(current_app.static_folder, 'geo', 'glebasok.geojson')
+    with open(caminho, 'r', encoding='utf-8') as f:
+        geojson_data = json.load(f)
+
+    with get_db() as db:
+        with db.cursor(dictionary=True) as cursor:
+            cursor.execute("SELECT id, perimetro, area, coordenadas, status FROM mapas_interativo_anapolis")
+            linhas = cursor.fetchall()
+
+    dados_por_id = {str(item['id']): item for item in linhas}
+
+    for feature in geojson_data.get('features', []):
+        poly_id = str(feature.get('id') or feature.get('properties', {}).get('id'))
+        info = dados_por_id.get(poly_id)
+        if info:
+            feature['properties']['perimetro'] = info.get('perimetro')
+            feature['properties']['area'] = info.get('area')
+            feature['properties']['status'] = info.get('status')
+
+    return jsonify({'sucesso': True, 'dados': geojson_data})
 
 
 @mapas_interativo_bp.route('/mapa-distritos/daia/perimetros/novo', methods=['POST'])

@@ -7,6 +7,10 @@
     <link rel="shortcut icon" href="{{ url_for('static', filename='imagens_empresas/asentjur.png') }}" type="image/png">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
+    {% if slug == 'daia' %}
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    {% endif %}
 
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -57,7 +61,13 @@
         .map-area { flex: 1 1 auto; min-height: 320px; padding: 18px; display: flex; }
         .map-canvas { position: relative; width: 100%; flex: 1; background: linear-gradient(135deg, #e8edf5 0%, #d1daea 100%); border: 1px dashed #c2cde0; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; color: #94a3b8; overflow: hidden; }
         .map-canvas-title { position: absolute; top: 14px; left: 14px; display: flex; align-items: center; gap: 6px; background: white; padding: 7px 14px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); font-size: 0.8rem; font-weight: 700; color: #002b5c; }
-        .map-compass { position: absolute; top: 14px; right: 14px; width: 46px; height: 46px; background: white; border-radius: 50%; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 5px; }
+        .map-compass { position: absolute; top: 14px; right: 14px; width: 46px; height: 46px; background: white; border-radius: 50%; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 5px; z-index: 1000; }
+        .map-canvas-title { z-index: 1000; }
+        .map-leaflet { width: 100%; height: 100%; background-color: #1a1a1a; border-radius: 12px; }
+        .map-legend { position: absolute; bottom: 14px; right: 14px; background: rgba(255,255,255,0.95); padding: 10px 14px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); font-size: 0.78rem; z-index: 1000; }
+        .map-legend-item { display: flex; align-items: center; gap: 8px; color: #374151; }
+        .map-legend-item + .map-legend-item { margin-top: 5px; }
+        .map-legend-swatch { width: 14px; height: 14px; border-radius: 4px; flex-shrink: 0; }
         .split-row { display: flex; gap: 20px; align-items: stretch; margin-bottom: 20px; }
         .split-col { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; }
 
@@ -194,7 +204,11 @@
                     <i data-lucide="map" style="width:16px;height:16px;"></i>
                     Mapa Detalhado do Distrito
                 </h2>
+                {% if slug == 'daia' %}
+                <span class="badge-count">Mapa Interativo</span>
+                {% else %}
                 <span class="badge-em-breve">Em breve</span>
+                {% endif %}
             </div>
             <div class="map-area">
                 <div class="map-canvas">
@@ -213,11 +227,19 @@
                             <text x="50" y="23" text-anchor="middle" font-size="16" font-weight="800" fill="#002b5c">N</text>
                         </svg>
                     </div>
+                    {% if slug == 'daia' %}
+                    <div id="mapaLeaflet" class="map-leaflet"></div>
+                    <div class="map-legend">
+                        <div class="map-legend-item"><span class="map-legend-swatch" style="background:#2ecc71;"></span> Livre</div>
+                        <div class="map-legend-item"><span class="map-legend-swatch" style="background:#e74c3c;"></span> Ocupado</div>
+                    </div>
+                    {% else %}
                     <div class="map-area-icon">
                         <i data-lucide="map-pin" style="width:28px;height:28px;color:#94a3b8;"></i>
                     </div>
                     <p>Mapa detalhado em desenvolvimento</p>
                     <span>Esta seção será preenchida em breve com o mapa interativo do distrito</span>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -358,6 +380,48 @@
 
     <script>
         lucide.createIcons();
+
+        {% if slug == 'daia' %}
+        (function() {
+            function corStatus(status) {
+                const s = (status || '').toString().trim().toLowerCase();
+                if (s === 'livre') return '#2ecc71';
+                if (s === 'ocupado') return '#e74c3c';
+                return '#95a5a6';
+            }
+
+            const map = L.map('mapaLeaflet', { crs: L.CRS.Simple, minZoom: -5, maxZoom: 5, attributionControl: false });
+
+            fetch("{{ url_for('mapas_interativo.geojson') }}")
+                .then(function(res) { return res.json(); })
+                .then(function(res) {
+                    if (!res.sucesso) {
+                        console.error('Erro ao carregar geojson:', res.erro);
+                        return;
+                    }
+                    const camada = L.geoJSON(res.dados, {
+                        style: function(feature) {
+                            const status = feature.properties ? feature.properties.status : null;
+                            return { color: corStatus(status), weight: 2, fillOpacity: 0.5, fillColor: corStatus(status) };
+                        },
+                        onEachFeature: function(feature, layer) {
+                            const props = feature.properties || {};
+                            layer.on('mouseover', function() { this.setStyle({ weight: 4, fillOpacity: 0.8 }); });
+                            layer.on('mouseout', function() { camada.resetStyle(this); });
+                            layer.bindPopup(
+                                '<div style="font-size:13px;line-height:1.5;">' +
+                                '<b>Perímetro:</b> ' + (props.perimetro || 'Não informado') + '<br>' +
+                                '<b>Área:</b> ' + (props.area || 'Não informada') + '<br>' +
+                                '<b>Status:</b> ' + (props.status || 'Desconhecido') +
+                                '</div>'
+                            );
+                        }
+                    }).addTo(map);
+                    map.fitBounds(camada.getBounds());
+                })
+                .catch(function(err) { console.error('Erro ao carregar o mapa:', err); });
+        })();
+        {% endif %}
 
         {% if slug == 'daia' and pode_editar_perimetros %}
         function abrirModalPerimetro(id, perimetro, area, coordenadas, status) {
