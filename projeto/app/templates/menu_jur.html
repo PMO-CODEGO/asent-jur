@@ -151,59 +151,56 @@
             </div>
         </div>
 
-        <div class="actions-row">
-            <a href="{{ url_for('cadastro.cadastro_jur') }}" class="btn-action btn-processos">
-                <i data-lucide="folder-plus" style="width:16px;height:16px;"></i>
-                Adicionar Processos
-            </a>
-            <a href="{{ url_for('juridico.consultar_assentamento') }}" class="btn-action btn-consultar">
-                <i data-lucide="search" style="width:16px;height:16px;"></i>
-                Consultar Assentamento
-            </a>
-            <a href="{{ url_for('juridico.prazos_juridicos') }}" class="btn-action btn-prazos">
-                <i data-lucide="bell" style="width:16px;height:16px;"></i>
-                Alerta de Prazos
-            </a>
-            <a href="https://app.powerbi.com/view?r=eyJrIjoiZTEwNjAxMGEtNDI3MC00ZTIyLWE3MTAtYjQ0NzM2ZTIzZDg5IiwidCI6ImZmY2UxNmU0LTFmZTUtNDlhMS1iOWUxLTEwNzQ4YzFlZWRjNSJ9&navContentPaneEnabled=false&filterPaneEnabled=false"
-               class="btn-action btn-bi" target="_blank" rel="noopener">
-                <i data-lucide="bar-chart-3" style="width:16px;height:16px;"></i>
-                Verificar Relatório BI
-            </a>
-            {% if session.get('role') == 'jur_gestor' %}
-            <a href="{{ url_for('auth_user.registrar_colaborador') }}" class="btn-action btn-usuario">
-                <i data-lucide="user-plus" style="width:16px;height:16px;"></i>
-                Registrar Usuário
-            </a>
-            {% endif %}
-        </div>
-
-        <div class="controls">
-            <div class="ms-filter" id="filtro-tribunal-wrap">
-                <button type="button" class="ms-filter-btn" id="filtro-tribunal-btn">
-                    <i data-lucide="landmark" style="width:15px;height:15px;color:#9ca3af;"></i>
-                    <span id="filtro-tribunal-label">Todos os tribunais</span>
-                    <i data-lucide="chevron-down" style="width:14px;height:14px;margin-left:auto;color:#9ca3af;"></i>
-                </button>
-                <div class="ms-filter-panel" id="filtro-tribunal-panel">
-                    <div class="ms-filter-actions">
-                        <button type="button" id="filtro-tribunal-limpar">Limpar seleção</button>
-                    </div>
-                    {% for t in processos | map(attribute='tribunal') | select | unique | sort %}
-                    <label class="ms-filter-option">
-                        <input type="checkbox" value="{{ t }}">
-                        <span>{{ t }}</span>
-                    </label>
-                    {% endfor %}
-                </div>
+       <div class="controls">
+    <div class="ms-filter" id="filtro-tribunal-wrap">
+        <button type="button" class="ms-filter-btn" id="filtro-tribunal-btn">
+            <i data-lucide="landmark" style="width:15px;height:15px;color:#9ca3af;"></i>
+            <span id="filtro-tribunal-label">Todos os tribunais</span>
+            <i data-lucide="chevron-down" style="width:14px;height:14px;margin-left:auto;color:#9ca3af;"></i>
+        </button>
+        <div class="ms-filter-panel" id="filtro-tribunal-panel">
+            <div class="ms-filter-actions">
+                <button type="button" id="filtro-tribunal-limpar">Limpar seleção</button>
             </div>
-            <select class="filter-select" id="filtro-status">
-                <option value="">Todos os status</option>
-                {% for s in processos | map(attribute='status') | select | unique | sort %}
-                <option value="{{ s }}">{{ s }}</option>
-                {% endfor %}
-            </select>
+            {% for t in processos | map(attribute='tribunal') | select | unique | sort %}
+            <label class="ms-filter-option">
+                <input type="checkbox" value="{{ t }}">
+                <span>{{ t }}</span>
+            </label>
+            {% endfor %}
         </div>
+    </div>
+    <select class="filter-select" id="filtro-status">
+        <option value="">Todos os status</option>
+        {% for s in processos | map(attribute='status') | select | unique | sort %}
+        <option value="{{ s }}">{{ s }}</option>
+        {% endfor %}
+    </select>
 
+    <a href="{{ url_for('cadastro.cadastro_jur') }}" class="btn-action btn-processos">
+        <i data-lucide="folder-plus" style="width:16px;height:16px;"></i>
+        Adicionar Processos
+    </a>
+    <a href="{{ url_for('juridico.consultar_assentamento') }}" class="btn-action btn-consultar">
+        <i data-lucide="search" style="width:16px;height:16px;"></i>
+        Consultar Assentamento
+    </a>
+    <a href="{{ url_for('juridico.prazos_juridicos') }}" class="btn-action btn-prazos">
+        <i data-lucide="bell" style="width:16px;height:16px;"></i>
+        Alerta de Prazos
+    </a>
+    <a href="https://app.powerbi.com/view?r=eyJrIjoiZTEwNjAxMGEtNDI3MC00ZTIyLWE3MTAtYjQ0NzM2ZTIzZDg5IiwidCI6ImZmY2UxNmU0LTFmZTUtNDlhMS1iOWUxLTEwNzQ4YzFlZWRjNSJ9&navContentPaneEnabled=false&filterPaneEnabled=false"
+       class="btn-action btn-bi" target="_blank" rel="noopener">
+        <i data-lucide="bar-chart-3" style="width:16px;height:16px;"></i>
+        Verificar Relatório BI
+    </a>
+    {% if session.get('role') == 'jur_gestor' %}
+    <a href="{{ url_for('auth_user.registrar_colaborador') }}" class="btn-action btn-usuario">
+        <i data-lucide="user-plus" style="width:16px;height:16px;"></i>
+        Registrar Usuário
+    </a>
+    {% endif %}
+</div>
         <div class="table-wrap">
             <div class="table-scroll">
                 <table>
