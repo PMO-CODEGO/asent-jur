@@ -280,10 +280,10 @@ DISTRITOS = {
         "empresas": "Móveis, ambiental e reciclagem",
     },
     "diagri": {
-        "nome": "DIAGRI — Distrito Agroindustrial de Goiatuba",
+        "nome": "DIAGRI — Distrito Agroindustrial de Itumbiara",
         "tipo": "agroindustrial",
-        "municipio": "Goiatuba",
-        "descricao": "Distrito agroindustrial de Goiatuba, com atuação em fertilizantes, transportes, laticínios, concreto e implementos agrícolas.",
+        "municipio": "Itumbiara",
+        "descricao": "Distrito agroindustrial de Itumbiara, com atuação em fertilizantes, transportes, laticínios, concreto e implementos agrícolas.",
         "empresas": "Fertilizantes, laticínios e transporte",
     },
     "dimic": {
@@ -328,8 +328,15 @@ DISTRITOS = {
         "descricao": "Localizado no Entorno do Distrito Federal, com indústrias de calçados, alimentos, telhas, fertilizantes e soluções ambientais.",
         "empresas": "Calçados, alimentos e fertilizantes",
     },
-    "mineiros": {
-        "nome": "Distrito Industrial de Mineiros I e II",
+    "mineiros-i": {
+        "nome": "Distrito Industrial de Mineiros I",
+        "tipo": "industrial",
+        "municipio": "Mineiros",
+        "descricao": "Polo industrial do sudoeste goiano, com destaque para frigoríficos, laticínios, cereais, rações e cooperativas agrícolas.",
+        "empresas": "Frigoríficos, laticínios e cereais",
+    },
+    "mineiros-ii": {
+        "nome": "Distrito Industrial de Mineiros II",
         "tipo": "industrial",
         "municipio": "Mineiros",
         "descricao": "Polo industrial do sudoeste goiano, com destaque para frigoríficos, laticínios, cereais, rações e cooperativas agrícolas.",
