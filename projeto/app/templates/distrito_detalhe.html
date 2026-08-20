@@ -104,8 +104,24 @@
         .map-area p { font-size: 0.88rem; font-weight: 600; color: #64748b; }
         .map-area span { font-size: 0.78rem; color: #94a3b8; }
 
-        .map-fullscreen-btn { position: absolute; top: 14px; right: 68px; width: 36px; height: 36px; background: white; border: none; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 1000; transition: background-color 0.15s ease, top 0.15s ease, bottom 0.15s ease, right 0.15s ease; }
-
+       .map-fullscreen-btn {
+    position: absolute;
+    top: auto;
+    bottom: 34px;
+    right: 150px;
+    width: 36px;
+    height: 36px;
+    background: white;
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 1000;
+    transition: background-color 0.15s ease;
+}
 /* NOVO: em tela cheia, o botão desce e fica à esquerda da legenda */
 .map-canvas:fullscreen .map-fullscreen-btn {
     top: auto;
