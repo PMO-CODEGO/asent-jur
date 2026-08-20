@@ -152,7 +152,32 @@
             </div>
         </div>
         
-<div style="margin-bottom:20px; display:flex; gap:12px; align-items:center;">
+
+        <div class="controls">
+    <div class="ms-filter" id="filtro-municipio-wrap">
+        <button type="button" class="ms-filter-btn" id="filtro-municipio-btn">
+            <i data-lucide="map-pin" style="width:15px;height:15px;color:#9ca3af;"></i>
+            <span id="filtro-municipio-label">Todos os municípios</span>
+            <i data-lucide="chevron-down" style="width:14px;height:14px;margin-left:auto;color:#9ca3af;"></i>
+        </button>
+        <div class="ms-filter-panel" id="filtro-municipio-panel">
+            <div class="ms-filter-actions">
+                <button type="button" id="filtro-municipio-limpar">Limpar seleção</button>
+            </div>
+            {% for m in registros | map(attribute='municipio') | select | unique | sort %}
+            <label class="ms-filter-option">
+                <input type="checkbox" value="{{ m }}">
+                <span>{{ m }}</span>
+            </label>
+            {% endfor %}
+        </div>
+    </div>
+    <select class="filter-select" id="filtro-status">
+        <option value="">Todos os status</option>
+        <option value="Regular">Regular</option>
+        <option value="Irregular">Irregular</option>
+    </select>
+
     <!-- Botão Novo Módulo -->
     <a href="{{ url_for('cadastro_modulos.novo') }}" class="btn-topbar btn-back" style="display:inline-flex;background-color:#002b5c;text-decoration:none;padding:10px 20px;border-radius:8px;font-weight:700;font-size:0.88rem;color:white;gap:8px;align-items:center;">
         <i data-lucide="plus" style="width:16px;height:16px;"></i>
@@ -165,32 +190,6 @@
         Mapa de Distritos
     </a>
 </div>
-        <div class="controls">
-            <div class="ms-filter" id="filtro-municipio-wrap">
-                <button type="button" class="ms-filter-btn" id="filtro-municipio-btn">
-                    <i data-lucide="map-pin" style="width:15px;height:15px;color:#9ca3af;"></i>
-                    <span id="filtro-municipio-label">Todos os municípios</span>
-                    <i data-lucide="chevron-down" style="width:14px;height:14px;margin-left:auto;color:#9ca3af;"></i>
-                </button>
-                <div class="ms-filter-panel" id="filtro-municipio-panel">
-                    <div class="ms-filter-actions">
-                        <button type="button" id="filtro-municipio-limpar">Limpar seleção</button>
-                    </div>
-                    {% for m in registros | map(attribute='municipio') | select | unique | sort %}
-                    <label class="ms-filter-option">
-                        <input type="checkbox" value="{{ m }}">
-                        <span>{{ m }}</span>
-                    </label>
-                    {% endfor %}
-                </div>
-            </div>
-            <select class="filter-select" id="filtro-status">
-                <option value="">Todos os status</option>
-                <option value="Regular">Regular</option>
-                <option value="Irregular">Irregular</option>
-            </select>
-        </div>
-
         <div class="table-wrap">
             <div class="table-scroll">
                 <table>
