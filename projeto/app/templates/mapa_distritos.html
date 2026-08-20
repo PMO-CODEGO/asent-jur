@@ -312,12 +312,6 @@
                     <i data-lucide="arrow-left" class="w-4 h-4"></i>
                     Voltar
                 </a>
-                {% if session.get('role') == 'admin' %}
-                <a href="{{ url_for('logs.logs') }}" class="btn-topbar" style="background-color: var(--admin-amber); color: #1a202c; border:none;">
-                    <i data-lucide="database-zap" class="w-4 h-4"></i>
-                    Logs do Sistema
-                </a>
-                {% endif %}
                 <a href="{{ url_for('auth_login.logout') }}" class="btn-topbar btn-logout">
                     <i data-lucide="log-out" class="w-4 h-4"></i>
                     Sair do Sistema
