@@ -90,6 +90,9 @@
         .btn-logout { background-color: var(--logout-red); }
         .btn-logout:hover { background-color: var(--logout-red-hover); transform: translateY(-2px); }
 
+        .btn-back { background-color: #4b5563; }
+        .btn-back:hover { background-color: #374151; transform: translateY(-2px); }
+
         .map-container {
             flex-grow: 1;
             position: relative;
@@ -305,6 +308,10 @@
                 Distritos Industriais de <span>Goiás</span>
             </div>
             <div class="topbar-actions">
+                <a href="{{ url_for('dashboard.controle_area') }}" class="btn-topbar btn-back">
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                    Voltar
+                </a>
                 {% if session.get('role') == 'admin' %}
                 <a href="{{ url_for('logs.logs') }}" class="btn-topbar" style="background-color: var(--admin-amber); color: #1a202c; border:none;">
                     <i data-lucide="database-zap" class="w-4 h-4"></i>
