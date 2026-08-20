@@ -61,8 +61,33 @@
         .badge-count { background-color: #d1fae5; color: #065f46; font-size: 0.68rem; font-weight: 700; padding: 3px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.04em; }
         .map-area { flex: 1 1 auto; min-height: 320px; padding: 18px; display: flex; }
         .map-canvas { position: relative; width: 100%; flex: 1; background: linear-gradient(135deg, #e8edf5 0%, #d1daea 100%); border: 1px dashed #c2cde0; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; color: #94a3b8; overflow: hidden; }
-        .map-canvas-title { position: absolute; top: 14px; left: 14px; display: flex; align-items: center; gap: 6px; background: white; padding: 7px 14px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); font-size: 0.8rem; font-weight: 700; color: #002b5c; }
-        .map-compass { position: absolute; top: 14px; right: 14px; width: 46px; height: 46px; background: white; border-radius: 50%; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 5px; z-index: 1000; }
+        .map-canvas-title {
+    position: absolute;
+    top: 14px;
+    left: 64px;              /* era 14px — afasta do controle de zoom do Leaflet */
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: white;
+    padding: 9px 18px;       /* era 7px 14px */
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    font-size: 0.88rem;      /* era 0.8rem */
+    font-weight: 700;
+    color: #002b5c;
+}
+        .map-compass {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 62px;    /* era 46px */
+    height: 62px;   /* era 46px */
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    padding: 6px;   /* era 5px */
+    z-index: 1000;
+}
         .map-canvas-title { z-index: 1000; }
         .map-leaflet { width: 100%; height: 100%; background-color: #ffffff; border-radius: 12px; }
         .map-legend { position: absolute; bottom: 14px; right: 14px; background: rgba(255,255,255,0.95); padding: 10px 14px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); font-size: 0.78rem; z-index: 1000; }
@@ -79,7 +104,19 @@
         .map-area p { font-size: 0.88rem; font-weight: 600; color: #64748b; }
         .map-area span { font-size: 0.78rem; color: #94a3b8; }
 
-        .map-fullscreen-btn { position: absolute; top: 14px; right: 68px; width: 36px; height: 36px; background: white; border: none; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 1000; transition: background-color 0.15s ease; }
+        .map-fullscreen-btn { position: absolute; top: 14px; right: 68px; width: 36px; height: 36px; background: white; border: none; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 1000; transition: background-color 0.15s ease, top 0.15s ease, bottom 0.15s ease, right 0.15s ease; }
+
+/* NOVO: em tela cheia, o botão desce e fica à esquerda da legenda */
+.map-canvas:fullscreen .map-fullscreen-btn {
+    top: auto;
+    bottom: 34px;
+    right: 150px;
+}
+.map-canvas:-webkit-full-screen .map-fullscreen-btn {
+    top: auto;
+    bottom: 34px;
+    right: 150px;
+}
         .map-fullscreen-btn:hover { background-color: #f3f4f6; }
         .map-canvas:fullscreen { border-radius: 0; border: none; padding: 0; }
         .map-canvas:-webkit-full-screen { border-radius: 0; border: none; padding: 0; }
