@@ -103,14 +103,13 @@
         .map-area-icon { width: 60px; height: 60px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         .map-area p { font-size: 0.88rem; font-weight: 600; color: #64748b; }
         .map-area span { font-size: 0.78rem; color: #94a3b8; }
-
-       .map-fullscreen-btn {
+  .map-fullscreen-btn {
     position: absolute;
     top: auto;
     bottom: 34px;
-    right: 150px;
-    width: 36px;
-    height: 36px;
+    right: 150px;      /* ← é essa linha que você reajusta */
+    width: 58px;
+    height: 58px;
     background: white;
     border: none;
     border-radius: 8px;
@@ -121,8 +120,7 @@
     cursor: pointer;
     z-index: 1000;
     transition: background-color 0.15s ease;
-}
-/* NOVO: em tela cheia, o botão desce e fica à esquerda da legenda */
+} 
 .map-canvas:fullscreen .map-fullscreen-btn {
     top: auto;
     bottom: 34px;
@@ -275,7 +273,7 @@
                 <div class="map-canvas" id="mapaCanvasDaia">
                     {% if slug == 'daia' %}
                     <button type="button" class="map-fullscreen-btn" id="btnFullscreenMapa" title="Tela cheia" onclick="toggleFullscreenMapa()">
-                        <i data-lucide="maximize" id="iconFullscreenMapa" style="width:18px;height:18px;color:#002b5c;"></i>
+                        <i data-lucide="maximize" id="iconFullscreenMapa" style="width:24px;height:24px;color:#002b5c;"></i>
                     </button>
                     {% endif %}
                     <div class="map-canvas-title">
