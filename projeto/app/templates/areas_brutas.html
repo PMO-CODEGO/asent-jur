@@ -16,11 +16,17 @@
         .topbar img { height: 56px; }
         .topbar-title { font-size: 1rem; font-weight: 600; opacity: 0.9; }
         .topbar-actions { display: flex; gap: 10px; align-items: center; }
-        .btn-topbar { text-decoration: none; padding: 9px 18px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; display: flex; align-items: center; gap: 7px; transition: all 0.2s ease; color: white; }
+        .btn-topbar { text-decoration: none; padding: 9px 18px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; display: flex; align-items: center; gap: 7px; transition: all 0.2s ease; color: white; border: none; cursor: pointer; }
         .btn-back { background-color: #4b5563; }
         .btn-back:hover { background-color: #374151; }
         .btn-logout { background-color: #ef4444; }
         .btn-logout:hover { background-color: #dc2626; }
+
+        /* Antes: estilo inline no HTML. Agora como classes reutilizáveis. */
+        .btn-new { background-color: #0f4c81; }
+        .btn-new:hover { background-color: #0c3d68; }
+        .btn-new-judicial { background-color: #991b1b; margin-left: auto; padding: 6px 14px; font-size: 0.78rem; }
+        .btn-new-judicial:hover { background-color: #7f1d1d; }
 
         .page-body { padding: 32px; max-width: 1600px; margin: 0 auto; }
 
@@ -71,7 +77,6 @@
         tbody tr:hover { background-color: #f8faff; }
         tbody tr:last-child { border-bottom: none; }
         td { padding: 10px 14px; color: #374151; vertical-align: middle; }
-        /* Colunas fixas à esquerda */
         th.col-fix, td.col-fix { position: sticky; z-index: 5; background-color: white; }
         thead th.col-fix { background-color: #002b5c; z-index: 11; }
         th.col-fix-1, td.col-fix-1 { left: 0; }
@@ -79,10 +84,7 @@
         tbody tr:hover td.col-fix { background-color: #f8faff; }
         td.num { text-align: right; font-variant-numeric: tabular-nums; }
         .municipio-badge { display: inline-block; background-color: #eff6ff; color: #1e40af; border-radius: 6px; padding: 2px 8px; font-size: 0.75rem; font-weight: 600; white-space: nowrap; }
-        .descricao { max-width: 260px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .link-cell a { color: #2563eb; text-decoration: underline; font-size: 0.75rem; }
         .obs-cell { max-width: 180px; font-size: 0.75rem; color: #6b7280; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .no-data { color: #9ca3af; font-style: italic; }
         .empty { padding: 48px; text-align: center; color: #9ca3af; }
         .detail-row td { background-color: #f8fafc; padding: 0 !important; border-bottom: 2px solid #bfdbfe; }
         .detail-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; padding: 16px 24px; }
@@ -96,6 +98,8 @@
         .row-toggle svg { transition: transform 0.2s ease; flex-shrink: 0; }
         .data-row.open .row-toggle svg { transform: rotate(90deg); }
         .data-row:hover .row-toggle { color: #1e3a5f; }
+        /* Acessibilidade: as linhas clicáveis agora recebem foco de teclado */
+        .data-row[tabindex]:focus-visible { outline: 2px solid #2563eb; outline-offset: -2px; }
         .valor-grupo { display: inline-flex; align-items: center; gap: 5px; background-color: #fef3c7; color: #92400e; border-radius: 6px; padding: 3px 8px; font-size: 0.75rem; font-weight: 600; cursor: help; white-space: nowrap; }
         .btn-action { display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; text-decoration: none; border: none; cursor: pointer; transition: all 0.15s; }
         .btn-edit { background-color: #eff6ff; color: #1e40af; }
@@ -113,6 +117,11 @@
         .sub-table tbody tr { border-bottom: 1px solid #f1f5f9; }
         .sub-table tbody tr:last-child { border-bottom: none; }
         .sub-table td { padding: 8px 12px; font-size: 0.78rem; color: #334155; vertical-align: middle; }
+        .avaliacoes-table { border-collapse: collapse; font-size: 0.78rem; width: 100%; }
+        .avaliacoes-table thead tr { background: #e0e7ef; }
+        .avaliacoes-table th { padding: 3px 12px; text-align: left; font-weight: 700; color: #002b5c; background: #e0e7ef; position: static; }
+        .avaliacoes-table th.num, .avaliacoes-table td.num { text-align: right; }
+        .avaliacoes-table td { padding: 4px 12px; font-variant-numeric: tabular-nums; border-bottom: 1px solid #e5e7eb; }
         .modal-backdrop { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:200; align-items:center; justify-content:center; }
         .modal-backdrop.open { display:flex; }
         .modal { background:white; border-radius:16px; padding:28px; max-width:400px; width:90%; box-shadow:0 8px 40px rgba(0,0,0,0.2); }
@@ -125,6 +134,224 @@
     </style>
 </head>
 <body>
+
+{#
+    ===========================================================================
+    MACROS — evitam a duplicação quase total que existia entre as seções
+    "Imóveis" e "Judicial" (antes ~450 linhas repetidas quase idênticas).
+
+    moeda_br / numero_br: substituem os ".format(...).replace().replace()"
+    espalhados ~15x pelo arquivo original. Ainda vivem no template (não exigem
+    mexer no app.py), mas ficam centralizados num único lugar.
+    ===========================================================================
+#}
+{% macro moeda_br(valor) -%}
+    {%- if valor -%}
+        R$ {{ '{:,.2f}'.format(valor)|replace(',', '§')|replace('.', ',')|replace('§', '.') }}
+    {%- else -%}-{%- endif -%}
+{%- endmacro %}
+
+{% macro numero_br(valor, casas=2) -%}
+    {%- if valor -%}
+        {{ ('{:,.' ~ casas ~ 'f}').format(valor)|replace(',', '§')|replace('.', ',')|replace('§', '.') }}
+    {%- else -%}-{%- endif -%}
+{%- endmacro %}
+
+{# Grade de detalhes (expandida ao clicar numa linha). 'modo' controla os
+   campos extras específicos de cada família de registro. #}
+{% macro detalhe_grid(r, familia, colspan) %}
+<div class="detail-grid">
+    <div class="detail-item">
+        <span class="detail-label">Ano da Aquisição</span>
+        <span class="detail-value">{{ r.ano_aquisicao or '-' }}</span>
+    </div>
+    <div class="detail-item">
+        <span class="detail-label">Valor do Imóvel — Aquisição</span>
+        <span class="detail-value">
+            {% if r.valor_conjunto %}
+            <span class="valor-grupo" title="Valor compartilhado: {{ r.grupo or '' }}">
+                <i data-lucide="link-2" style="width:11px;height:11px;"></i>
+                {{ r.moeda_conjunto or 'R$' }} {{ numero_br(r.valor_conjunto) }}
+            </span>
+            {% else %}
+            {{ r.valor_imovel_fmt or r.valor_imovel or '-' }}
+            {% endif %}
+        </span>
+    </div>
+    <div class="detail-item">
+        <span class="detail-label">Tipo de Aquisição</span>
+        <span class="detail-value">{{ r.tipo_aquisicao or '-' }}</span>
+    </div>
+    <div class="detail-item">
+        <span class="detail-label">Subsídio</span>
+        <span class="detail-value">
+            {% if r.ocupacao_fmt %}<span style="font-weight:600;color:#065f46;">{{ r.ocupacao_fmt }}</span>
+            {% else %}{{ r.ocupacao or '-' }}{% endif %}
+        </span>
+    </div>
+    <div class="detail-item">
+        <span class="detail-label">Matrícula do Parcelamento</span>
+        <span class="detail-value">{{ r.matricula_parcelamento_fmt or '-' }}</span>
+    </div>
+    {% if familia == 'judicial' %}
+    <div class="detail-item">
+        <span class="detail-label">Nº Processo</span>
+        <span class="detail-value">{{ r.numero_processo or '-' }}</span>
+    </div>
+    {% endif %}
+    <div class="detail-item">
+        <span class="detail-label">Loteamento</span>
+        <span class="detail-value">{{ r.loteamento or '-' }}</span>
+    </div>
+    <div class="detail-item">
+        <span class="detail-label">Geo</span>
+        <span class="detail-value">{% if r.link_geo %}<a href="{{ r.link_geo }}" target="_blank">Ver</a>{% else %}-{% endif %}</span>
+    </div>
+    <div class="detail-item">
+        <span class="detail-label">Link da Matrícula</span>
+        <span class="detail-value">{% if r.link_matricula %}<a href="{{ r.link_matricula }}" target="_blank">Ver</a>{% else %}-{% endif %}</span>
+    </div>
+    <div class="detail-item detail-item-wide">
+        <span class="detail-label">Descrição</span>
+        <span class="detail-value">{{ r.descricao_area or '-' }}</span>
+    </div>
+    <div class="detail-item detail-item-wide">
+        <span class="detail-label">Registro de Propriedade</span>
+        <span class="detail-value">{{ r.registro_propriedade or '-' }}</span>
+    </div>
+    {% if r.avaliacoes %}
+    <div class="detail-item" style="grid-column: span 4; margin-top: 8px;">
+        <span class="detail-label">Avaliações de Mercado</span>
+        <div style="overflow-x:auto; margin-top:6px;">
+            <table class="avaliacoes-table">
+                <thead><tr><th>Ano</th><th class="num">V. Mercado</th><th class="num">V. Subsidiado</th></tr></thead>
+                <tbody>
+                    {% for av in r.avaliacoes %}
+                    <tr>
+                        <td style="font-weight:600;">{{ av.ano }}</td>
+                        <td class="num">{{ moeda_br(av.valor_mercado) }}</td>
+                        <td class="num">{{ moeda_br(av.valor_subsidiado) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+</div>
+<div style="padding:14px 24px;" onclick="event.stopPropagation()">
+    <a href="{{ url_for('areas_brutas.editar', familia=familia, registro_id=r.id) }}" class="btn-action btn-edit">
+        <i data-lucide="pencil" style="width:12px;height:12px;"></i> Editar
+    </a>
+    <a href="{{ url_for('areas_brutas.relatorio', familia=familia, registro_id=r.id) }}" class="btn-action btn-pdf">
+        <i data-lucide="file-text" style="width:12px;height:12px;"></i> PDF
+    </a>
+    {% if session.get('role') == 'admin' %}
+    <button type="button" class="btn-action btn-del"
+        data-id="{{ r.id }}"
+        data-desc="{{ r.descricao_area or r.municipio or 'este registro' }}"
+        data-familia="{{ familia }}"
+        onclick="abrirModalFromDataset(this)">
+        <i data-lucide="trash-2" style="width:12px;height:12px;"></i> Excluir
+    </button>
+    {% endif %}
+</div>
+{% endmacro %}
+
+{# Uma linha principal (agrupada por município) + sua linha de detalhe/sub-tabela. #}
+{% macro linha_municipio(grupo, familia, num_colunas) %}
+{% set r = grupo.principal %}
+{% set multiplos = grupo.itens|length > 1 %}
+{% set row_id = (familia ~ '-' ~ r.id) %}
+<tr class="data-row" tabindex="0" role="button"
+    aria-expanded="false"
+    data-familia="{{ familia }}" data-municipio="{{ (grupo.municipio or '')|lower|trim }}"
+    data-area="{{ grupo.area_total_total }}" data-aval="{{ grupo.aval_mercado_total }}"
+    data-count="{{ grupo.itens|length }}"
+    onclick="toggleDetalhe('{{ row_id }}', this)" onkeydown="onRowKeydown(event, '{{ row_id }}', this)"
+    style="cursor:pointer;">
+    <td class="col-fix col-fix-1">
+        <span class="row-toggle">
+            <i data-lucide="chevron-right" style="width:14px;height:14px;"></i>
+            <span class="municipio-badge">{{ grupo.municipio or '' }}</span>
+        </span>
+    </td>
+    <td>
+        {% if multiplos %}
+        <span class="grupo-badge"><i data-lucide="layers" style="width:11px;height:11px;"></i> {{ grupo.itens|length }} registros</span>
+        {% else %}
+        {{ r.num_matricula_fmt or '' }}
+        {% endif %}
+    </td>
+    {% if familia == 'brutas' %}
+    <td class="num">{{ numero_br(grupo.area_util_total) if grupo.area_util_total else '-' }}</td>
+    <td class="num">{{ numero_br(grupo.reserva_total) if grupo.reserva_total else '-' }}</td>
+    {% endif %}
+    <td class="num">{{ numero_br(grupo.area_total_total) if grupo.area_total_total else '-' }}</td>
+    <td class="num">{{ moeda_br(grupo.aval_mercado_total) }}{% if not multiplos %}<br><small style="color:#9ca3af;font-size:0.68rem;">{{ r.ultima_aval_ano or '' }}</small>{% endif %}</td>
+    <td class="num">{{ moeda_br(grupo.aval_subsidiado_total) }}</td>
+    {% if familia == 'brutas' %}
+    <td class="link-cell">{% if not multiplos and r.link_geo %}<a href="{{ r.link_geo }}" target="_blank" onclick="event.stopPropagation()">Ver</a>{% else %}-{% endif %}</td>
+    <td class="link-cell">{% if not multiplos and r.link_matricula %}<a href="{{ r.link_matricula }}" target="_blank" onclick="event.stopPropagation()">Ver</a>{% else %}-{% endif %}</td>
+    <td class="obs-cell" title="{{ r.numero_processo or '' }}">{{ (r.numero_processo or '-') if not multiplos else '-' }}</td>
+    {% endif %}
+</tr>
+<tr id="{{ row_id }}" class="detail-row" style="display:none;">
+    <td colspan="{{ num_colunas }}">
+        {% if not multiplos %}
+            {{ detalhe_grid(r, familia, num_colunas) }}
+        {% else %}
+        <div class="sub-detail-wrap">
+            <div class="sub-detail-title">
+                <i data-lucide="layers" style="width:14px;height:14px;"></i>
+                Registros deste município ({{ grupo.itens|length }})
+            </div>
+            <table class="sub-table">
+                <thead>
+                    <tr>
+                        <th>Matrícula</th>
+                        {% if familia == 'brutas' %}<th>Área Útil (m²)</th><th>Reserva Legal (m²)</th>{% endif %}
+                        <th>Área Total (m²)</th>
+                        <th>V. Mercado</th>
+                        <th>V. Subsidiado</th>
+                        <th>Nº Processo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for o in grupo.itens %}
+                    {% set sub_id = 'sub-' ~ row_id ~ '-' ~ o.id %}
+                    <tr class="data-row sub-row" tabindex="0" role="button" aria-expanded="false"
+                        onclick="toggleDetalhe('{{ sub_id }}', this)" onkeydown="onRowKeydown(event, '{{ sub_id }}', this)"
+                        style="cursor:pointer;">
+                        <td>
+                            <span class="row-toggle">
+                                <i data-lucide="chevron-right" style="width:12px;height:12px;"></i>
+                                {{ o.num_matricula_fmt or '-' }}
+                            </span>
+                        </td>
+                        {% if familia == 'brutas' %}
+                        <td>{{ o.area_util_m2_fmt or '-' }}</td>
+                        <td>{{ o.reserva_legal_m2_fmt or '-' }}</td>
+                        {% endif %}
+                        <td>{{ o.area_total_m2_fmt or '-' }}</td>
+                        <td>{{ moeda_br(o.ultima_aval_mercado) }}</td>
+                        <td>{{ moeda_br(o.ultima_aval_subsidiado) }}</td>
+                        <td>{{ o.numero_processo or '-' }}</td>
+                    </tr>
+                    <tr id="{{ sub_id }}" class="detail-row" style="display:none;">
+                        <td colspan="{{ 6 if familia == 'brutas' else 4 }}">
+                            {{ detalhe_grid(o, familia, num_colunas) }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+    </td>
+</tr>
+{% endmacro %}
+
     <div class="topbar">
         <div class="topbar-left">
             <a href="{{ url_for('dashboard.inicio_assent') }}" style="display:inline-block;line-height:0;" aria-label="Voltar ao início">
@@ -151,71 +378,45 @@
         </div>
 
         {% set registros = imoveis + judiciais %}
-
-        {# Ano mais recente com avaliação preenchida em cada tabela — usado no cabeçalho
-           das colunas de V. Mercado/V. Subsidiado, no lugar de um ano fixo no código. #}
         {% set anos_imoveis = imoveis | map(attribute='ultima_aval_ano') | select('number') | list %}
         {% set ano_col_imoveis = anos_imoveis | max if anos_imoveis else None %}
         {% set anos_judiciais = judiciais | map(attribute='ultima_aval_ano') | select('number') | list %}
         {% set ano_col_judiciais = anos_judiciais | max if anos_judiciais else None %}
 
-        {# Agrupa imoveis e judiciais por município: uma linha por município na tabela,
-           com soma dos campos numéricos e sub-tabela expansível quando há mais de 1 registro. #}
+        {#
+            Agrupamento por município. IMPORTANTE — diferença em relação à versão
+            anterior: os totais agora são somados a partir dos campos NUMÉRICOS
+            crus (area_util_m2, reserva_legal_m2, area_total_m2, ultima_aval_*),
+            não mais reconstruídos a partir das strings formatadas (*_fmt) via
+            replace('.', '').replace(',', '.'). Isso é mais robusto (não quebra
+            com formatos inesperados) e mais barato. Ajuste os nomes de atributo
+            abaixo se o seu model usar nomes diferentes para as versões numéricas.
+        #}
         {% set grupos_imoveis = [] %}
         {% for municipio, items in imoveis|groupby('municipio') %}
             {% set items_list = items|list %}
-            {% set principal = items_list[0] %}
-            {% set au_ns = namespace(total=0.0) %}
-            {% set rl_ns = namespace(total=0.0) %}
-            {% set at_ns = namespace(total=0.0) %}
-            {% set am_ns = namespace(total=0.0) %}
-            {% set as_ns = namespace(total=0.0) %}
-            {% for item in items_list %}
-                {% set au = (item.area_util_m2_fmt or '0')|string|replace('.', '')|replace(',', '.')|trim %}
-                {% set au_ns.total = au_ns.total + (au|float(0)) %}
-                {% set rl = (item.reserva_legal_m2_fmt or '0')|string|replace('.', '')|replace(',', '.')|trim %}
-                {% set rl_ns.total = rl_ns.total + (rl|float(0)) %}
-                {% set at = (item.area_total_m2_fmt or '0')|string|replace('.', '')|replace(',', '.')|trim %}
-                {% set at_ns.total = at_ns.total + (at|float(0)) %}
-                {% set am_ns.total = am_ns.total + (item.ultima_aval_mercado|float(0)) %}
-                {% set as_ns.total = as_ns.total + (item.ultima_aval_subsidiado|float(0)) %}
-            {% endfor %}
             {{ grupos_imoveis.append({
                 'municipio': municipio,
-                'principal': principal,
+                'principal': items_list[0],
                 'itens': items_list,
-                'area_total_total': at_ns.total,
-                'aval_mercado_total': am_ns.total,
-                'area_util_exibido': (('{:,.2f}'.format(au_ns.total)|replace(',', '§')|replace('.', ',')|replace('§', '.')) if au_ns.total else '-'),
-                'reserva_exibido': (('{:,.2f}'.format(rl_ns.total)|replace(',', '§')|replace('.', ',')|replace('§', '.')) if rl_ns.total else '-'),
-                'area_total_exibido': (('{:,.2f}'.format(at_ns.total)|replace(',', '§')|replace('.', ',')|replace('§', '.')) if at_ns.total else '-'),
-                'aval_mercado_exibido': (('R$ ' + ('{:,.2f}'.format(am_ns.total)|replace(',', '§')|replace('.', ',')|replace('§', '.'))) if am_ns.total else '-'),
-                'aval_subsidiado_exibido': (('R$ ' + ('{:,.2f}'.format(as_ns.total)|replace(',', '§')|replace('.', ',')|replace('§', '.'))) if as_ns.total else '-')
+                'area_util_total': items_list|map(attribute='area_util_m2')|select('number')|sum,
+                'reserva_total': items_list|map(attribute='reserva_legal_m2')|select('number')|sum,
+                'area_total_total': items_list|map(attribute='area_total_m2')|select('number')|sum,
+                'aval_mercado_total': items_list|map(attribute='ultima_aval_mercado')|select('number')|sum,
+                'aval_subsidiado_total': items_list|map(attribute='ultima_aval_subsidiado')|select('number')|sum,
             }) or '' }}
         {% endfor %}
 
         {% set grupos_judiciais = [] %}
         {% for municipio, items in judiciais|groupby('municipio') %}
             {% set items_list = items|list %}
-            {% set principal = items_list[0] %}
-            {% set at_ns = namespace(total=0.0) %}
-            {% set am_ns = namespace(total=0.0) %}
-            {% set as_ns = namespace(total=0.0) %}
-            {% for item in items_list %}
-                {% set at = (item.area_total_m2_fmt or '0')|string|replace('.', '')|replace(',', '.')|trim %}
-                {% set at_ns.total = at_ns.total + (at|float(0)) %}
-                {% set am_ns.total = am_ns.total + (item.ultima_aval_mercado|float(0)) %}
-                {% set as_ns.total = as_ns.total + (item.ultima_aval_subsidiado|float(0)) %}
-            {% endfor %}
             {{ grupos_judiciais.append({
                 'municipio': municipio,
-                'principal': principal,
+                'principal': items_list[0],
                 'itens': items_list,
-                'area_total_total': at_ns.total,
-                'aval_mercado_total': am_ns.total,
-                'area_total_exibido': (('{:,.2f}'.format(at_ns.total)|replace(',', '§')|replace('.', ',')|replace('§', '.')) if at_ns.total else '-'),
-                'aval_mercado_exibido': (('R$ ' + ('{:,.2f}'.format(am_ns.total)|replace(',', '§')|replace('.', ',')|replace('§', '.'))) if am_ns.total else '-'),
-                'aval_subsidiado_exibido': (('R$ ' + ('{:,.2f}'.format(as_ns.total)|replace(',', '§')|replace('.', ',')|replace('§', '.'))) if as_ns.total else '-')
+                'area_total_total': items_list|map(attribute='area_total_m2')|select('number')|sum,
+                'aval_mercado_total': items_list|map(attribute='ultima_aval_mercado')|select('number')|sum,
+                'aval_subsidiado_total': items_list|map(attribute='ultima_aval_subsidiado')|select('number')|sum,
             }) or '' }}
         {% endfor %}
 
@@ -248,7 +449,7 @@
                     <div class="stat-icon stat-icon-purple"><i data-lucide="landmark" style="width:22px;height:22px;"></i></div>
                     <div>
                         {% set total_aval = imoveis | map(attribute='ultima_aval_mercado') | select('number') | sum %}
-                        <div class="stat-value" id="stat-imoveis-aval" style="font-size:1rem;">{{ 'R$ {:,.2f}'.format(total_aval).replace(',', 'X').replace('.', ',').replace('X', '.') }}</div>
+                        <div class="stat-value" id="stat-imoveis-aval" style="font-size:1rem;">{{ moeda_br(total_aval) }}</div>
                         <div class="stat-label">Total última avaliação</div>
                     </div>
                 </div>
@@ -284,7 +485,7 @@
                     <div class="stat-icon stat-icon-purple"><i data-lucide="landmark" style="width:22px;height:22px;"></i></div>
                     <div>
                         {% set total_aval_judicial = judiciais | map(attribute='ultima_aval_mercado') | select('number') | sum %}
-                        <div class="stat-value" id="stat-judicial-aval" style="font-size:1rem;">{{ 'R$ {:,.2f}'.format(total_aval_judicial).replace(',', 'X').replace('.', ',').replace('X', '.') }}</div>
+                        <div class="stat-value" id="stat-judicial-aval" style="font-size:1rem;">{{ moeda_br(total_aval_judicial) }}</div>
                         <div class="stat-label">Total última avaliação</div>
                     </div>
                 </div>
@@ -293,7 +494,7 @@
 
         <div class="controls">
             <div class="ms-filter" id="filtro-municipio-wrap">
-                <button type="button" class="ms-filter-btn" id="filtro-municipio-btn">
+                <button type="button" class="ms-filter-btn" id="filtro-municipio-btn" aria-haspopup="true" aria-expanded="false">
                     <i data-lucide="map-pin" style="width:15px;height:15px;color:#9ca3af;"></i>
                     <span id="filtro-municipio-label">Todos os municípios</span>
                     <i data-lucide="chevron-down" style="width:14px;height:14px;margin-left:auto;color:#9ca3af;"></i>
@@ -310,7 +511,7 @@
                     {% endfor %}
                 </div>
             </div>
-            <a href="{{ url_for('areas_brutas.nova', familia='brutas') }}" class="btn-topbar btn-back" style="background-color:#5190d8;padding:9px 18px;border-radius:8px;font-size:0.85rem;font-weight:600;display:flex;align-items:center;gap:7px;text-decoration:none;color:white;">
+            <a href="{{ url_for('areas_brutas.nova', familia='brutas') }}" class="btn-topbar btn-new">
                 <i data-lucide="plus" style="width:16px;height:16px;"></i>
                 Nova Área
             </a>
@@ -342,265 +543,7 @@
                         </thead>
                         <tbody>
                             {% for grupo in grupos_imoveis %}
-                            {% set r = grupo.principal %}
-                            {% set multiplos = grupo.itens|length > 1 %}
-                            <tr class="data-row" data-familia="imoveis" data-municipio="{{ (grupo.municipio or '')|lower|trim }}" data-area="{{ grupo.area_total_total }}" data-aval="{{ grupo.aval_mercado_total }}" data-count="{{ grupo.itens|length }}" onclick="toggleDetalhe('d{{ r.id }}')" style="cursor:pointer;">
-                                <td class="col-fix col-fix-1">
-                                    <span class="row-toggle">
-                                        <i data-lucide="chevron-right" style="width:14px;height:14px;"></i>
-                                        <span class="municipio-badge">{{ grupo.municipio or '' }}</span>
-                                    </span>
-                                </td>
-                                <td>
-                                    {% if multiplos %}
-                                    <span class="grupo-badge"><i data-lucide="layers" style="width:11px;height:11px;"></i> {{ grupo.itens|length }} matrículas</span>
-                                    {% else %}
-                                    {{ r.num_matricula_fmt or '' }}
-                                    {% endif %}
-                                </td>
-                                <td class="num">{{ grupo.area_util_exibido }}</td>
-                                <td class="num">{{ grupo.reserva_exibido }}</td>
-                                <td class="num">{{ grupo.area_total_exibido }}</td>
-                                <td class="num">{{ grupo.aval_mercado_exibido }}{% if not multiplos %}<br><small style="color:#9ca3af;font-size:0.68rem;">{{ r.ultima_aval_ano or '' }}</small>{% endif %}</td>
-                                <td class="num">{{ grupo.aval_subsidiado_exibido }}</td>
-                                <td class="link-cell">{% if not multiplos and r.link_geo %}<a href="{{ r.link_geo }}" target="_blank" onclick="event.stopPropagation()">Ver</a>{% else %}-{% endif %}</td>
-                                <td class="link-cell">{% if not multiplos and r.link_matricula %}<a href="{{ r.link_matricula }}" target="_blank" onclick="event.stopPropagation()">Ver</a>{% else %}-{% endif %}</td>
-                                <td class="obs-cell" title="{{ r.numero_processo or '' }}">{{ (r.numero_processo or '-') if not multiplos else '-' }}</td>
-                            </tr>
-                            <tr id="d{{ r.id }}" class="detail-row" style="display:none;">
-                                <td colspan="10">
-                                    {% if not multiplos %}
-                                    <div class="detail-grid">
-                                        <div class="detail-item">
-                                            <span class="detail-label">Ano da Aquisição</span>
-                                            <span class="detail-value">{{ r.ano_aquisicao or '-' }}</span>
-                                        </div>
-                                        <div class="detail-item">
-                                            <span class="detail-label">Valor do Imóvel — Aquisição</span>
-                                            <span class="detail-value">
-                                                {% if r.valor_conjunto %}
-                                                <span class="valor-grupo" title="Valor compartilhado: {{ r.grupo or '' }}">
-                                                    <i data-lucide="link-2" style="width:11px;height:11px;"></i>
-                                                    {{ r.moeda_conjunto or 'R$' }} {{ '{:,.2f}'.format(r.valor_conjunto).replace(',', 'X').replace('.', ',').replace('X', '.') }}
-                                                </span>
-                                                {% else %}
-                                                {{ r.valor_imovel_fmt or r.valor_imovel or '-' }}
-                                                {% endif %}
-                                            </span>
-                                        </div>
-                                        <div class="detail-item">
-                                            <span class="detail-label">Tipo de Aquisição</span>
-                                            <span class="detail-value">{{ r.tipo_aquisicao or '-' }}</span>
-                                        </div>
-                                        <div class="detail-item">
-                                            <span class="detail-label">Subsídio</span>
-                                            <span class="detail-value">
-                                                {% if r.ocupacao_fmt %}
-                                                <span style="font-weight:600;color:#065f46;">{{ r.ocupacao_fmt }}</span>
-                                                {% else %}
-                                                {{ r.ocupacao or '-' }}
-                                                {% endif %}
-                                            </span>
-                                        </div>
-                                        <div class="detail-item">
-                                            <span class="detail-label">Matrícula do Parcelamento</span>
-                                            <span class="detail-value">{{ r.matricula_parcelamento_fmt or '-' }}</span>
-                                        </div>
-                                        <div class="detail-item detail-item-wide">
-                                            <span class="detail-label">Descrição</span>
-                                            <span class="detail-value">{{ r.descricao_area or '-' }}</span>
-                                        </div>
-                                        <div class="detail-item detail-item-wide">
-                                            <span class="detail-label">Registro de Propriedade</span>
-                                            <span class="detail-value">{{ r.registro_propriedade or '-' }}</span>
-                                        </div>
-                                        <div class="detail-item">
-                                            <span class="detail-label">Loteamento</span>
-                                            <span class="detail-value">{{ r.loteamento or '-' }}</span>
-                                        </div>
-                                        <div class="detail-item">
-                                            <span class="detail-label">Geo</span>
-                                            <span class="detail-value">{% if r.link_geo %}<a href="{{ r.link_geo }}" target="_blank">Ver</a>{% else %}-{% endif %}</span>
-                                        </div>
-                                        <div class="detail-item">
-                                            <span class="detail-label">Link da Matrícula</span>
-                                            <span class="detail-value">{% if r.link_matricula %}<a href="{{ r.link_matricula }}" target="_blank">Ver</a>{% else %}-{% endif %}</span>
-                                        </div>
-                                        {% if r.avaliacoes %}
-                                        <div class="detail-item" style="grid-column: span 4; margin-top: 8px;">
-                                            <span class="detail-label">Avaliações de Mercado</span>
-                                            <div style="overflow-x:auto; margin-top:6px;">
-                                                <table style="border-collapse:collapse; font-size:0.78rem; width:100%;">
-                                                    <thead>
-                                                        <tr style="background:#e0e7ef;">
-                                                            <th style="padding:3px 12px; text-align:left; font-weight:700; color:#002b5c; background:#e0e7ef; position:static;">Ano</th>
-                                                            <th style="padding:3px 12px; text-align:right; font-weight:700; color:#002b5c; background:#e0e7ef; position:static;">V. Mercado</th>
-                                                            <th style="padding:3px 12px; text-align:right; font-weight:700; color:#002b5c; background:#e0e7ef; position:static;">V. Subsidiado</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        {% for av in r.avaliacoes %}
-                                                        <tr style="border-bottom:1px solid #e5e7eb;">
-                                                            <td style="padding:4px 12px; font-weight:600;">{{ av.ano }}</td>
-                                                            <td style="padding:4px 12px; text-align:right; font-variant-numeric:tabular-nums;">{{ 'R$ {:,.2f}'.format(av.valor_mercado).replace(',','X').replace('.',',').replace('X','.') if av.valor_mercado else '-' }}</td>
-                                                            <td style="padding:4px 12px; text-align:right; font-variant-numeric:tabular-nums;">{{ 'R$ {:,.2f}'.format(av.valor_subsidiado).replace(',','X').replace('.',',').replace('X','.') if av.valor_subsidiado else '-' }}</td>
-                                                        </tr>
-                                                        {% endfor %}
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        </div>
-                                        {% endif %}
-                                    </div>
-                                    <div style="padding:14px 24px;" onclick="event.stopPropagation()">
-                                        <a href="{{ url_for('areas_brutas.editar', familia='brutas', registro_id=r.id) }}" class="btn-action btn-edit">
-                                            <i data-lucide="pencil" style="width:12px;height:12px;"></i> Editar
-                                        </a>
-                                        <a href="{{ url_for('areas_brutas.relatorio', familia='brutas', registro_id=r.id) }}" class="btn-action btn-pdf">
-                                            <i data-lucide="file-text" style="width:12px;height:12px;"></i> PDF
-                                        </a>
-                                        {% if session.get('role') == 'admin' %}
-                                        <button type="button" class="btn-action btn-del" onclick="abrirModal({{ r.id }}, '{{ (r.descricao_area or r.municipio or 'este registro') | replace("'","") }}', 'brutas')">
-                                            <i data-lucide="trash-2" style="width:12px;height:12px;"></i> Excluir
-                                        </button>
-                                        {% endif %}
-                                    </div>
-                                    {% endif %}
-
-                                    {% if multiplos %}
-                                    <div class="sub-detail-wrap">
-                                        <div class="sub-detail-title">
-                                            <i data-lucide="layers" style="width:14px;height:14px;"></i>
-                                            Registros deste município ({{ grupo.itens|length }})
-                                        </div>
-                                        <table class="sub-table">
-                                            <thead>
-                                                <tr>
-                                                    <th>Matrícula</th>
-                                                    <th>Área Útil (m²)</th>
-                                                    <th>Reserva Legal (m²)</th>
-                                                    <th>Área Total (m²)</th>
-                                                    <th>V. Mercado</th>
-                                                    <th>V. Subsidiado</th>
-                                                    <th>Nº Processo</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {% for o in grupo.itens %}
-                                                <tr class="data-row sub-row" onclick="toggleDetalhe('sub-d{{ o.id }}')" style="cursor:pointer;">
-                                                    <td>
-                                                        <span class="row-toggle">
-                                                            <i data-lucide="chevron-right" style="width:12px;height:12px;"></i>
-                                                            {{ o.num_matricula_fmt or '-' }}
-                                                        </span>
-                                                    </td>
-                                                    <td>{{ o.area_util_m2_fmt or '-' }}</td>
-                                                    <td>{{ o.reserva_legal_m2_fmt or '-' }}</td>
-                                                    <td>{{ o.area_total_m2_fmt or '-' }}</td>
-                                                    <td>{{ 'R$ {:,.2f}'.format(o.ultima_aval_mercado).replace(',', 'X').replace('.', ',').replace('X', '.') if o.ultima_aval_mercado else '-' }}</td>
-                                                    <td>{{ 'R$ {:,.2f}'.format(o.ultima_aval_subsidiado).replace(',', 'X').replace('.', ',').replace('X', '.') if o.ultima_aval_subsidiado else '-' }}</td>
-                                                    <td>{{ o.numero_processo or '-' }}</td>
-                                                </tr>
-                                                <tr id="sub-d{{ o.id }}" class="detail-row" style="display:none;">
-                                                    <td colspan="7">
-                                                        <div class="detail-grid" style="padding:12px 16px;">
-                                                            <div class="detail-item">
-                                                                <span class="detail-label">Ano da Aquisição</span>
-                                                                <span class="detail-value">{{ o.ano_aquisicao or '-' }}</span>
-                                                            </div>
-                                                            <div class="detail-item">
-                                                                <span class="detail-label">Valor do Imóvel — Aquisição</span>
-                                                                <span class="detail-value">
-                                                                    {% if o.valor_conjunto %}
-                                                                    <span class="valor-grupo" title="Valor compartilhado: {{ o.grupo or '' }}">
-                                                                        <i data-lucide="link-2" style="width:11px;height:11px;"></i>
-                                                                        {{ o.moeda_conjunto or 'R$' }} {{ '{:,.2f}'.format(o.valor_conjunto).replace(',', 'X').replace('.', ',').replace('X', '.') }}
-                                                                    </span>
-                                                                    {% else %}
-                                                                    {{ o.valor_imovel_fmt or o.valor_imovel or '-' }}
-                                                                    {% endif %}
-                                                                </span>
-                                                            </div>
-                                                            <div class="detail-item">
-                                                                <span class="detail-label">Tipo de Aquisição</span>
-                                                                <span class="detail-value">{{ o.tipo_aquisicao or '-' }}</span>
-                                                            </div>
-                                                            <div class="detail-item">
-                                                                <span class="detail-label">Subsídio</span>
-                                                                <span class="detail-value">{{ o.ocupacao_fmt or o.ocupacao or '-' }}</span>
-                                                            </div>
-                                                            <div class="detail-item">
-                                                                <span class="detail-label">Matrícula do Parcelamento</span>
-                                                                <span class="detail-value">{{ o.matricula_parcelamento_fmt or '-' }}</span>
-                                                            </div>
-                                                            <div class="detail-item">
-                                                                <span class="detail-label">Loteamento</span>
-                                                                <span class="detail-value">{{ o.loteamento or '-' }}</span>
-                                                            </div>
-                                                            <div class="detail-item">
-                                                                <span class="detail-label">Geo</span>
-                                                                <span class="detail-value">{% if o.link_geo %}<a href="{{ o.link_geo }}" target="_blank">Ver</a>{% else %}-{% endif %}</span>
-                                                            </div>
-                                                            <div class="detail-item">
-                                                                <span class="detail-label">Link da Matrícula</span>
-                                                                <span class="detail-value">{% if o.link_matricula %}<a href="{{ o.link_matricula }}" target="_blank">Ver</a>{% else %}-{% endif %}</span>
-                                                            </div>
-                                                            <div class="detail-item detail-item-wide">
-                                                                <span class="detail-label">Descrição</span>
-                                                                <span class="detail-value">{{ o.descricao_area or '-' }}</span>
-                                                            </div>
-                                                            <div class="detail-item detail-item-wide">
-                                                                <span class="detail-label">Registro de Propriedade</span>
-                                                                <span class="detail-value">{{ o.registro_propriedade or '-' }}</span>
-                                                            </div>
-                                                            {% if o.avaliacoes %}
-                                                            <div class="detail-item" style="grid-column: span 4; margin-top: 8px;">
-                                                                <span class="detail-label">Avaliações de Mercado</span>
-                                                                <div style="overflow-x:auto; margin-top:6px;">
-                                                                    <table style="border-collapse:collapse; font-size:0.78rem; width:100%;">
-                                                                        <thead>
-                                                                            <tr style="background:#e0e7ef;">
-                                                                                <th style="padding:3px 12px; text-align:left; font-weight:700; color:#002b5c; background:#e0e7ef; position:static;">Ano</th>
-                                                                                <th style="padding:3px 12px; text-align:right; font-weight:700; color:#002b5c; background:#e0e7ef; position:static;">V. Mercado</th>
-                                                                                <th style="padding:3px 12px; text-align:right; font-weight:700; color:#002b5c; background:#e0e7ef; position:static;">V. Subsidiado</th>
-                                                                            </tr>
-                                                                        </thead>
-                                                                        <tbody>
-                                                                            {% for av in o.avaliacoes %}
-                                                                            <tr style="border-bottom:1px solid #e5e7eb;">
-                                                                                <td style="padding:4px 12px; font-weight:600;">{{ av.ano }}</td>
-                                                                                <td style="padding:4px 12px; text-align:right; font-variant-numeric:tabular-nums;">{{ 'R$ {:,.2f}'.format(av.valor_mercado).replace(',','X').replace('.',',').replace('X','.') if av.valor_mercado else '-' }}</td>
-                                                                                <td style="padding:4px 12px; text-align:right; font-variant-numeric:tabular-nums;">{{ 'R$ {:,.2f}'.format(av.valor_subsidiado).replace(',','X').replace('.',',').replace('X','.') if av.valor_subsidiado else '-' }}</td>
-                                                                            </tr>
-                                                                            {% endfor %}
-                                                                        </tbody>
-                                                                    </table>
-                                                                </div>
-                                                            </div>
-                                                            {% endif %}
-                                                        </div>
-                                                        <div style="padding:12px 16px;" onclick="event.stopPropagation()">
-                                                            <a href="{{ url_for('areas_brutas.editar', familia='brutas', registro_id=o.id) }}" class="btn-action btn-edit">
-                                                                <i data-lucide="pencil" style="width:11px;height:11px;"></i> Editar
-                                                            </a>
-                                                            <a href="{{ url_for('areas_brutas.relatorio', familia='brutas', registro_id=o.id) }}" class="btn-action btn-pdf">
-                                                                <i data-lucide="file-text" style="width:11px;height:11px;"></i> PDF
-                                                            </a>
-                                                            {% if session.get('role') == 'admin' %}
-                                                            <button type="button" class="btn-action btn-del" onclick="abrirModal({{ o.id }}, '{{ (o.descricao_area or o.municipio or 'este registro') | replace("'","") }}', 'brutas')">
-                                                                <i data-lucide="trash-2" style="width:11px;height:11px;"></i> Excluir
-                                                            </button>
-                                                            {% endif %}
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                                {% endfor %}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                    {% endif %}
-                                </td>
-                            </tr>
+                                {{ linha_municipio(grupo, 'brutas', 10) }}
                             {% else %}
                             <tr><td colspan="10" class="empty">Nenhum registro encontrado.</td></tr>
                             {% endfor %}
@@ -616,7 +559,7 @@
                 <i data-lucide="gavel" style="width:18px;height:18px;"></i>
                 Em Processo Judicial
                 <span class="badge badge-red">{{ judiciais | length }} registros</span>
-                <a href="{{ url_for('areas_brutas.nova', familia='judicial') }}" style="margin-left:auto;display:flex;align-items:center;gap:6px;padding:6px 14px;background:#991b1b;color:white;border-radius:8px;font-size:0.78rem;font-weight:600;text-decoration:none;">
+                <a href="{{ url_for('areas_brutas.nova', familia='judicial') }}" class="btn-topbar btn-new-judicial">
                     <i data-lucide="plus" style="width:14px;height:14px;"></i>
                     Novo Processo Judicial
                 </a>
@@ -635,242 +578,7 @@
                         </thead>
                         <tbody>
                             {% for grupo in grupos_judiciais %}
-                            {% set r = grupo.principal %}
-                            {% set multiplos = grupo.itens|length > 1 %}
-                            <tr class="data-row" data-familia="judicial" data-municipio="{{ (grupo.municipio or '')|lower|trim }}" data-area="{{ grupo.area_total_total }}" data-aval="{{ grupo.aval_mercado_total }}" data-count="{{ grupo.itens|length }}" onclick="toggleDetalhe('j{{ r.id }}')" style="cursor:pointer;">
-                                <td class="col-fix col-fix-1">
-                                    <span class="row-toggle">
-                                        <i data-lucide="chevron-right" style="width:14px;height:14px;"></i>
-                                        <span class="municipio-badge">{{ grupo.municipio or '' }}</span>
-                                    </span>
-                                </td>
-                                <td>
-                                    {% if multiplos %}
-                                    <span class="grupo-badge"><i data-lucide="layers" style="width:11px;height:11px;"></i> {{ grupo.itens|length }} registros</span>
-                                    {% else %}
-                                    {{ r.num_matricula_fmt or '' }}
-                                    {% endif %}
-                                </td>
-                                <td class="num">{{ grupo.area_total_exibido }}</td>
-                                <td class="num">{{ grupo.aval_mercado_exibido }}{% if not multiplos %}<br><small style="color:#9ca3af;font-size:0.68rem;">{{ r.ultima_aval_ano or '' }}</small>{% endif %}</td>
-                                <td class="num">{{ grupo.aval_subsidiado_exibido }}</td>
-                            </tr>
-                            <tr id="j{{ r.id }}" class="detail-row" style="display:none;">
-                                <td colspan="5">
-                                    {% if not multiplos %}
-                                    <div class="detail-grid">
-                                        <div class="detail-item">
-                                            <span class="detail-label">Ano da Aquisição</span>
-                                            <span class="detail-value">{{ r.ano_aquisicao or '-' }}</span>
-                                        </div>
-                                        <div class="detail-item">
-                                            <span class="detail-label">Valor do Imóvel — Aquisição</span>
-                                            <span class="detail-value">{{ r.valor_imovel_fmt or r.valor_imovel or '-' }}</span>
-                                        </div>
-                                        <div class="detail-item">
-                                            <span class="detail-label">Tipo de Aquisição</span>
-                                            <span class="detail-value">{{ r.tipo_aquisicao or '-' }}</span>
-                                        </div>
-                                        <div class="detail-item">
-                                            <span class="detail-label">Matrícula Parcelamento</span>
-                                            <span class="detail-value">{{ r.matricula_parcelamento_fmt or '-' }}</span>
-                                        </div>
-                                        <div class="detail-item">
-                                            <span class="detail-label">Subsídio</span>
-                                            <span class="detail-value">
-                                                {% if r.ocupacao_fmt %}
-                                                <span style="font-weight:600;color:#065f46;">{{ r.ocupacao_fmt }}</span>
-                                                {% else %}
-                                                {{ r.ocupacao or '-' }}
-                                                {% endif %}
-                                            </span>
-                                        </div>
-                                        <div class="detail-item">
-                                            <span class="detail-label">Nº Processo</span>
-                                            <span class="detail-value">{{ r.numero_processo or '-' }}</span>
-                                        </div>
-                                        <div class="detail-item">
-                                            <span class="detail-label">Loteamento</span>
-                                            <span class="detail-value">{{ r.loteamento or '-' }}</span>
-                                        </div>
-                                        <div class="detail-item">
-                                            <span class="detail-label">Geo</span>
-                                            <span class="detail-value">{% if r.link_geo %}<a href="{{ r.link_geo }}" target="_blank">Ver</a>{% else %}-{% endif %}</span>
-                                        </div>
-                                        <div class="detail-item">
-                                            <span class="detail-label">Link da Matrícula</span>
-                                            <span class="detail-value">{% if r.link_matricula %}<a href="{{ r.link_matricula }}" target="_blank">Ver</a>{% else %}-{% endif %}</span>
-                                        </div>
-                                        <div class="detail-item detail-item-wide">
-                                            <span class="detail-label">Descrição</span>
-                                            <span class="detail-value">{{ r.descricao_area or '-' }}</span>
-                                        </div>
-                                        <div class="detail-item detail-item-wide">
-                                            <span class="detail-label">Registro de Propriedade</span>
-                                            <span class="detail-value">{{ r.registro_propriedade or '-' }}</span>
-                                        </div>
-                                        {% if r.avaliacoes %}
-                                        <div class="detail-item" style="grid-column: span 4; margin-top: 8px;">
-                                            <span class="detail-label">Avaliações de Mercado</span>
-                                            <div style="overflow-x:auto; margin-top:6px;">
-                                                <table style="border-collapse:collapse; font-size:0.78rem; width:100%;">
-                                                    <thead>
-                                                        <tr style="background:#e0e7ef;">
-                                                            <th style="padding:3px 12px; text-align:left; font-weight:700; color:#002b5c; background:#e0e7ef; position:static;">Ano</th>
-                                                            <th style="padding:3px 12px; text-align:right; font-weight:700; color:#002b5c; background:#e0e7ef; position:static;">V. Mercado</th>
-                                                            <th style="padding:3px 12px; text-align:right; font-weight:700; color:#002b5c; background:#e0e7ef; position:static;">V. Subsidiado</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        {% for av in r.avaliacoes %}
-                                                        <tr style="border-bottom:1px solid #e5e7eb;">
-                                                            <td style="padding:4px 12px; font-weight:600;">{{ av.ano }}</td>
-                                                            <td style="padding:4px 12px; text-align:right; font-variant-numeric:tabular-nums;">{{ 'R$ {:,.2f}'.format(av.valor_mercado).replace(',','X').replace('.',',').replace('X','.') if av.valor_mercado else '-' }}</td>
-                                                            <td style="padding:4px 12px; text-align:right; font-variant-numeric:tabular-nums;">{{ 'R$ {:,.2f}'.format(av.valor_subsidiado).replace(',','X').replace('.',',').replace('X','.') if av.valor_subsidiado else '-' }}</td>
-                                                        </tr>
-                                                        {% endfor %}
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        </div>
-                                        {% endif %}
-                                    </div>
-                                    <div style="padding:14px 24px;" onclick="event.stopPropagation()">
-                                        <a href="{{ url_for('areas_brutas.editar', familia='judicial', registro_id=r.id) }}" class="btn-action btn-edit">
-                                            <i data-lucide="pencil" style="width:12px;height:12px;"></i> Editar
-                                        </a>
-                                        <a href="{{ url_for('areas_brutas.relatorio', familia='judicial', registro_id=r.id) }}" class="btn-action btn-pdf">
-                                            <i data-lucide="file-text" style="width:12px;height:12px;"></i> PDF
-                                        </a>
-                                        {% if session.get('role') == 'admin' %}
-                                        <button type="button" class="btn-action btn-del" onclick="abrirModal({{ r.id }}, '{{ (r.descricao_area or r.municipio or 'este registro') | replace("'","") }}', 'judicial')">
-                                            <i data-lucide="trash-2" style="width:12px;height:12px;"></i> Excluir
-                                        </button>
-                                        {% endif %}
-                                    </div>
-                                    {% endif %}
-
-                                    {% if multiplos %}
-                                    <div class="sub-detail-wrap">
-                                        <div class="sub-detail-title">
-                                            <i data-lucide="layers" style="width:14px;height:14px;"></i>
-                                            Registros deste município ({{ grupo.itens|length }})
-                                        </div>
-                                        <table class="sub-table">
-                                            <thead>
-                                                <tr>
-                                                    <th>Matrícula</th>
-                                                    <th>Área Total (m²)</th>
-                                                    <th>V. Mercado</th>
-                                                    <th>V. Subsidiado</th>
-                                                    <th>Nº Processo</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {% for o in grupo.itens %}
-                                                <tr class="data-row sub-row" onclick="toggleDetalhe('sub-j{{ o.id }}')" style="cursor:pointer;">
-                                                    <td>
-                                                        <span class="row-toggle">
-                                                            <i data-lucide="chevron-right" style="width:12px;height:12px;"></i>
-                                                            {{ o.num_matricula_fmt or '-' }}
-                                                        </span>
-                                                    </td>
-                                                    <td>{{ o.area_total_m2_fmt or '-' }}</td>
-                                                    <td>{{ 'R$ {:,.2f}'.format(o.ultima_aval_mercado).replace(',', 'X').replace('.', ',').replace('X', '.') if o.ultima_aval_mercado else '-' }}</td>
-                                                    <td>{{ 'R$ {:,.2f}'.format(o.ultima_aval_subsidiado).replace(',', 'X').replace('.', ',').replace('X', '.') if o.ultima_aval_subsidiado else '-' }}</td>
-                                                    <td>{{ o.numero_processo or '-' }}</td>
-                                                </tr>
-                                                <tr id="sub-j{{ o.id }}" class="detail-row" style="display:none;">
-                                                    <td colspan="5">
-                                                        <div class="detail-grid" style="padding:12px 16px;">
-                                                            <div class="detail-item">
-                                                                <span class="detail-label">Ano da Aquisição</span>
-                                                                <span class="detail-value">{{ o.ano_aquisicao or '-' }}</span>
-                                                            </div>
-                                                            <div class="detail-item">
-                                                                <span class="detail-label">Valor do Imóvel — Aquisição</span>
-                                                                <span class="detail-value">{{ o.valor_imovel_fmt or o.valor_imovel or '-' }}</span>
-                                                            </div>
-                                                            <div class="detail-item">
-                                                                <span class="detail-label">Tipo de Aquisição</span>
-                                                                <span class="detail-value">{{ o.tipo_aquisicao or '-' }}</span>
-                                                            </div>
-                                                            <div class="detail-item">
-                                                                <span class="detail-label">Matrícula Parcelamento</span>
-                                                                <span class="detail-value">{{ o.matricula_parcelamento_fmt or '-' }}</span>
-                                                            </div>
-                                                            <div class="detail-item">
-                                                                <span class="detail-label">Subsídio</span>
-                                                                <span class="detail-value">{{ o.ocupacao_fmt or o.ocupacao or '-' }}</span>
-                                                            </div>
-                                                            <div class="detail-item">
-                                                                <span class="detail-label">Loteamento</span>
-                                                                <span class="detail-value">{{ o.loteamento or '-' }}</span>
-                                                            </div>
-                                                            <div class="detail-item">
-                                                                <span class="detail-label">Geo</span>
-                                                                <span class="detail-value">{% if o.link_geo %}<a href="{{ o.link_geo }}" target="_blank">Ver</a>{% else %}-{% endif %}</span>
-                                                            </div>
-                                                            <div class="detail-item">
-                                                                <span class="detail-label">Link da Matrícula</span>
-                                                                <span class="detail-value">{% if o.link_matricula %}<a href="{{ o.link_matricula }}" target="_blank">Ver</a>{% else %}-{% endif %}</span>
-                                                            </div>
-                                                            <div class="detail-item detail-item-wide">
-                                                                <span class="detail-label">Descrição</span>
-                                                                <span class="detail-value">{{ o.descricao_area or '-' }}</span>
-                                                            </div>
-                                                            <div class="detail-item detail-item-wide">
-                                                                <span class="detail-label">Registro de Propriedade</span>
-                                                                <span class="detail-value">{{ o.registro_propriedade or '-' }}</span>
-                                                            </div>
-                                                            {% if o.avaliacoes %}
-                                                            <div class="detail-item" style="grid-column: span 4; margin-top: 8px;">
-                                                                <span class="detail-label">Avaliações de Mercado</span>
-                                                                <div style="overflow-x:auto; margin-top:6px;">
-                                                                    <table style="border-collapse:collapse; font-size:0.78rem; width:100%;">
-                                                                        <thead>
-                                                                            <tr style="background:#e0e7ef;">
-                                                                                <th style="padding:3px 12px; text-align:left; font-weight:700; color:#002b5c; background:#e0e7ef; position:static;">Ano</th>
-                                                                                <th style="padding:3px 12px; text-align:right; font-weight:700; color:#002b5c; background:#e0e7ef; position:static;">V. Mercado</th>
-                                                                                <th style="padding:3px 12px; text-align:right; font-weight:700; color:#002b5c; background:#e0e7ef; position:static;">V. Subsidiado</th>
-                                                                            </tr>
-                                                                        </thead>
-                                                                        <tbody>
-                                                                            {% for av in o.avaliacoes %}
-                                                                            <tr style="border-bottom:1px solid #e5e7eb;">
-                                                                                <td style="padding:4px 12px; font-weight:600;">{{ av.ano }}</td>
-                                                                                <td style="padding:4px 12px; text-align:right; font-variant-numeric:tabular-nums;">{{ 'R$ {:,.2f}'.format(av.valor_mercado).replace(',','X').replace('.',',').replace('X','.') if av.valor_mercado else '-' }}</td>
-                                                                                <td style="padding:4px 12px; text-align:right; font-variant-numeric:tabular-nums;">{{ 'R$ {:,.2f}'.format(av.valor_subsidiado).replace(',','X').replace('.',',').replace('X','.') if av.valor_subsidiado else '-' }}</td>
-                                                                            </tr>
-                                                                            {% endfor %}
-                                                                        </tbody>
-                                                                    </table>
-                                                                </div>
-                                                            </div>
-                                                            {% endif %}
-                                                        </div>
-                                                        <div style="padding:12px 16px;" onclick="event.stopPropagation()">
-                                                            <a href="{{ url_for('areas_brutas.editar', familia='judicial', registro_id=o.id) }}" class="btn-action btn-edit">
-                                                                <i data-lucide="pencil" style="width:11px;height:11px;"></i> Editar
-                                                            </a>
-                                                            <a href="{{ url_for('areas_brutas.relatorio', familia='judicial', registro_id=o.id) }}" class="btn-action btn-pdf">
-                                                                <i data-lucide="file-text" style="width:11px;height:11px;"></i> PDF
-                                                            </a>
-                                                            {% if session.get('role') == 'admin' %}
-                                                            <button type="button" class="btn-action btn-del" onclick="abrirModal({{ o.id }}, '{{ (o.descricao_area or o.municipio or 'este registro') | replace("'","") }}', 'judicial')">
-                                                                <i data-lucide="trash-2" style="width:11px;height:11px;"></i> Excluir
-                                                            </button>
-                                                            {% endif %}
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                                {% endfor %}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                    {% endif %}
-                                </td>
-                            </tr>
+                                {{ linha_municipio(grupo, 'judicial', 5) }}
                             {% else %}
                             <tr><td colspan="5" class="empty">Nenhum registro encontrado.</td></tr>
                             {% endfor %}
@@ -912,7 +620,19 @@
     <script>
         lucide.createIcons();
 
-        // Mapa de correção de acentuação dos municípios (chave sem acento -> nome correto)
+        // ---------------------------------------------------------------
+        // Correção de acentuação de municípios.
+        //
+        // ATENÇÃO: isto é um remendo em cima de um bug de encoding conhecido
+        // (acentos virando "+?" ao rodar via Docker localmente, mesmo com
+        // código idêntico via git — provavelmente charset/collation da conexão
+        // MySQL, ou variável de ambiente LANG/LC_ALL diferente entre o
+        // container e a VM). Corrigir aqui no JS é um band-aid: os dados no
+        // banco continuam errados, e qualquer tela nova vai reproduzir o
+        // mesmo problema. O ideal é resolver na conexão com o banco
+        // (charset=utf8mb4 na connection string) ou, na pior hipótese, mover
+        // esta tabela de correção para o backend como fallback único.
+        // ---------------------------------------------------------------
         const CORRECOES_MUNICIPIO = {
             'ABADIANIA': 'ABADIÂNIA',
             'ANAPOLIS': 'ANÁPOLIS',
@@ -927,8 +647,8 @@
             'CAMPO LIMPO DE GOIAS': 'CAMPO LIMPO DE GOIÁS',
             'IPORA': 'IPORÁ',
             'PETROLINA DE GOIAS': 'PETROLINA DE GOIÁS',
-            'PIRENOPOLIS': 'PIRENÓPOLIS', 
-           'SAO MIGUEL DO ARAGUAIA': 'SÃO MIGUEL DO ARAGUAIA' 
+            'PIRENOPOLIS': 'PIRENÓPOLIS',
+            'SAO MIGUEL DO ARAGUAIA': 'SÃO MIGUEL DO ARAGUAIA'
         };
 
         function normalizarSemAcento(str) {
@@ -945,18 +665,13 @@
         }
 
         function aplicarCorrecoesAcentuacao() {
-            // Badges nas tabelas (imóveis e judiciais)
             document.querySelectorAll('.municipio-badge').forEach(function (el) {
                 el.textContent = corrigirMunicipio(el.textContent);
             });
-
-            // Atualiza o data-municipio (usado no filtro) para casar com o valor corrigido em minúsculas
             document.querySelectorAll('.data-row:not(.sub-row)').forEach(function (row) {
-                const corrigido = corrigirMunicipio(row.dataset.municipio);
-                row.dataset.municipio = corrigido.toLowerCase().trim();
+                if (!row.dataset.municipio) return;
+                row.dataset.municipio = corrigirMunicipio(row.dataset.municipio).toLowerCase().trim();
             });
-
-            // Opções do filtro (checkbox + texto)
             document.querySelectorAll('#filtro-municipio-panel .ms-filter-option').forEach(function (label) {
                 const input = label.querySelector('input[type="checkbox"]');
                 const span = label.querySelector('span');
@@ -965,24 +680,45 @@
                 span.textContent = corrigido;
             });
         }
-
         aplicarCorrecoesAcentuacao();
 
-        function toggleDetalhe(id) {
+        // ---------------------------------------------------------------
+        // Expandir/colapsar linhas de detalhe. Agora acessível via teclado
+        // (Enter / Espaço), não só clique de mouse.
+        // ---------------------------------------------------------------
+        function toggleDetalhe(id, gatilho) {
             const row = document.getElementById(id);
+            if (!row) return;
             const dataRow = row.previousElementSibling;
             const isOpen = row.style.display !== 'none';
             row.style.display = isOpen ? 'none' : 'table-row';
-            dataRow.classList.toggle('open', !isOpen);
+            if (dataRow) {
+                dataRow.classList.toggle('open', !isOpen);
+                dataRow.setAttribute('aria-expanded', String(!isOpen));
+            }
             if (!isOpen) lucide.createIcons();
         }
 
+        function onRowKeydown(event, id, gatilho) {
+            if (event.key === 'Enter' || event.key === ' ' || event.key === 'Spacebar') {
+                event.preventDefault();
+                toggleDetalhe(id, gatilho);
+            }
+        }
+
+        // ---------------------------------------------------------------
+        // Filtro por município + recálculo dos cards de estatística.
+        // ---------------------------------------------------------------
         (function() {
             const btn = document.getElementById('filtro-municipio-btn');
             const panel = document.getElementById('filtro-municipio-panel');
             const label = document.getElementById('filtro-municipio-label');
             const limpar = document.getElementById('filtro-municipio-limpar');
             const checkboxes = panel.querySelectorAll('input[type="checkbox"]');
+
+            function formatarMoeda(valor) {
+                return 'R$ ' + valor.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            }
 
             function aplicarFiltroMunicipio() {
                 const marcados = Array.from(checkboxes).filter(function(c) { return c.checked; });
@@ -1000,6 +736,7 @@
                 let judiciaisTotal = 0, judiciaisArea = 0, judiciaisAval = 0;
 
                 document.querySelectorAll('.data-row:not(.sub-row)').forEach(function(row) {
+                    if (!row.dataset.familia) return; // linhas de sub-tabela não entram no filtro/somatório
                     const visivel = selecionados.length === 0 || selecionados.indexOf(row.dataset.municipio) !== -1;
                     row.style.display = visivel ? '' : 'none';
                     if (!visivel) return;
@@ -1024,20 +761,25 @@
                 document.getElementById('stat-imoveis-total').textContent = imoveisTotal;
                 document.getElementById('stat-imoveis-municipios').textContent = imoveisMunicipios.size;
                 document.getElementById('stat-imoveis-area').textContent = Math.round(imoveisArea).toLocaleString('pt-BR') + ' m²';
-                document.getElementById('stat-imoveis-aval').textContent = 'R$ ' + imoveisAval.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                document.getElementById('stat-imoveis-aval').textContent = formatarMoeda(imoveisAval);
 
                 document.getElementById('stat-judicial-total').textContent = judiciaisTotal;
                 document.getElementById('stat-judicial-municipios').textContent = judiciaisMunicipios.size;
                 document.getElementById('stat-judicial-area').textContent = Math.round(judiciaisArea).toLocaleString('pt-BR') + ' m²';
-                document.getElementById('stat-judicial-aval').textContent = 'R$ ' + judiciaisAval.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                document.getElementById('stat-judicial-aval').textContent = formatarMoeda(judiciaisAval);
             }
 
             btn.addEventListener('click', function(e) {
                 e.stopPropagation();
-                panel.classList.toggle('open');
+                const abrir = !panel.classList.contains('open');
+                panel.classList.toggle('open', abrir);
+                btn.setAttribute('aria-expanded', String(abrir));
             });
             document.addEventListener('click', function(e) {
-                if (!panel.contains(e.target) && e.target !== btn) panel.classList.remove('open');
+                if (!panel.contains(e.target) && e.target !== btn) {
+                    panel.classList.remove('open');
+                    btn.setAttribute('aria-expanded', 'false');
+                }
             });
             checkboxes.forEach(function(cb) { cb.addEventListener('change', aplicarFiltroMunicipio); });
             limpar.addEventListener('click', function() {
@@ -1046,8 +788,20 @@
             });
         })();
 
-        function abrirModal(id, descricao, familia) {
-            document.getElementById('modalDescricao').textContent = descricao;
+        // ---------------------------------------------------------------
+        // Modal de exclusão.
+        //
+        // Antes: a descrição do registro era interpolada direto dentro de uma
+        // string JavaScript no atributo onclick (com apenas as aspas simples
+        // removidas). Isso não protege contra aspas duplas, quebras de linha
+        // ou coisas como fechar a tag de script dentro do texto.
+        // Agora: os dados vêm de atributos data-* (texto puro, sempre
+        // escapado corretamente pelo Jinja) e são lidos via dataset — sem
+        // montar código JavaScript a partir de dados do usuário.
+        // ---------------------------------------------------------------
+        function abrirModalFromDataset(botao) {
+            const { id, desc, familia } = botao.dataset;
+            document.getElementById('modalDescricao').textContent = desc;
             document.getElementById('formExcluir').action = '/assent/areas-brutas/' + familia + '/' + id + '/excluir';
             document.getElementById('modalExcluir').classList.add('open');
         }
