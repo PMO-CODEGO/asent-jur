@@ -53,7 +53,7 @@
         .ms-filter-option { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 6px; font-size: 0.85rem; cursor: pointer; }
         .ms-filter-option:hover { background: #f3f4f6; }
         .btn-nova { display: flex; align-items: center; gap: 6px; padding: 9px 18px; background: #1e40af; color: white; border-radius: 8px; text-decoration: none; font-size: 0.85rem; font-weight: 600; }
-        .btn-nova:hover { background: #1e40af; }
+        .btn-nova:hover { background: #1e3a8a; }
 
         .table-wrap { background: white; border-radius: 14px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); overflow: hidden; }
         .table-scroll { overflow-x: auto; overflow-y: auto; max-height: 65vh; border-radius: 14px; }
@@ -121,13 +121,27 @@
             <p>Imóveis urbanos em galerias e condomínios de propriedade da CODEGO</p>
         </div>
 
+        {# ============================================================
+           OTIMIZAÇÃO: parsing de área/valor feito em UMA única passada
+           por 'registros', reaproveitado tanto para os totais dos
+           cards quanto para os data-* de cada linha da tabela.
+           Antes: o mesmo replace/float era feito duas vezes por item
+           (uma no loop de totais, outra no loop da tabela).
+           Idealmente esse parsing deveria vir pronto do backend
+           (ex.: r.area_total_m2_num, r.valor_imovel_num calculados na
+           view Flask), evitando refazer isso em Jinja a cada render.
+        ============================================================ #}
         {% set area_ns = namespace(total=0.0) %}
         {% set valor_ns = namespace(total=0.0) %}
+        {% set parsed = namespace(rows=[]) %}
         {% for item in registros %}
             {% set area_limpa = (item.area_total_m2_fmt or '0')|string|replace('m²', '')|replace('M²', '')|replace('.', '')|replace(',', '.')|trim %}
-            {% set area_ns.total = area_ns.total + (area_limpa|float(0)) %}
             {% set valor_limpo = (item.valor_imovel_fmt or '0')|string|replace('R$', '')|replace('.', '')|replace(',', '.')|trim %}
-            {% set valor_ns.total = valor_ns.total + (valor_limpo|float(0)) %}
+            {% set area_v = area_limpa|float(0) %}
+            {% set valor_v = valor_limpo|float(0) %}
+            {% set area_ns.total = area_ns.total + area_v %}
+            {% set valor_ns.total = valor_ns.total + valor_v %}
+            {% set _ = parsed.rows.append({'item': item, 'area': area_v, 'valor': valor_v}) %}
         {% endfor %}
 
         <div class="stats-row">
@@ -180,6 +194,9 @@
                     {% endfor %}
                 </div>
             </div>
+            {# TODO: trocar por url_for('<blueprint>.<endpoint>') quando confirmar o nome
+               do endpoint de cadastro, para ficar consistente com o restante do arquivo
+               (ex.: url_for('dashboard.controle_area') acima). Hoje está hardcoded. #}
             <a href="/assent/areas-parceladas/galerias/nova" class="btn-nova">
                 <i data-lucide="plus" style="width:16px;height:16px;"></i> Nova Área
             </a>
@@ -198,10 +215,9 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for r in registros %}
-                        {% set area_limpa_r = (r.area_total_m2_fmt or '0')|string|replace('m²', '')|replace('M²', '')|replace('.', '')|replace(',', '.')|trim %}
-                        {% set valor_limpo_r = (r.valor_imovel_fmt or '0')|string|replace('R$', '')|replace('.', '')|replace(',', '.')|trim %}
-                        <tr class="data-row" data-municipio="{{ (r.municipio or '')|lower|trim }}" data-area="{{ area_limpa_r|float(0) }}" data-valor="{{ valor_limpo_r|float(0) }}" onclick="toggleDetalhe('p{{ r.id }}')">
+                        {% for p in parsed.rows %}
+                        {% set r = p.item %}
+                        <tr class="data-row" data-municipio="{{ (r.municipio or '')|lower|trim }}" data-area="{{ p.area }}" data-valor="{{ p.valor }}" onclick="toggleDetalhe('p{{ r.id }}')">
                             <td class="col-fix col-fix-1">
                                 <span class="row-toggle">
                                     <i data-lucide="chevron-right" style="width:14px;height:14px;"></i>
@@ -253,6 +269,7 @@
                                        style="display:inline-flex;align-items:center;gap:4px;padding:5px 12px;background:#d1fae5;color:#065f46;border-radius:6px;font-size:0.78rem;font-weight:600;text-decoration:none;margin-right:6px;">
                                         <i data-lucide="file-text" style="width:13px;height:13px;"></i> Relatório
                                     </a>
+                                    {# TODO: idem acima - trocar por url_for(...) quando confirmar endpoint #}
                                     <a href="/assent/areas-parceladas/galerias/{{ r.id }}/editar"
                                        style="display:inline-flex;align-items:center;gap:4px;padding:5px 12px;background:#dbeafe;color:#1e40af;border-radius:6px;font-size:0.78rem;font-weight:600;text-decoration:none;margin-right:6px;">
                                         <i data-lucide="pencil" style="width:13px;height:13px;"></i> Editar
@@ -281,6 +298,7 @@
         lucide.createIcons();
 
         // Mapa de correção de acentuação dos municípios (chave sem acento -> nome correto)
+        // (mantido como está, sem alterações, conforme solicitado)
         const CORRECOES_MUNICIPIO = {
             'ABADIANIA': 'ABADIÂNIA',
             'ANAPOLIS': 'ANÁPOLIS',
@@ -329,12 +347,16 @@
         aplicarCorrecoesAcentuacao();
 
         function toggleDetalhe(id) {
+            // OTIMIZAÇÃO: removida a chamada redundante a lucide.createIcons() aqui.
+            // Os ícones da linha de detalhe (file-text, pencil, trash-2) já existem
+            // no DOM desde o load inicial (apenas com display:none no <tr> pai), e o
+            // lucide.createIcons() do carregamento da página já os converteu para SVG.
+            // Chamar de novo a cada toggle só reprocessava a página inteira à toa.
             const row = document.getElementById(id);
             const dataRow = row.previousElementSibling;
             const isOpen = row.style.display !== 'none';
             row.style.display = isOpen ? 'none' : 'table-row';
             dataRow.classList.toggle('open', !isOpen);
-            if (!isOpen) lucide.createIcons();
         }
 
         (function() {
