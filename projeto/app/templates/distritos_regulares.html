@@ -6,7 +6,7 @@
     <title>Distritos Regulares - CODEGO</title>
     <link rel="shortcut icon" href="{{ url_for('static', filename='imagens_empresas/asentjur.png') }}" type="image/png">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/lucide@0.469.0"></script>
     <style>
         :root {
             --azul-principal: #002b5c;   /* azul original do layout */
@@ -97,6 +97,17 @@
         .sub-table tbody tr:last-child { border-bottom: none; }
         .sub-table td { padding: 8px 12px; font-size: 0.78rem; color: #334155; }
 
+        /* Ações (Relatório / Editar / Excluir) — antes duplicadas inline em 2 lugares */
+        .row-actions { padding: 14px 24px; }
+        .row-actions.sub { padding: 12px 16px; }
+        .btn-acao { display: inline-flex; align-items: center; gap: 4px; padding: 5px 12px; border-radius: 6px; font-size: 0.78rem; font-weight: 600; text-decoration: none; margin-right: 6px; border: none; cursor: pointer; font-family: inherit; }
+        .row-actions.sub .btn-acao { padding: 4px 10px; font-size: 0.72rem; margin-right: 5px; }
+        .btn-acao-relatorio { background: #d1fae5; color: #065f46; }
+        .btn-acao-editar { background: #dbeafe; color: #1e40af; }
+        .btn-acao-excluir { background: #fee2e2; color: #991b1b; }
+        .btn-acao svg { width: 13px; height: 13px; }
+        .row-actions.sub .btn-acao svg { width: 12px; height: 12px; }
+
         @media (max-width: 768px) {
             .page-body { padding: 16px; }
             .topbar { padding: 0 16px; }
@@ -127,6 +138,15 @@
     <div class="page-body">
         {# ==========================================================
            TRATAMENTO DE DADOS: agrupa os registros por município.
+           NOTA DE PERFORMANCE: idealmente este agrupamento (grupos,
+           área total, valor total, contagem de municípios) deve ser
+           calculado no backend (Python) e passado pronto para o
+           template — Jinja não é otimizado para esse tipo de
+           processamento e ele roda a cada request. A versão abaixo
+           reduz o trabalho feito aqui (um único loop, sem passes
+           repetidos de map/unique/sum), mas o ideal continua sendo
+           mover para a view.
+
            - "principal": primeiro registro do município cuja
              "matrícula do parcelamento" (matricula_parcelamento_fmt)
              é diferente de "-" -> é o que aparece na linha da tabela.
@@ -143,6 +163,7 @@
            então a tabela passa a ficar em ordem alfabética.
         ========================================================== #}
         {% set grupos = [] %}
+        {% set totais = namespace(area=0.0, valor=0.0, municipios=0) %}
         {% for municipio, items in registros|groupby('municipio') %}
             {% set items_list = items|list %}
             {% set principais = [] %}
@@ -164,7 +185,7 @@
                 {% set principal = items_list[0] %}
             {% endif %}
 
-            {# soma de área (m²) e valor (R$) de todos os registros do município #}
+            {# soma de área (m²) e valor (R$) de todos os registros do município, em um único passe #}
             {% set area_ns = namespace(total=0.0) %}
             {% set valor_ns = namespace(total=0.0) %}
             {% for item in items_list %}
@@ -180,6 +201,13 @@
             {% else %}
                 {% set area_total_exibida = principal.area_total_m2_fmt or '-' %}
                 {% set valor_total_exibido = principal.valor_imovel_fmt or '-' %}
+            {% endif %}
+
+            {# acumula os totais gerais da página no mesmo laço, evitando novos passes por 'grupos' depois #}
+            {% set totais.area = totais.area + area_ns.total %}
+            {% set totais.valor = totais.valor + valor_ns.total %}
+            {% if municipio %}
+                {% set totais.municipios = totais.municipios + 1 %}
             {% endif %}
 
             {{ grupos.append({
@@ -212,21 +240,21 @@
             <div class="stat-card">
                 <div class="stat-icon stat-icon-red"><i data-lucide="map" style="width:22px;height:22px;"></i></div>
                 <div>
-                    <div class="stat-value" id="stat-municipios">{{ grupos | map(attribute='municipio') | unique | list | length }}</div>
+                    <div class="stat-value" id="stat-municipios">{{ totais.municipios }}</div>
                     <div class="stat-label">Municípios</div>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon stat-icon-blue"><i data-lucide="ruler" style="width:22px;height:22px;"></i></div>
                 <div>
-                    <div class="stat-value" id="stat-area">{{ '{:,.0f}'.format(grupos | sum(attribute='area_total')).replace(',', '.') }} m²</div>
+                    <div class="stat-value" id="stat-area">{{ '{:,.0f}'.format(totais.area).replace(',', '.') }} m²</div>
                     <div class="stat-label">Área total</div>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon stat-icon-purple"><i data-lucide="landmark" style="width:22px;height:22px;"></i></div>
                 <div>
-                    <div class="stat-value" id="stat-valor" style="font-size:1rem;">{{ 'R$ {:,.2f}'.format(grupos | sum(attribute='valor_total')).replace(',', 'X').replace('.', ',').replace('X', '.') }}</div>
+                    <div class="stat-value" id="stat-valor" style="font-size:1rem;">{{ 'R$ {:,.2f}'.format(totais.valor).replace(',', 'X').replace('.', ',').replace('X', '.') }}</div>
                     <div class="stat-label">Valor total dos imóveis</div>
                 </div>
             </div>
@@ -319,21 +347,18 @@
                                         <span class="detail-value">{{ r.descricao_area or '-' }}</span>
                                     </div>
                                 </div>
-                                <div style="padding:14px 24px;" onclick="event.stopPropagation()">
-                                    <a href="{{ url_for('relatorio.relatorio_relgea_individual', familia='regularizadas', registro_id=r.id) }}"
-                                       style="display:inline-flex;align-items:center;gap:4px;padding:5px 12px;background:#d1fae5;color:#065f46;border-radius:6px;font-size:0.78rem;font-weight:600;text-decoration:none;margin-right:6px;">
-                                        <i data-lucide="file-text" style="width:13px;height:13px;"></i> Relatório
+                                <div class="row-actions" onclick="event.stopPropagation()">
+                                    <a href="{{ url_for('relatorio.relatorio_relgea_individual', familia='regularizadas', registro_id=r.id) }}" class="btn-acao btn-acao-relatorio">
+                                        <i data-lucide="file-text"></i> Relatório
                                     </a>
-                                    <a href="/assent/areas-parceladas/regularizadas/{{ r.id }}/editar"
-                                       style="display:inline-flex;align-items:center;gap:4px;padding:5px 12px;background:#dbeafe;color:#1e40af;border-radius:6px;font-size:0.78rem;font-weight:600;text-decoration:none;margin-right:6px;">
-                                        <i data-lucide="pencil" style="width:13px;height:13px;"></i> Editar
+                                    <a href="/assent/areas-parceladas/regularizadas/{{ r.id }}/editar" class="btn-acao btn-acao-editar">
+                                        <i data-lucide="pencil"></i> Editar
                                     </a>
                                     <form method="POST" action="/assent/areas-parceladas/regularizadas/{{ r.id }}/excluir"
                                           style="display:inline;" onsubmit="return confirm('Excluir este registro?')">
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                        <button type="submit"
-                                            style="display:inline-flex;align-items:center;gap:4px;padding:5px 12px;background:#fee2e2;color:#991b1b;border:none;border-radius:6px;font-size:0.78rem;font-weight:600;cursor:pointer;">
-                                            <i data-lucide="trash-2" style="width:13px;height:13px;"></i> Excluir
+                                        <button type="submit" class="btn-acao btn-acao-excluir">
+                                            <i data-lucide="trash-2"></i> Excluir
                                         </button>
                                     </form>
                                 </div>
@@ -402,21 +427,18 @@
                                                             <span class="detail-value">{{ o.descricao_area or '-' }}</span>
                                                         </div>
                                                     </div>
-                                                    <div style="padding:12px 16px;" onclick="event.stopPropagation()">
-                                                        <a href="{{ url_for('relatorio.relatorio_relgea_individual', familia='regularizadas', registro_id=o.id) }}"
-                                                           style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:#d1fae5;color:#065f46;border-radius:6px;font-size:0.72rem;font-weight:600;text-decoration:none;margin-right:5px;">
-                                                            <i data-lucide="file-text" style="width:12px;height:12px;"></i> Relatório
+                                                    <div class="row-actions sub" onclick="event.stopPropagation()">
+                                                        <a href="{{ url_for('relatorio.relatorio_relgea_individual', familia='regularizadas', registro_id=o.id) }}" class="btn-acao btn-acao-relatorio">
+                                                            <i data-lucide="file-text"></i> Relatório
                                                         </a>
-                                                        <a href="/assent/areas-parceladas/regularizadas/{{ o.id }}/editar"
-                                                           style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:#dbeafe;color:#1e40af;border-radius:6px;font-size:0.72rem;font-weight:600;text-decoration:none;margin-right:5px;">
-                                                            <i data-lucide="pencil" style="width:12px;height:12px;"></i> Editar
+                                                        <a href="/assent/areas-parceladas/regularizadas/{{ o.id }}/editar" class="btn-acao btn-acao-editar">
+                                                            <i data-lucide="pencil"></i> Editar
                                                         </a>
                                                         <form method="POST" action="/assent/areas-parceladas/regularizadas/{{ o.id }}/excluir"
                                                               style="display:inline;" onsubmit="return confirm('Excluir este registro?')">
                                                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                                            <button type="submit"
-                                                                style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:#fee2e2;color:#991b1b;border:none;border-radius:6px;font-size:0.72rem;font-weight:600;cursor:pointer;">
-                                                                <i data-lucide="trash-2" style="width:12px;height:12px;"></i> Excluir
+                                                            <button type="submit" class="btn-acao btn-acao-excluir">
+                                                                <i data-lucide="trash-2"></i> Excluir
                                                             </button>
                                                         </form>
                                                     </div>
@@ -442,6 +464,7 @@
         lucide.createIcons();
 
         // Mapa de correção de acentuação dos municípios (chave sem acento -> nome correto)
+        // (mantido sem alterações, conforme solicitado)
         const CORRECOES_MUNICIPIO = {
             'ABADIANIA': 'ABADIÂNIA',
             'ANAPOLIS': 'ANÁPOLIS',
@@ -503,7 +526,9 @@
             const isOpen = row.style.display !== 'none';
             row.style.display = isOpen ? 'none' : 'table-row';
             dataRow.classList.toggle('open', !isOpen);
-            if (!isOpen) lucide.createIcons();
+            // Otimização: cria ícones apenas dentro da linha recém-aberta,
+            // em vez de varrer o documento inteiro a cada clique.
+            if (!isOpen) lucide.createIcons({ el: row });
         }
 
         (function() {
