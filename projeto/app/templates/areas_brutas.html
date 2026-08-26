@@ -145,6 +145,26 @@
     {%- else -%}-{%- endif -%}
 {%- endmacro %}
 
+{#
+    link_ou_texto: proteção contra os campos link_geo / link_matricula
+    guardarem uma observação em texto livre em vez de uma URL de fato
+    (ex.: "SOLICITAR RETIFICAÇÃO DA ÁREA..." em vez de um link do Drive).
+
+    Antes, qualquer valor não vazio virava um botão "Ver" com href=valor,
+    e se o valor não fosse uma URL válida o clique resultava em 404.
+    Agora só vira link se realmente começar com http(s); caso contrário,
+    mostra o texto (truncado, com tooltip) em vez de um link quebrado.
+#}
+{% macro link_ou_texto(valor) -%}
+    {%- if valor and valor.strip().lower().startswith('http') -%}
+        <a href="{{ valor }}" target="_blank">Ver</a>
+    {%- elif valor -%}
+        <span title="{{ valor }}" style="cursor:help;">{{ valor|truncate(30) }}</span>
+    {%- else -%}
+        -
+    {%- endif -%}
+{%- endmacro %}
+
 {# Grade de detalhes (expandida ao clicar numa linha). 'modo' controla os
    campos extras específicos de cada família de registro. #}
 {% macro detalhe_grid(r, familia, colspan) %}
@@ -193,11 +213,11 @@
     </div>
     <div class="detail-item">
         <span class="detail-label">Geo</span>
-        <span class="detail-value">{% if r.link_geo %}<a href="{{ r.link_geo }}" target="_blank">Ver</a>{% else %}-{% endif %}</span>
+        <span class="detail-value">{{ link_ou_texto(r.link_geo) }}</span>
     </div>
     <div class="detail-item">
         <span class="detail-label">Link da Matrícula</span>
-        <span class="detail-value">{% if r.link_matricula %}<a href="{{ r.link_matricula }}" target="_blank">Ver</a>{% else %}-{% endif %}</span>
+        <span class="detail-value">{{ link_ou_texto(r.link_matricula) }}</span>
     </div>
     <div class="detail-item detail-item-wide">
         <span class="detail-label">Descrição</span>
@@ -279,8 +299,8 @@
     <td class="num">{{ moeda_br(grupo.aval_mercado_total) }}{% if not multiplos %}<br><small style="color:#9ca3af;font-size:0.68rem;">{{ r.ultima_aval_ano or '' }}</small>{% endif %}</td>
     <td class="num">{{ moeda_br(grupo.aval_subsidiado_total) }}</td>
     {% if familia == 'brutas' %}
-    <td class="link-cell">{% if not multiplos and r.link_geo %}<a href="{{ r.link_geo }}" target="_blank" onclick="event.stopPropagation()">Ver</a>{% else %}-{% endif %}</td>
-    <td class="link-cell">{% if not multiplos and r.link_matricula %}<a href="{{ r.link_matricula }}" target="_blank" onclick="event.stopPropagation()">Ver</a>{% else %}-{% endif %}</td>
+    <td class="link-cell">{% if not multiplos %}{{ link_ou_texto(r.link_geo) }}{% else %}-{% endif %}</td>
+    <td class="link-cell">{% if not multiplos %}{{ link_ou_texto(r.link_matricula) }}{% else %}-{% endif %}</td>
     <td class="obs-cell" title="{{ r.numero_processo or '' }}">{{ (r.numero_processo or '-') if not multiplos else '-' }}</td>
     {% endif %}
 </tr>
