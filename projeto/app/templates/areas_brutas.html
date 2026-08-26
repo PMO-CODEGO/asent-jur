@@ -36,20 +36,6 @@
         .page-header h1 { font-size: 1.6rem; font-weight: 800; color: #002b5c; }
         .page-header p { color: #6b7280; font-size: 0.9rem; margin-top: 4px; }
 
-        .stats-group { margin-bottom: 20px; }
-        .stats-group-title { display: flex; align-items: center; gap: 7px; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: #6b7280; margin-bottom: 10px; }
-        .stats-group-title.brutas { color: #92400e; }
-        .stats-group-title.judicial { color: #991b1b; }
-        .stats-row { display: flex; gap: 16px; margin-bottom: 8px; flex-wrap: wrap; }
-        .stat-card { background: white; border-radius: 12px; padding: 16px 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); display: flex; align-items: center; gap: 14px; min-width: 200px; }
-        .stat-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
-        .stat-icon-amber { background-color: #fef3c7; color: #92400e; }
-        .stat-icon-blue { background-color: #dbeafe; color: #002b5c; }
-        .stat-icon-red { background-color: #fee2e2; color: #991b1b; }
-        .stat-icon-green { background-color: #d1fae5; color: #065f46; }
-        .stat-icon-purple { background-color: #ede9fe; color: #4c1d95; }
-        .stat-value { font-size: 1.4rem; font-weight: 800; color: #111827; }
-        .stat-label { font-size: 0.78rem; color: #6b7280; font-weight: 500; }
 
         .controls { display: flex; gap: 12px; margin-bottom: 20px; align-items: center; flex-wrap: wrap; }
         .search-box { display: flex; align-items: center; gap: 8px; background: white; border: 1.5px solid #e5e7eb; border-radius: 8px; padding: 8px 14px; flex: 1; min-width: 220px; max-width: 360px; }
@@ -71,6 +57,8 @@
         .section-title .badge-red { background-color: #fee2e2; color: #991b1b; }
 
         .table-wrap { background: white; border-radius: 14px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); overflow: hidden; }
+        .bi-embed-wrap { background: white; border-radius: 14px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); overflow: hidden; margin-bottom: 20px; }
+        .bi-embed-wrap iframe { display: block; width: 100%; height: 600px; border: none; }
         .table-scroll { overflow-x: auto; overflow-y: auto; max-height: 65vh; border-radius: 14px; }
         table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
         thead tr { background-color: #002b5c; color: white; }
@@ -422,76 +410,12 @@
             }) or '' }}
         {% endfor %}
 
-        <div class="stats-group">
-            <div class="stats-group-title brutas"><i data-lucide="trees" style="width:14px;height:14px;"></i> Áreas Brutas</div>
-            <div class="stats-row">
-                <div class="stat-card">
-                    <div class="stat-icon stat-icon-amber"><i data-lucide="trees" style="width:22px;height:22px;"></i></div>
-                    <div>
-                        <div class="stat-value" id="stat-imoveis-total">{{ imoveis | length }}</div>
-                        <div class="stat-label">Imóveis cadastrados</div>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon stat-icon-blue"><i data-lucide="map" style="width:22px;height:22px;"></i></div>
-                    <div>
-                        <div class="stat-value" id="stat-imoveis-municipios">{{ imoveis | map(attribute='municipio') | unique | list | length }}</div>
-                        <div class="stat-label">Municípios</div>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon stat-icon-green"><i data-lucide="ruler" style="width:22px;height:22px;"></i></div>
-                    <div>
-                        {% set total_m2 = imoveis | map(attribute='area_total_m2') | select('number') | sum %}
-                        <div class="stat-value" id="stat-imoveis-area">{{ '{:,.0f}'.format(total_m2).replace(',', '.') }} m²</div>
-                        <div class="stat-label">Área total</div>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon stat-icon-purple"><i data-lucide="landmark" style="width:22px;height:22px;"></i></div>
-                    <div>
-                        {% set total_aval = imoveis | map(attribute='ultima_aval_mercado') | select('number') | sum %}
-                        <div class="stat-value" id="stat-imoveis-aval" style="font-size:1rem;">{{ moeda_br(total_aval) }}</div>
-                        <div class="stat-label">Total última avaliação</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="stats-group">
-            <div class="stats-group-title judicial"><i data-lucide="gavel" style="width:14px;height:14px;"></i> Em Processo Judicial</div>
-            <div class="stats-row">
-                <div class="stat-card">
-                    <div class="stat-icon stat-icon-red"><i data-lucide="gavel" style="width:22px;height:22px;"></i></div>
-                    <div>
-                        <div class="stat-value" id="stat-judicial-total">{{ judiciais | length }}</div>
-                        <div class="stat-label">Imóveis em processo judicial</div>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon stat-icon-blue"><i data-lucide="map" style="width:22px;height:22px;"></i></div>
-                    <div>
-                        <div class="stat-value" id="stat-judicial-municipios">{{ judiciais | map(attribute='municipio') | unique | list | length }}</div>
-                        <div class="stat-label">Municípios</div>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon stat-icon-green"><i data-lucide="ruler" style="width:22px;height:22px;"></i></div>
-                    <div>
-                        {% set total_m2_judicial = judiciais | map(attribute='area_total_m2') | select('number') | sum %}
-                        <div class="stat-value" id="stat-judicial-area">{{ '{:,.0f}'.format(total_m2_judicial).replace(',', '.') }} m²</div>
-                        <div class="stat-label">Área total</div>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon stat-icon-purple"><i data-lucide="landmark" style="width:22px;height:22px;"></i></div>
-                    <div>
-                        {% set total_aval_judicial = judiciais | map(attribute='ultima_aval_mercado') | select('number') | sum %}
-                        <div class="stat-value" id="stat-judicial-aval" style="font-size:1rem;">{{ moeda_br(total_aval_judicial) }}</div>
-                        <div class="stat-label">Total última avaliação</div>
-                    </div>
-                </div>
-            </div>
+        <div class="bi-embed-wrap">
+            <iframe
+                title="Dashboard BI — Áreas Brutas"
+                src="https://app.powerbi.com/view?r=eyJrIjoiYTI3NTc2ZjctMTUzYS00MDEwLWI0YWEtMTBkYWZiMGZjN2EzIiwidCI6ImZmY2UxNmU0LTFmZTUtNDlhMS1iOWUxLTEwNzQ4YzFlZWRjNSJ9"
+                allowfullscreen>
+            </iframe>
         </div>
 
         <div class="controls">
