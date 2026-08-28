@@ -79,6 +79,7 @@
         .data-row:hover .row-toggle { color: #1e3a5f; }
         .detail-row td { background-color: #f8fafc; padding: 0 !important; border-bottom: 2px solid #bfdbfe; }
         .detail-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; padding: 16px 24px; }
+        .detail-grid.compact { padding: 12px 16px; }
         .detail-item-wide { grid-column: span 2; }
         .detail-item { display: flex; flex-direction: column; gap: 4px; }
         .detail-label { font-size: 0.7rem; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; }
@@ -94,6 +95,14 @@
         .sub-table tbody tr:last-child { border-bottom: none; }
         .sub-table td { padding: 8px 12px; font-size: 0.78rem; color: #334155; }
 
+        .actions-bar { padding: 14px 24px; }
+        .actions-bar.compact { padding: 12px 16px; }
+        .btn-acao { display: inline-flex; align-items: center; gap: 4px; padding: 5px 12px; border-radius: 6px; font-size: 0.78rem; font-weight: 600; text-decoration: none; margin-right: 6px; border: none; cursor: pointer; }
+        .btn-acao.compact { padding: 4px 10px; font-size: 0.72rem; margin-right: 5px; }
+        .btn-relatorio { background: #d1fae5; color: #065f46; }
+        .btn-editar { background: #dbeafe; color: #1e40af; }
+        .btn-excluir { background: #fee2e2; color: #991b1b; }
+
         @media (max-width: 768px) {
             .page-body { padding: 16px; }
             .topbar { padding: 0 16px; }
@@ -102,6 +111,72 @@
     </style>
 </head>
 <body>
+
+    {# ==========================================================
+       MACROS: bloco de detalhes e barra de ações reutilizados
+       na linha principal e nas sub-linhas (elimina a duplicação
+       de HTML que existia entre as duas versões do bloco).
+    ========================================================== #}
+    {% macro detail_grid(item, compact=false) %}
+    <div class="detail-grid{{ ' compact' if compact else '' }}">
+        <div class="detail-item">
+            <span class="detail-label">Matr. Parcelamento</span>
+            <span class="detail-value">{{ item.matricula_parcelamento_fmt or '-' }}</span>
+        </div>
+        <div class="detail-item">
+            <span class="detail-label">Reg. Loteamento</span>
+            <span class="detail-value">
+                {% set rl = item.registro_loteamento or '' %}
+                {% if rl == 'SIM' %}
+                    <span class="lote-sim">SIM</span>
+                {% elif rl in ('NÃO', 'NAO') %}
+                    <span class="lote-nao">NÃO</span>
+                {% elif rl %}
+                    <span class="lote-outro" title="{{ rl }}">{{ rl[:30] }}{% if rl|length > 30 %}…{% endif %}</span>
+                {% else %}
+                    -
+                {% endif %}
+            </span>
+        </div>
+        <div class="detail-item">
+            <span class="detail-label">Reg. Propriedade</span>
+            <span class="detail-value">{{ item.registro_propriedade or '-' }}</span>
+        </div>
+        <div class="detail-item">
+            <span class="detail-label">Ocupação / Distrito</span>
+            <span class="detail-value">{{ item.ocupacao or '-' }}</span>
+        </div>
+        <div class="detail-item detail-item-wide">
+            <span class="detail-label">Descrição da Área</span>
+            <span class="detail-value">{{ item.descricao_area or '-' }}</span>
+        </div>
+        <div class="detail-item detail-item-wide">
+            <span class="detail-label">Observações</span>
+            <span class="detail-value">{{ item.observacoes or '-' }}</span>
+        </div>
+    </div>
+    {% endmacro %}
+
+    {% macro action_buttons(item, compact=false) %}
+    <div class="actions-bar{{ ' compact' if compact else '' }}" onclick="event.stopPropagation()">
+        <a href="{{ url_for('relatorio.relatorio_relgea_individual', familia='irregulares', registro_id=item.id) }}"
+           class="btn-acao btn-relatorio{{ ' compact' if compact else '' }}">
+            <i data-lucide="file-text" style="width:{{ '12px' if compact else '13px' }};height:{{ '12px' if compact else '13px' }};"></i> Relatório
+        </a>
+        <a href="/assent/areas-parceladas/irregulares/{{ item.id }}/editar"
+           class="btn-acao btn-editar{{ ' compact' if compact else '' }}">
+            <i data-lucide="pencil" style="width:{{ '12px' if compact else '13px' }};height:{{ '12px' if compact else '13px' }};"></i> Editar
+        </a>
+        <form method="POST" action="/assent/areas-parceladas/irregulares/{{ item.id }}/excluir"
+              style="display:inline;" onsubmit="return confirm('Excluir este registro?')">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn-acao btn-excluir{{ ' compact' if compact else '' }}">
+                <i data-lucide="trash-2" style="width:{{ '12px' if compact else '13px' }};height:{{ '12px' if compact else '13px' }};"></i> Excluir
+            </button>
+        </form>
+    </div>
+    {% endmacro %}
+
     <div class="topbar">
         <div class="topbar-left">
             <a href="{{ url_for('dashboard.inicio_assent') }}" style="display:inline-block;line-height:0;" aria-label="Voltar ao início">
@@ -123,30 +198,29 @@
 
     <div class="page-body">
         {# ==========================================================
-           TRATAMENTO DE DADOS: agrupa os registros por município,
-           igual ao padrão adotado em Distritos Regulares.
+           TRATAMENTO DE DADOS
+           - "principal" agora é resolvido com uma única passada
+             (sem montar/descartar a lista "outros", que não era
+             usada em lugar nenhum da renderização).
+           - Os totais gerais são obtidos somando os totais por
+             município já calculados abaixo, em vez de reprocessar
+             todos os registros pela segunda vez.
+           OBS: o ideal a médio prazo é que esse parsing de string
+           (area/valor) seja feito uma única vez no backend Python
+           (ou fique como coluna numérica no banco), não a cada
+           requisição dentro do template.
         ========================================================== #}
         {% set grupos = [] %}
         {% for municipio, items in registros|groupby('municipio') %}
             {% set items_list = items|list %}
-            {% set principais = [] %}
-            {% set outros = [] %}
+            {% set principal_ns = namespace(valor=none) %}
             {% for item in items_list %}
                 {% set mp = (item.matricula_parcelamento_fmt or '')|trim %}
-                {% if mp and mp != '-' %}
-                    {{ principais.append(item) or '' }}
-                {% else %}
-                    {{ outros.append(item) or '' }}
+                {% if not principal_ns.valor and mp and mp != '-' %}
+                    {% set principal_ns.valor = item %}
                 {% endif %}
             {% endfor %}
-            {% if principais %}
-                {% set principal = principais[0] %}
-                {% for extra in principais[1:] %}
-                    {{ outros.append(extra) or '' }}
-                {% endfor %}
-            {% else %}
-                {% set principal = items_list[0] %}
-            {% endif %}
+            {% set principal = principal_ns.valor or items_list[0] %}
 
             {% set area_ns = namespace(total=0.0) %}
             {% set valor_ns = namespace(total=0.0) %}
@@ -168,7 +242,6 @@
             {{ grupos.append({
                 'municipio': municipio,
                 'principal': principal,
-                'outros': outros,
                 'itens': items_list,
                 'area_total': area_ns.total,
                 'valor_total': valor_ns.total,
@@ -179,11 +252,9 @@
 
         {% set area_geral_ns = namespace(total=0.0) %}
         {% set valor_geral_ns = namespace(total=0.0) %}
-        {% for item in registros %}
-            {% set area_limpa_g = (item.area_total_m2_fmt or '0')|string|replace('m²', '')|replace('M²', '')|replace('.', '')|replace(',', '.')|trim %}
-            {% set area_geral_ns.total = area_geral_ns.total + (area_limpa_g|float(0)) %}
-            {% set valor_limpo_g = (item.valor_imovel_fmt or '0')|string|replace('R$', '')|replace('.', '')|replace(',', '.')|trim %}
-            {% set valor_geral_ns.total = valor_geral_ns.total + (valor_limpo_g|float(0)) %}
+        {% for g in grupos %}
+            {% set area_geral_ns.total = area_geral_ns.total + g.area_total %}
+            {% set valor_geral_ns.total = valor_geral_ns.total + g.valor_total %}
         {% endfor %}
 
         <div class="page-header">
@@ -278,71 +349,16 @@
                                 {{ r.num_matricula_fmt or '-' }}
                                 {% endif %}
                             </td>
-                            <td>{{ r.ano_aquisicao or '-' if not multiplos else '-' }}</td>
+                            <td>{{ '-' if multiplos else (r.ano_aquisicao or '-') }}</td>
                             <td>{{ grupo.area_total_exibida }}</td>
                             <td>{{ grupo.valor_total_exibido }}</td>
                         </tr>
                         <tr id="p{{ r.id }}" class="detail-row" style="display:none;">
                             <td colspan="5">
                                 {% if not multiplos %}
-                                <div class="detail-grid">
-                                    <div class="detail-item">
-                                        <span class="detail-label">Matr. Parcelamento</span>
-                                        <span class="detail-value">{{ r.matricula_parcelamento_fmt or '-' }}</span>
-                                    </div>
-                                    <div class="detail-item">
-                                        <span class="detail-label">Reg. Loteamento</span>
-                                        <span class="detail-value">
-                                            {% set rl = r.registro_loteamento or '' %}
-                                            {% if rl == 'SIM' %}
-                                                <span class="lote-sim">SIM</span>
-                                            {% elif rl in ('NÃO', 'NAO') %}
-                                                <span class="lote-nao">NÃO</span>
-                                            {% elif rl %}
-                                                <span class="lote-outro" title="{{ rl }}">{{ rl[:30] }}{% if rl|length > 30 %}…{% endif %}</span>
-                                            {% else %}
-                                                -
-                                            {% endif %}
-                                        </span>
-                                    </div>
-                                    <div class="detail-item">
-                                        <span class="detail-label">Reg. Propriedade</span>
-                                        <span class="detail-value">{{ r.registro_propriedade or '-' }}</span>
-                                    </div>
-                                    <div class="detail-item">
-                                        <span class="detail-label">Ocupação / Distrito</span>
-                                        <span class="detail-value">{{ r.ocupacao or '-' }}</span>
-                                    </div>
-                                    <div class="detail-item detail-item-wide" style="grid-column: span 2;">
-                                        <span class="detail-label">Descrição da Área</span>
-                                        <span class="detail-value">{{ r.descricao_area or '-' }}</span>
-                                    </div>
-                                    <div class="detail-item detail-item-wide" style="grid-column: span 2;">
-                                        <span class="detail-label">Observações</span>
-                                        <span class="detail-value">{{ r.observacoes or '-' }}</span>
-                                    </div>
-                                </div>
-                                <div style="padding:14px 24px;" onclick="event.stopPropagation()">
-                                    <a href="{{ url_for('relatorio.relatorio_relgea_individual', familia='irregulares', registro_id=r.id) }}"
-                                       style="display:inline-flex;align-items:center;gap:4px;padding:5px 12px;background:#d1fae5;color:#065f46;border-radius:6px;font-size:0.78rem;font-weight:600;text-decoration:none;margin-right:6px;">
-                                        <i data-lucide="file-text" style="width:13px;height:13px;"></i> Relatório
-                                    </a>
-                                    <a href="/assent/areas-parceladas/irregulares/{{ r.id }}/editar"
-                                       style="display:inline-flex;align-items:center;gap:4px;padding:5px 12px;background:#dbeafe;color:#1e40af;border-radius:6px;font-size:0.78rem;font-weight:600;text-decoration:none;margin-right:6px;">
-                                        <i data-lucide="pencil" style="width:13px;height:13px;"></i> Editar
-                                    </a>
-                                    <form method="POST" action="/assent/areas-parceladas/irregulares/{{ r.id }}/excluir"
-                                          style="display:inline;" onsubmit="return confirm('Excluir este registro?')">
-                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                        <button type="submit"
-                                            style="display:inline-flex;align-items:center;gap:4px;padding:5px 12px;background:#fee2e2;color:#991b1b;border:none;border-radius:6px;font-size:0.78rem;font-weight:600;cursor:pointer;">
-                                            <i data-lucide="trash-2" style="width:13px;height:13px;"></i> Excluir
-                                        </button>
-                                    </form>
-                                </div>
-                                {% endif %}
-
-                                {% if multiplos %}
+                                    {{ detail_grid(r) }}
+                                    {{ action_buttons(r) }}
+                                {% else %}
                                 <div class="sub-detail-wrap">
                                     <div class="sub-detail-title">
                                         <i data-lucide="layers" style="width:14px;height:14px;"></i>
@@ -372,61 +388,8 @@
                                             </tr>
                                             <tr id="sub-p{{ o.id }}" class="detail-row" style="display:none;">
                                                 <td colspan="4">
-                                                    <div class="detail-grid" style="padding:12px 16px;">
-                                                        <div class="detail-item">
-                                                            <span class="detail-label">Matr. Parcelamento</span>
-                                                            <span class="detail-value">{{ o.matricula_parcelamento_fmt or '-' }}</span>
-                                                        </div>
-                                                        <div class="detail-item">
-                                                            <span class="detail-label">Reg. Loteamento</span>
-                                                            <span class="detail-value">
-                                                                {% set rl_o = o.registro_loteamento or '' %}
-                                                                {% if rl_o == 'SIM' %}
-                                                                    <span class="lote-sim">SIM</span>
-                                                                {% elif rl_o in ('NÃO', 'NAO') %}
-                                                                    <span class="lote-nao">NÃO</span>
-                                                                {% elif rl_o %}
-                                                                    <span class="lote-outro" title="{{ rl_o }}">{{ rl_o[:30] }}{% if rl_o|length > 30 %}…{% endif %}</span>
-                                                                {% else %}
-                                                                    -
-                                                                {% endif %}
-                                                            </span>
-                                                        </div>
-                                                        <div class="detail-item">
-                                                            <span class="detail-label">Reg. Propriedade</span>
-                                                            <span class="detail-value">{{ o.registro_propriedade or '-' }}</span>
-                                                        </div>
-                                                        <div class="detail-item">
-                                                            <span class="detail-label">Ocupação / Distrito</span>
-                                                            <span class="detail-value">{{ o.ocupacao or '-' }}</span>
-                                                        </div>
-                                                        <div class="detail-item detail-item-wide" style="grid-column: span 2;">
-                                                            <span class="detail-label">Descrição da Área</span>
-                                                            <span class="detail-value">{{ o.descricao_area or '-' }}</span>
-                                                        </div>
-                                                        <div class="detail-item detail-item-wide" style="grid-column: span 2;">
-                                                            <span class="detail-label">Observações</span>
-                                                            <span class="detail-value">{{ o.observacoes or '-' }}</span>
-                                                        </div>
-                                                    </div>
-                                                    <div style="padding:12px 16px;" onclick="event.stopPropagation()">
-                                                        <a href="{{ url_for('relatorio.relatorio_relgea_individual', familia='irregulares', registro_id=o.id) }}"
-                                                           style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:#d1fae5;color:#065f46;border-radius:6px;font-size:0.72rem;font-weight:600;text-decoration:none;margin-right:5px;">
-                                                            <i data-lucide="file-text" style="width:12px;height:12px;"></i> Relatório
-                                                        </a>
-                                                        <a href="/assent/areas-parceladas/irregulares/{{ o.id }}/editar"
-                                                           style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:#dbeafe;color:#1e40af;border-radius:6px;font-size:0.72rem;font-weight:600;text-decoration:none;margin-right:5px;">
-                                                            <i data-lucide="pencil" style="width:12px;height:12px;"></i> Editar
-                                                        </a>
-                                                        <form method="POST" action="/assent/areas-parceladas/irregulares/{{ o.id }}/excluir"
-                                                              style="display:inline;" onsubmit="return confirm('Excluir este registro?')">
-                                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                                            <button type="submit"
-                                                                style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:#fee2e2;color:#991b1b;border:none;border-radius:6px;font-size:0.72rem;font-weight:600;cursor:pointer;">
-                                                                <i data-lucide="trash-2" style="width:12px;height:12px;"></i> Excluir
-                                                            </button>
-                                                        </form>
-                                                    </div>
+                                                    {{ detail_grid(o, compact=true) }}
+                                                    {{ action_buttons(o, compact=true) }}
                                                 </td>
                                             </tr>
                                             {% endfor %}
@@ -448,7 +411,7 @@
     <script>
         lucide.createIcons();
 
-         // Mapa de correção de acentuação dos municípios (chave sem acento -> nome correto)
+        // Mapa de correção de acentuação dos municípios (chave sem acento -> nome correto)
         const CORRECOES_MUNICIPIO = {
             'ABADIANIA': 'ABADIÂNIA',
             'ANAPOLIS': 'ANÁPOLIS',
@@ -463,8 +426,8 @@
             'CAMPO LIMPO DE GOIAS': 'CAMPO LIMPO DE GOIÁS',
             'IPORA': 'IPORÁ',
             'PETROLINA DE GOIAS': 'PETROLINA DE GOIÁS',
-            'PIRENOPOLIS': 'PIRENÓPOLIS', 
-           'SAO MIGUEL DO ARAGUAIA': 'SÃO MIGUEL DO ARAGUAIA' 
+            'PIRENOPOLIS': 'PIRENÓPOLIS',
+            'SAO MIGUEL DO ARAGUAIA': 'SÃO MIGUEL DO ARAGUAIA'
         };
 
         function normalizarSemAcento(str) {
@@ -480,19 +443,19 @@
             return CORRECOES_MUNICIPIO[chave] || nome;
         }
 
+        // Cache único das linhas principais: evita duas varreduras
+        // separadas do DOM (uma na correção de acentos, outra no filtro).
+        const dataRows = Array.from(document.querySelectorAll('.data-row:not(.sub-row)'));
+
         function aplicarCorrecoesAcentuacao() {
-            // Badges na tabela
             document.querySelectorAll('.municipio-badge').forEach(function (el) {
                 el.textContent = corrigirMunicipio(el.textContent);
             });
 
-            // Atualiza o data-municipio (usado no filtro) para casar com o valor corrigido em minúsculas
-            document.querySelectorAll('.data-row:not(.sub-row)').forEach(function (row) {
-                const corrigido = corrigirMunicipio(row.dataset.municipio);
-                row.dataset.municipio = corrigido.toLowerCase().trim();
+            dataRows.forEach(function (row) {
+                row.dataset.municipio = corrigirMunicipio(row.dataset.municipio).toLowerCase().trim();
             });
 
-            // Opções do filtro (checkbox + texto)
             document.querySelectorAll('#filtro-municipio-panel .ms-filter-option').forEach(function (label) {
                 const input = label.querySelector('input[type="checkbox"]');
                 const span = label.querySelector('span');
@@ -510,7 +473,9 @@
             const isOpen = row.style.display !== 'none';
             row.style.display = isOpen ? 'none' : 'table-row';
             dataRow.classList.toggle('open', !isOpen);
-            if (!isOpen) lucide.createIcons();
+            // Não é preciso recriar ícones aqui: as linhas de detalhe já
+            // existem no DOM desde o carregamento (só ficavam com display:none),
+            // então já foram processadas pelo lucide.createIcons() inicial.
         }
 
         (function() {
@@ -529,12 +494,12 @@
                 } else {
                     label.textContent = marcados.length + ' municípios selecionados';
                 }
-                const selecionados = marcados.map(function(c) { return c.value.toLowerCase(); });
+                const selecionados = new Set(marcados.map(function(c) { return c.value.toLowerCase(); }));
                 const municipiosVisiveis = new Set();
                 let total = 0, areaTotal = 0, valorTotal = 0;
 
-                document.querySelectorAll('.data-row:not(.sub-row)').forEach(function(row) {
-                    const visivel = selecionados.length === 0 || selecionados.indexOf(row.dataset.municipio) !== -1;
+                dataRows.forEach(function(row) {
+                    const visivel = selecionados.size === 0 || selecionados.has(row.dataset.municipio);
                     row.style.display = visivel ? '' : 'none';
 
                     if (visivel) {
