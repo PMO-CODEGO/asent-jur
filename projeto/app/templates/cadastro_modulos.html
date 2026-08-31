@@ -89,11 +89,15 @@
         .detail-item { display: flex; flex-direction: column; gap: 4px; }
         .detail-label { font-size: 0.7rem; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; }
         .detail-value { font-size: 0.82rem; color: #1e293b; }
+        .detail-section-title { grid-column: 1 / -1; font-size: 0.72rem; font-weight: 800; color: #1e40af; text-transform: uppercase; letter-spacing: 0.05em; padding-top: 6px; border-top: 1px solid #e2e8f0; margin-top: 4px; }
+        .detail-grid > .detail-item:first-child .detail-section-title,
+        .detail-section-title:first-child { border-top: none; margin-top: 0; padding-top: 0; }
 
         @media (max-width: 768px) {
             .page-body { padding: 16px; }
             .topbar { padding: 0 16px; }
             .topbar-title { display: none; }
+            .detail-grid { grid-template-columns: repeat(2, 1fr); }
         }
     </style>
 </head>
@@ -151,7 +155,7 @@
                 <div><div class="stat-value" id="stat-irregulares">{{ irregulares }}</div><div class="stat-label">Irregulares</div></div>
             </div>
         </div>
-        
+
 
         <div class="controls">
     <div class="ms-filter" id="filtro-municipio-wrap">
@@ -228,9 +232,19 @@
                         <tr id="m{{ r.id }}" class="detail-row" style="display:none;">
                             <td colspan="5">
                                 <div class="detail-grid">
+
+                                    <div class="detail-item detail-section-title">Dados do Imóvel</div>
                                     <div class="detail-item">
                                         <span class="detail-label">Distrito</span>
                                         <span class="detail-value">{{ r.distrito or '-' }}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Nº Matrícula do Loteamento</span>
+                                        <span class="detail-value">{{ r.matricula_loteamento or '-' }}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Sigla do Loteamento</span>
+                                        <span class="detail-value">{{ r.sigla_loteamento or '-' }}</span>
                                     </div>
                                     <div class="detail-item">
                                         <span class="detail-label">Quadra</span>
@@ -245,28 +259,118 @@
                                         <span class="detail-value">{{ r.qtd_modulos or '-' }}</span>
                                     </div>
                                     <div class="detail-item">
+                                        <span class="detail-label">Nome do Logradouro</span>
+                                        <span class="detail-value">{{ r.logradouro or '-' }}</span>
+                                    </div>
+                                    <div class="detail-item">
                                         <span class="detail-label">Tamanho (m²)</span>
                                         <span class="detail-value">{{ '{:,.2f}'.format(r.tamanho_m2).replace(',','X').replace('.',',').replace('X','.') if r.tamanho_m2 else '-' }}</span>
                                     </div>
                                     <div class="detail-item">
+                                        <span class="detail-label">Nº Matrícula do Módulo</span>
+                                        <span class="detail-value">{{ r.matricula_s or '-' }}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">CCI</span>
+                                        <span class="detail-value">{{ r.cci or '-' }}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Inscrição Municipal</span>
+                                        <span class="detail-value">{{ r.inscricao_municipal or '-' }}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Área Institucional (m²)</span>
+                                        <span class="detail-value">{{ '{:,.2f}'.format(r.area_institucional).replace(',','X').replace('.',',').replace('X','.') if r.area_institucional else '-' }}</span>
+                                    </div>
+
+                                    <div class="detail-item detail-section-title">Cadastro do Assentamento</div>
+                                    <div class="detail-item">
                                         <span class="detail-label">Ramo de Atividade</span>
                                         <span class="detail-value">{{ r.ramo_de_atividade or '-' }}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Representante Legal</span>
+                                        <span class="detail-value">{{ r.representante_legal or '-' }}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Telefone Representante</span>
+                                        <span class="detail-value">{{ r.telefone_representante or '-' }}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">E-mail Representante</span>
+                                        <span class="detail-value">{{ r.email_representante or '-' }}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Processo</span>
+                                        <span class="detail-value">{{ r.processo or '-' }}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Data Escrituração</span>
+                                        <span class="detail-value">{{ r.data_escrituracao or '-' }}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Registro na Matrícula</span>
+                                        <span class="detail-value">{{ r.registro_na_matricula or '-' }}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Ação Judicial</span>
+                                        <span class="detail-value">{{ r.acao_judicial or '-' }}</span>
+                                    </div>
+
+                                    <div class="detail-item detail-section-title">Registro Anterior do Assentamento</div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Nome da Empresa (anterior)</span>
+                                        <span class="detail-value">{{ r.nome_empresa_anterior or '-' }}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">CNPJ (anterior)</span>
+                                        <span class="detail-value">{{ r.cnpj_anterior or '-' }}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Número do Processo (anterior)</span>
+                                        <span class="detail-value">{{ r.numero_processo_anterior or '-' }}</span>
+                                    </div>
+
+                                    <div class="detail-item detail-section-title">Situação / Ocupação</div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Relatório de Vistoria</span>
+                                        <span class="detail-value">{{ r.relatorio_vistoria or '-' }}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Última Vistoria</span>
+                                        <span class="detail-value">{{ r.ultima_vistoria or '-' }}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Taxa de Ocupação (%)</span>
+                                        <span class="detail-value">{{ r.taxa_e_ocupacao_do_imovel ~ '%' if r.taxa_e_ocupacao_do_imovel else '-' }}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Atividade Industrial</span>
+                                        <span class="detail-value">{{ r.atividade_industrial or '-' }}</span>
+                                    </div>
+                                    <div class="detail-item detail-item-wide">
+                                        <span class="detail-label">Irregularidades</span>
+                                        <span class="detail-value">{{ r.irregularidades or '-' }}</span>
                                     </div>
                                     <div class="detail-item">
                                         <span class="detail-label">Empregos</span>
                                         <span class="detail-value">{{ r.empregos_gerados or '-' }}</span>
                                     </div>
                                     <div class="detail-item">
-                                        <span class="detail-label">Ação Judicial</span>
-                                        <span class="detail-value">{{ r.acao_judicial or '-' }}</span>
+                                        <span class="detail-label">Projeto de Ocupação da Área</span>
+                                        <span class="detail-value">{{ r.projeto_ocupacao_area or '-' }}</span>
                                     </div>
                                     <div class="detail-item">
-                                        <span class="detail-label">Matrícula(s)</span>
-                                        <span class="detail-value">{{ r.matricula_s or '-' }}</span>
+                                        <span class="detail-label">Data Aprovação do POA</span>
+                                        <span class="detail-value">{{ r.data_aprovacao_poa or '-' }}</span>
                                     </div>
                                     <div class="detail-item">
-                                        <span class="detail-label">Data Escrituração</span>
-                                        <span class="detail-value">{{ r.data_escrituracao or '-' }}</span>
+                                        <span class="detail-label">Cronograma de Obra (meses)</span>
+                                        <span class="detail-value">{{ r.cronograma_obra_meses or '-' }}</span>
+                                    </div>
+                                    <div class="detail-item detail-item-wide">
+                                        <span class="detail-label">Observações</span>
+                                        <span class="detail-value">{{ r.observacoes or '-' }}</span>
                                     </div>
                                 </div>
                                 <div style="padding:14px 24px;" onclick="event.stopPropagation()">
