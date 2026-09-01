@@ -602,7 +602,7 @@ def cadastro_modulos():
     from app.db import get_db
     with get_db() as db:
         with db.cursor(dictionary=True) as cursor:
-            cursor.execute("SELECT * FROM municipal_lots ORDER BY municipio, distrito, quadra, modulo_s")
+            cursor.execute("SELECT * FROM municipal_lots ORDER BY municipio, distrito, quadra, matricula_modulo")
             registros = cursor.fetchall()
     return render_template('cadastro_modulos.html', registros=registros)
 

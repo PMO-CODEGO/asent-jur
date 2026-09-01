@@ -162,32 +162,33 @@ def _valor_pdf(v):
 def buscar_registros_distrito(db, distrito_db):
     with db.cursor(dictionary=True) as cursor:
         cursor.execute("""
-            SELECT id, municipio, distrito, quadra, modulo_s, qtd_modulos, tamanho_m2,
-                   empresa, cnpj, processo_sei, status_de_assentamento, acao_judicial,
-                   taxa_e_ocupacao_do_imovel, ramo_de_atividade, irregularidades,
+            SELECT id, municipio, distrito, quadra, qtd_modulos, area_lote_m2,
+                   empresa, cnpj, processo_sei, status_de_assentamento,
+                   taxa_ocupacao_imovel, ramo_de_atividade, irregularidades,
                    imovel_regular_irregular
             FROM municipal_lots
             WHERE distrito = %s
             ORDER BY quadra, id
         """, (distrito_db,))
         rows = cursor.fetchall()
-    rows = [r for r in rows if (r.get('modulo_s') or '').upper() != 'TOTAL'
-            and (r.get('empresa') or '').upper() != 'PROCESSO GERAL:']
+    rows = [r for r in rows if (r.get('empresa') or '').upper() != 'PROCESSO GERAL:']
     return rows
 
 
 # larguras calibradas para caber em A4 paisagem (usavel ~762pt com margem 40) na fonte
-# Arial 10 exigida pela secao 6.1-III/IV do manual
-DISTRITO_COL_WIDTHS = [18, 100, 68, 60, 60, 28, 30, 28, 46, 85, 34, 30, 85, 40]
+# Arial 10 exigida pela secao 6.1-III/IV do manual.
+# Colunas "Modulo(s)" e "Acao Judicial" foram removidas: os campos correspondentes
+# nao existem mais em municipal_lots (ver redesenho do cadastro de modulos).
+DISTRITO_COL_WIDTHS = [18, 130, 75, 60, 75, 28, 28, 46, 34, 30, 100, 40]
 DISTRITO_HEADERS = [
     'Nº', 'Empresa', 'CNPJ', 'Processo SEI', 'Status de Assentamento', 'Quadra',
-    'Módulo(s)', 'Qtd. Módulos', 'Tamanho (m²)', 'Ação Judicial', 'Taxa Ocup.',
+    'Qtd. Módulos', 'Tamanho (m²)', 'Taxa Ocup.',
     'Ramo Ativ.', 'Irregularidades', 'Regular/Irregular',
 ]
 # secao 6.1-III do manual: "textos objetivos (codigos, datas, revisoes, status, valores)
 # centralizados; textos descritivos alinhados a esquerda" — indices das colunas descritivas
-# (Empresa, Acao Judicial, Irregularidades); as demais sao objetivas -> centralizadas
-DISTRITO_COLS_ESQUERDA = {1, 9, 12}
+# (Empresa, Irregularidades); as demais sao objetivas -> centralizadas
+DISTRITO_COLS_ESQUERDA = {1, 10}
 
 
 def gerar_relatorio_distrito_pdf(db, distrito_db, emitido_por='SISTEMA'):
@@ -255,11 +256,9 @@ def gerar_relatorio_distrito_pdf(db, distrito_db, emitido_por='SISTEMA'):
             str(_clean_processo(reg.get('processo_sei')) or '-'),
             _clean(reg.get('status_de_assentamento')) or '-',
             _valor_pdf(reg.get('quadra')),
-            _clean(reg.get('modulo_s')) or '-',
             _valor_pdf(reg.get('qtd_modulos')),
-            _fmt_num_br(reg.get('tamanho_m2')) or '-',
-            (_clean(reg.get('acao_judicial')) or '-') if not vazio else '-',
-            (_fmt_num_br(reg.get('taxa_e_ocupacao_do_imovel')) or '-') if not vazio else '-',
+            _fmt_num_br(reg.get('area_lote_m2')) or '-',
+            (_fmt_num_br(reg.get('taxa_ocupacao_imovel')) or '-') if not vazio else '-',
             ('SIM' if (not vazio and _clean(reg.get('ramo_de_atividade'))) else '-'),
             (_clean(reg.get('irregularidades')) or '-') if not vazio else '-',
             (_clean(reg.get('imovel_regular_irregular')) or '-') if not vazio else '-',

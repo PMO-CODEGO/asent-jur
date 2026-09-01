@@ -1,28 +1,42 @@
 import re
-from datetime import date
 from decimal import Decimal, InvalidOperation
 
 from app.constants import colunas_map, imovel_opcoes, ramo_de_atividade_opcoes, status_de_assentamento_opcoes
 
 
 class CadastroService:
-    INT_FIELDS = {'empregos_gerados', 'quadra', 'qtd_modulos', 'matricula_s'}
+    INT_FIELDS = {'empregos_gerados', 'quadra', 'qtd_modulos', 'cronograma_fisico_obra_meses'}
     PROCESSO_SEI_PATTERN = re.compile(r'^\d+$')
-    DECIMAL_FIELDS = {'tamanho_m2', 'taxa_e_ocupacao_do_imovel'}
+    DECIMAL_FIELDS = {'area_lote_m2', 'taxa_ocupacao_imovel'}
     MAX_LENGTHS = {
-        'municipio': 50,
-        'distrito': 50,
-        'empresa': 50,
-        'cnpj': 50,
-        'status_de_assentamento': 50,
-        'ramo_de_atividade': 50,
-        'modulo_s': 50,
-        'obsevacoes': 50,
+        'municipio': 100,
+        'matricula_loteamento': 50,
+        'distrito': 150,
+        'sigla_loteamento': 50,
+        'logradouro': 150,
+        'matricula_modulo': 50,
+        'cci': 100,
+        'inscricao_municipal': 100,
+        'area_institucional': 10,
+        'empresa': 150,
+        'cnpj': 20,
+        'nome_representante_legal': 150,
+        'telefone_representante_legal': 30,
+        'email_representante_legal': 150,
+        'status_de_assentamento': 100,
+        'ramo_de_atividade': 100,
         'data_escrituracao': 50,
         'data_contrato_de_compra_e_venda': 50,
-        'imovel_regular_irregular': 50,
-        'irregularidades': 50,
+        'registro_na_matricula': 10,
+        'empresa_anterior': 150,
+        'cnpj_anterior': 20,
+        'processo_anterior': 50,
+        'relatorio_vistoria': 150,
         'ultima_vistoria': 50,
+        'atividade_industrial': 10,
+        'projeto_ocupacao_area': 150,
+        'data_aprovacao_poa': 50,
+        'imovel_regular_irregular': 20,
         'atualizado': 50,
     }
     ALLOWED_VALUES = {
@@ -64,14 +78,6 @@ class CadastroService:
         if value == '':
             return None
         return CadastroService._parse_decimal(value, field_name)
-
-    @classmethod
-    def normalizar_dados(cls, form):
-        dados = {}
-        for form_name, db_name in colunas_map.items():
-            dados[db_name] = cls._normalizar_valor(db_name, form.get(form_name, ''), form_name)
-        dados['atualizado'] = date.today().isoformat()
-        return dados
 
     @classmethod
     def normalizar_dados_edicao(cls, form, campos):

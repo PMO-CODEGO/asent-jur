@@ -18,18 +18,14 @@
 <div class="w-full max-w-6xl">
     <div class="bg-white rounded-t-2xl p-6 shadow-xl border-b flex flex-col md:flex-row justify-between items-center gap-4">
         <div class="flex items-center gap-4">
-            <div class="p-3 {% if modo == 'jur' %}bg-red-50 text-red-600{% else %}bg-blue-50 text-[#002b5c]{% endif %} rounded-full">
+            <div class="p-3 bg-red-50 text-red-600 rounded-full">
                 <i data-lucide="search" class="w-6 h-6"></i>
             </div>
 
             <div>
-                <h1 class="text-xl font-bold text-[#002b5c]">
-                    {{ 'Selecionar Processo' if modo == 'jur' else 'Selecionar Registro' }}
-                </h1>
+                <h1 class="text-xl font-bold text-[#002b5c]">Selecionar Processo</h1>
                 <p class="text-xs text-gray-500 font-medium">MODO:
-                    <span class="{% if modo == 'jur' %}text-red-600{% else %}text-blue-600{% endif %} uppercase">
-                        {{ 'Edição Jurídica' if modo == 'jur' else 'Edição de Assentamento' }}
-                    </span>
+                    <span class="text-red-600 uppercase">Edição Jurídica</span>
                 </p>
             </div>
         </div>
@@ -45,7 +41,7 @@
                     autocomplete="off"
                     spellcheck="false"
                     value="{{ termo_busca or '' }}"
-                    placeholder="{{ 'Pesquisar CNJ, titulo, parte cliente, parte adversa, tipo ou status...' if modo == 'jur' else 'Pesquisar municipio, empresa, CNPJ ou processo...' }}"
+                    placeholder="Pesquisar CNJ, titulo, parte cliente, parte adversa, tipo ou status..."
                     class="w-full pl-10 pr-9 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-800 placeholder:text-gray-400
                            focus:bg-white focus:border-[#002b5c] focus:ring-4 focus:ring-[#002b5c]/10 outline-none transition-all duration-200 shadow-sm">
                 <button type="button" id="searchClear" tabindex="-1" aria-label="Limpar pesquisa"
@@ -53,15 +49,13 @@
                     <i data-lucide="x-circle" class="w-4 h-4"></i>
                 </button>
             </div>
-            {% if modo == 'jur' %}
             <input type="hidden" name="page" value="1">
             <button type="submit"
                 class="w-full md:w-auto px-4 py-2 bg-[#002b5c] hover:bg-blue-800 text-white rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-all">
                 <i data-lucide="search-check" class="w-4 h-4"></i> BUSCAR
             </button>
-            {% endif %}
 
-            <a href="{{ url_for('dashboard.inicio_assent') if modo == 'assent' else url_for('dashboard.menu', modo='jur') }}"
+            <a href="{{ url_for('dashboard.menu', modo='jur') }}"
                 class="w-full md:w-auto px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-all">
                 <i data-lucide="corner-up-left" class="w-4 h-4"></i> VOLTAR AO MENU
             </a>
@@ -69,39 +63,16 @@
     </div>
 
     <div class="bg-white rounded-b-2xl shadow-2xl overflow-hidden border border-white/20">
-        {% if modo != 'jur' and total_atualizacoes_vencidas %}
-        <div class="m-5 p-4 rounded-xl bg-amber-50 text-amber-800 border border-amber-200 flex items-start gap-3">
-            <i data-lucide="bell-ring" class="w-6 h-6 mt-0.5"></i>
-            <div>
-                <p class="font-bold">Atualizações pendentes</p>
-                <p class="text-sm">{{ total_atualizacoes_vencidas }} empresa(s) estão sem data de última atualização ou com última atualização há mais de um ano.</p>
-            </div>
-        </div>
-        {% endif %}
-
-        {% if dados and modo != 'jur' %}
-        <div class="px-5 py-2.5 bg-gray-50/60 border-b text-xs text-gray-500 font-medium">
-            <span id="resultCount">{{ dados|length }} registro{{ 's' if dados|length != 1 else '' }} encontrado{{ 's' if dados|length != 1 else '' }}</span>
-        </div>
-        {% endif %}
-
         <div class="overflow-x-auto custom-scrollbar">
             <table id="tabelaRegistros" class="w-full text-left">
                 <thead class="bg-gray-50 text-gray-600 border-b">
                     <tr>
-                        {% if modo == 'jur' %}
-                            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider">Processo</th>
-                            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider">Título</th>
-                            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider">Parte cliente</th>
-                            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider">Parte adversa</th>
-                            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider">Tipo de ação</th>
-                            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider">Status</th>
-                        {% else %}
-                            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider">Município</th>
-                            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider">Empresa</th>
-                            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider">CNPJ</th>
-                            <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider">Última atualização</th>
-                        {% endif %}
+                        <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider">Processo</th>
+                        <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider">Título</th>
+                        <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider">Parte cliente</th>
+                        <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider">Parte adversa</th>
+                        <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider">Tipo de ação</th>
+                        <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider">Status</th>
                         <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-center">Ação</th>
                     </tr>
                 </thead>
@@ -109,53 +80,26 @@
                 <tbody class="divide-y divide-gray-100">
                     {% for item in dados %}
                     <tr class="hover:bg-gray-50/80 transition-colors linha-registro"
-                        data-processo="{{ item.numero_processo if modo == 'jur' else item.processo_judicial }}"
+                        data-processo="{{ item.numero_processo }}"
                         data-sei="{{ item.processo_sei }}">
-                        {% if modo == 'jur' %}
-                            <td class="px-6 py-4 text-sm font-bold text-[#002b5c] font-mono">{{ item['numero_processo'] }}</td>
-                            <td class="px-6 py-4 text-sm text-gray-600">{{ item['titulo'] or '-' }}</td>
-                            <td class="px-6 py-4 text-sm text-gray-600">{{ item['parte_cliente'] or '-' }}</td>
-                            <td class="px-6 py-4 text-sm text-gray-600">{{ item['parte_adversa'] or '-' }}</td>
-                            <td class="px-6 py-4 text-sm text-gray-600">{{ item['tipo_acao'] or item['tipo_processo'] or '-' }}</td>
-                            <td class="px-6 py-4 text-sm text-gray-500">{{ item['status'] or '-' }}</td>
-                        {% else %}
-                            <td class="px-6 py-4 text-sm text-gray-600">{{ item['municipio'] }}</td>
-                            <td class="px-6 py-4 text-sm font-bold text-[#002b5c]">{{ item['empresa'] }}</td>
-                            <td class="px-6 py-4 text-sm text-gray-500 font-mono">{{ item['cnpj'] }}</td>
-                            <td class="px-6 py-4 text-sm">
-                                <div class="flex flex-col gap-1">
-                                    <span class="text-gray-600 font-mono">{{ item['ultima_atualizacao_data'] or '-' }}</span>
-                                    {% if item['atualizacao_vencida'] %}
-                                    <span class="inline-flex w-fit items-center gap-1 rounded-full bg-amber-100 px-2 py-1 text-[11px] font-bold text-amber-800">
-                                        <i data-lucide="bell-ring" class="w-3 h-3"></i> Mais de 1 ano
-                                    </span>
-                                    {% elif item['atualizacao_pendente'] %}
-                                    <span class="inline-flex w-fit items-center gap-1 rounded-full bg-red-100 px-2 py-1 text-[11px] font-bold text-red-700">
-                                        <i data-lucide="alert-triangle" class="w-3 h-3"></i> Sem data
-                                    </span>
-                                    {% endif %}
-                                </div>
-                            </td>
-                        {% endif %}
+                        <td class="px-6 py-4 text-sm font-bold text-[#002b5c] font-mono">{{ item['numero_processo'] }}</td>
+                        <td class="px-6 py-4 text-sm text-gray-600">{{ item['titulo'] or '-' }}</td>
+                        <td class="px-6 py-4 text-sm text-gray-600">{{ item['parte_cliente'] or '-' }}</td>
+                        <td class="px-6 py-4 text-sm text-gray-600">{{ item['parte_adversa'] or '-' }}</td>
+                        <td class="px-6 py-4 text-sm text-gray-600">{{ item['tipo_acao'] or item['tipo_processo'] or '-' }}</td>
+                        <td class="px-6 py-4 text-sm text-gray-500">{{ item['status'] or '-' }}</td>
 
                         <td class="px-6 py-4 text-center">
-                            {% if modo == 'jur' %}
-                                <div class="flex flex-col sm:flex-row justify-center gap-2">
-                                <a href="{{ url_for('edicao.detalhe_jur', processo_id=item['id']) }}"
-                                    class="inline-flex items-center justify-center gap-2 bg-[#002b5c] hover:bg-blue-800 text-white px-4 py-2 rounded-lg text-xs font-bold shadow-sm transition-all transform active:scale-95">
-                                    <i data-lucide="eye" class="w-4 h-4"></i> VER
-                                </a>
-                                <a href="{{ url_for('edicao.editar_jur', processo_id=item['id']) }}"
-                                    class="inline-flex items-center justify-center gap-2 bg-red-500 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-xs font-bold shadow-sm transition-all transform active:scale-95">
-                                    <i data-lucide="gavel" class="w-4 h-4"></i> EDITAR
-                                </a>
-                                </div>
-                            {% else %}
-                                <a href="{{ url_for('edicao.editar', empresa_id=item['id']) }}"
-                                    class="inline-flex items-center justify-center gap-2 bg-[#2563eb] hover:bg-[#002b5c] text-white px-4 py-2 rounded-lg text-xs font-bold shadow-sm transition-all transform active:scale-95">
-                                    <i data-lucide="edit" class="w-4 h-4"></i> EDITAR
-                                </a>
-                            {% endif %}
+                            <div class="flex flex-col sm:flex-row justify-center gap-2">
+                            <a href="{{ url_for('edicao.detalhe_jur', processo_id=item['id']) }}"
+                                class="inline-flex items-center justify-center gap-2 bg-[#002b5c] hover:bg-blue-800 text-white px-4 py-2 rounded-lg text-xs font-bold shadow-sm transition-all transform active:scale-95">
+                                <i data-lucide="eye" class="w-4 h-4"></i> VER
+                            </a>
+                            <a href="{{ url_for('edicao.editar_jur', processo_id=item['id']) }}"
+                                class="inline-flex items-center justify-center gap-2 bg-red-500 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-xs font-bold shadow-sm transition-all transform active:scale-95">
+                                <i data-lucide="gavel" class="w-4 h-4"></i> EDITAR
+                            </a>
+                            </div>
                         </td>
                     </tr>
                     {% endfor %}
@@ -170,14 +114,7 @@
         </div>
         {% endif %}
 
-        {% if modo != 'jur' %}
-        <div id="emptySearchState" class="hidden p-20 text-center">
-            <i data-lucide="search-x" class="w-16 h-16 text-gray-200 mx-auto mb-4"></i>
-            <p class="text-gray-400 font-medium">Nenhum resultado para essa pesquisa.</p>
-        </div>
-        {% endif %}
-
-        {% if modo == 'jur' and paginacao %}
+        {% if paginacao %}
         <div class="border-t bg-gray-50 px-5 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
             <div class="text-sm text-gray-600">
                 Mostrando
@@ -255,7 +192,6 @@ function atualizarBotaoLimpar() {
     searchClear.classList.toggle("pointer-events-none", vazio);
 }
 
-{% if modo == 'jur' %}
 let searchTimer = null;
 searchInput.addEventListener("input", function () {
     atualizarBotaoLimpar();
@@ -269,70 +205,6 @@ searchClear.addEventListener("click", function () {
     searchInput.value = "";
     searchInput.form.submit();
 });
-{% else %}
-const resultCount = document.getElementById("resultCount");
-const emptySearchState = document.getElementById("emptySearchState");
-
-function normalizar(str) {
-    return (str || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
-}
-
-// pré-calcula texto normalizado uma vez no carregamento
-const linhas = Array.from(document.querySelectorAll(".linha-registro"));
-const totalRegistros = linhas.length;
-linhas.forEach(function(linha) {
-    linha._textoNorm = normalizar(linha.innerText);
-    linha._processoNorm = normalizar(linha.dataset.processo || "");
-    linha._processoNum = linha._processoNorm.replace(/\D/g, "");
-    linha._seiNorm = normalizar(linha.dataset.sei || "");
-});
-
-function aplicarFiltro() {
-    const filtro = normalizar(searchInput.value.trim());
-    const filtroNumerico = filtro.replace(/\D/g, "");
-
-    atualizarBotaoLimpar();
-
-    let visiveis = 0;
-    linhas.forEach(function(linha) {
-        const corresponde = (
-            linha._textoNorm.includes(filtro) ||
-            linha._processoNorm.includes(filtro) ||
-            linha._seiNorm.includes(filtro) ||
-            (filtroNumerico && linha._processoNum.includes(filtroNumerico))
-        );
-
-        linha.style.display = corresponde ? "" : "none";
-        if (corresponde) visiveis++;
-    });
-
-    if (resultCount) {
-        resultCount.textContent = filtro
-            ? `${visiveis} de ${totalRegistros} registro${totalRegistros !== 1 ? 's' : ''}`
-            : `${totalRegistros} registro${totalRegistros !== 1 ? 's' : ''} encontrado${totalRegistros !== 1 ? 's' : ''}`;
-    }
-
-    if (emptySearchState) {
-        emptySearchState.classList.toggle("hidden", !(filtro && visiveis === 0));
-    }
-}
-
-searchInput.addEventListener("input", aplicarFiltro);
-
-searchClear.addEventListener("click", function () {
-    searchInput.value = "";
-    aplicarFiltro();
-    searchInput.focus();
-});
-
-searchInput.addEventListener("keydown", function (e) {
-    if (e.key === "Escape") {
-        searchInput.value = "";
-        aplicarFiltro();
-    }
-});
-{% endif %}
-
 </script>
 {% set guia_pagina = 'selecionar_edicao' %}{% include 'partials/guia_mascote.html' %}
 </body>

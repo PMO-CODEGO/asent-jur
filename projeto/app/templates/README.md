@@ -31,7 +31,6 @@ Esta pasta contém todos os arquivos de template HTML da aplicação, renderizad
 
 | Arquivo | Descrição |
 |---|---|
-| `cadastro.html` | Formulário de cadastro de novo lote/empresa no módulo de Assentamento. Select de município populado por `municipio_service.listar_municipios()`. |
 | `selecionar_edicao.html` | Listagem de empresas para seleção antes de editar — exibe indicadores visuais de atualização vencida (mais de 1 ano sem atualização) |
 | `editar.html` | Formulário de edição dos dados de assentamento de uma empresa |
 | `relatorios.html` | Página de geração de relatórios do módulo de Assentamento |

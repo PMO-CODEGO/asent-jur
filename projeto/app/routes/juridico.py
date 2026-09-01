@@ -19,7 +19,7 @@ def consultar_assentamento():
                 cursor.execute("""
                     SELECT id, municipio, distrito, empresa, cnpj, processo_sei,
                            status_de_assentamento, ramo_de_atividade, quadra,
-                           modulo_s, tamanho_m2, imovel_regular_irregular
+                           qtd_modulos, area_lote_m2, imovel_regular_irregular
                     FROM municipal_lots
                     WHERE empresa != '-'
                     ORDER BY empresa

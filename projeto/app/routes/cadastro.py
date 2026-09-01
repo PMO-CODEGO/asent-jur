@@ -8,9 +8,7 @@ from werkzeug.utils import secure_filename
 from app.db import get_db
 from app.services.log_service import gravar_log
 from app.utils.decorators import role_required
-from app.constants import imovel_opcoes, ramo_de_atividade_opcoes, status_de_assentamento_opcoes
 from app.services.cadastro_service import CadastroService
-from app.services.municipio_service import listar_municipios
 from app.services.importacao_processos_service import (
     OPCOES_CAMPOS_IMPORTACAO,
     ler_planilha_processos_detalhada,
@@ -174,99 +172,6 @@ def inserir_processo_juridico(cursor, processo, partes, eventos, historico):
     salvar_vinculos_processo(cursor, processo_id, partes, eventos)
     registrar_historico_processo(cursor, processo_id, historico[0], historico[1])
     return processo_id
-
-
-@cadastro_bp.route('/cadastro', methods=['GET', 'POST'])
-@role_required('admin', 'assent_gestor')
-def cadastro():
-    if request.method == 'POST':
-        dados = CadastroService.normalizar_dados(request.form)
-        empresa_id = None
-
-        try:
-            with get_db() as db:
-                with db.cursor() as cursor:
-                    cols = ', '.join(dados.keys())
-                    placeholders = ', '.join(['%s'] * len(dados))
-                    query = f"INSERT INTO municipal_lots ({cols}) VALUES ({placeholders})"
-                    valores = [dados[campo] for campo in dados.keys()]
-                    cursor.execute(query, valores)
-                    empresa_id = cursor.lastrowid
-                    db.commit()
-                    gravar_log(
-                        acao="CADASTRO_EMPRESA",
-                        descricao=(
-                            f"ID: {empresa_id} | "
-                            f"Empresa: {dados.get('empresa') or '-'} | "
-                            f"Município: {dados.get('municipio') or '-'} | "
-                            f"Distrito: {dados.get('distrito') or '-'} | "
-                            f"CNPJ: {dados.get('cnpj') or '-'} | "
-                            f"Ramo de atividade: {dados.get('ramo_de_atividade') or '-'} | "
-                            f"Status: {dados.get('status_de_assentamento') or '-'}"
-                        ),
-                        usuario_username=session.get('username'),
-                        db_conn=db
-                    )
-
-                if not empresa_id:
-                    raise Exception("Erro ao obter ID do cadastro.")
-
-                file = request.files.get('IMAGEM_EMPRESA')
-                descricao = request.form.get('DESCRICAO_EMPRESA', '') or ' '
-                caminho_imagem = None
-
-                if file and file.filename.strip():
-                    nome_original = file.filename
-                    _, ext = os.path.splitext(nome_original)
-                    ext = ext.lower()
-
-                    if ext not in ['.jpg', '.jpeg', '.png', '.gif', '.webp']:
-                        ext = '.jpg'
-
-                    nome_arquivo = f"empresa{empresa_id}{ext}"
-                    filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], nome_arquivo)
-                    file.save(filepath)
-
-                    caminho_imagem = f"/static/imagens_empresas/{nome_arquivo}".replace('\\', '/')
-
-                with db.cursor() as cursor:
-                    cursor.execute("""
-                        INSERT INTO empresa_infos (empresa_id, descricao, caminho_imagem)
-                        VALUES (%s, %s, %s)
-                        ON DUPLICATE KEY UPDATE
-                            descricao = VALUES(descricao),
-                            caminho_imagem = COALESCE(VALUES(caminho_imagem), caminho_imagem)
-                    """, (empresa_id, descricao, caminho_imagem))
-                    db.commit()
-
-                    if caminho_imagem:
-                        gravar_log(
-                            acao="UPLOAD_IMAGEM_EMPRESA",
-                            descricao=f"ID empresa: {empresa_id} | Arquivo: {nome_arquivo}",
-                            usuario_username=session.get('username'),
-                            db_conn=db
-                        )
-
-            flash('Registro salvo com sucesso!', 'success')
-            return redirect(url_for('cadastro.cadastro'))
-        except Exception as e:
-            flash(f'Erro ao cadastrar: {e}', 'danger')
-
-    municipios = listar_municipios()
-    with get_db() as db:
-        with db.cursor() as cursor:
-            cursor.execute("SELECT DISTINCT distrito FROM municipal_lots WHERE distrito IS NOT NULL AND distrito != '-' ORDER BY distrito")
-            distritos = [r[0] for r in cursor.fetchall()]
-
-    return render_template(
-        'cadastro.html',
-        username=session.get('username'),
-        ramo_de_atividade_opcoes=ramo_de_atividade_opcoes,
-        status_de_assentamento_opcoes=status_de_assentamento_opcoes,
-        imovel_opcoes=imovel_opcoes,
-        municipios=municipios,
-        distritos=distritos,
-    )
 
 
 @cadastro_bp.route('/cadastro_jur', methods=['GET', 'POST'])

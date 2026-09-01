@@ -840,26 +840,6 @@
 
             <div class="nav-menu">
 
-                            {%- if session.get('role') in ['admin', 'assent_gestor'] %}
-
-            <a href="{{ url_for('cadastro.cadastro') }}" class="nav-button">
-
-                <i data-lucide="building-2" class="w-5 h-5"></i>
-
-                Cadastrar Nova Empresa
-
-            </a>
-
-            <a href="{{ url_for('edicao.selecionar_edicao', modo='assent') }}" class="nav-button">
-
-                <i data-lucide="file-pen" class="w-5 h-5"></i>
-
-                Editar Cadastro
-
-            </a>
-
-            {%- endif %}
-
             <a href="{{ url_for('juridico.consultar_assentamento') }}" class="nav-button">
 
                 <i data-lucide="search" class="w-5 h-5"></i>

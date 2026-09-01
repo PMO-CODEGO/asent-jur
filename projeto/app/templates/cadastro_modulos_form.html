@@ -38,24 +38,29 @@
               method="POST" class="p-5 md:p-8 space-y-8">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-            <!-- LOCALIZAÇÃO -->
+            <!-- CADASTRO DO IMÓVEL -->
             <div class="section-card border-blue-600 bg-blue-50/40 rounded-xl p-5 shadow-sm">
                 <div class="flex items-center gap-2 mb-5">
                     <span class="bg-blue-600 text-white p-2 rounded-lg"><i data-lucide="map-pin" class="w-4 h-4"></i></span>
                     <div>
-                        <h3 class="font-bold text-blue-900 text-base">Localização</h3>
-                        <p class="text-xs text-blue-600">Município, distrito, quadra e módulo.</p>
+                        <h3 class="font-bold text-blue-900 text-base">Cadastro do Imóvel</h3>
+                        <p class="text-xs text-blue-600">Município, loteamento, quadra e módulo.</p>
                     </div>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
 
                     <div class="space-y-1">
                         <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Município</label>
+                        {% set municipio_atual = fval('municipio') %}
+                        {% set municipio_na_lista = municipios | select('equalto', municipio_atual) | list | length > 0 %}
                         <select name="municipio"
                             class="w-full p-3 border-2 border-gray-200 rounded-xl bg-white focus:ring-2 focus:ring-blue-500 outline-none">
                             <option value="">Selecione...</option>
+                            {% if municipio_atual and not municipio_na_lista %}
+                            <option value="{{ municipio_atual }}" selected>{{ municipio_atual }}</option>
+                            {% endif %}
                             {% for m in municipios %}
-                            <option value="{{ m }}" {% if fval('municipio') == m %}selected{% endif %}>{{ m }}</option>
+                            <option value="{{ m }}" {% if municipio_atual|upper == m|upper %}selected{% endif %}>{{ m }}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -68,17 +73,22 @@
                     </div>
 
                     <div class="space-y-1">
-                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Quadra</label>
-                        <input type="text" name="quadra" value="{{ fval('quadra') }}"
-                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
-                            placeholder="Ex: 5">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Nº Matrícula do Loteamento</label>
+                        <input type="text" name="matricula_loteamento" value="{{ fval('matricula_loteamento') }}"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
                     </div>
 
                     <div class="space-y-1">
-                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Módulo(s)</label>
-                        <input type="text" name="modulo_s" value="{{ fval('modulo_s') }}"
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Sigla do Loteamento</label>
+                        <input type="text" name="sigla_loteamento" value="{{ fval('sigla_loteamento') }}"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Quadra</label>
+                        <input type="number" name="quadra" value="{{ fval('quadra') }}"
                             class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
-                            placeholder="Ex: 12">
+                            placeholder="Ex: 5">
                     </div>
 
                     <div class="space-y-1">
@@ -88,22 +98,56 @@
                             placeholder="Ex: 1">
                     </div>
 
+                    <div class="md:col-span-2 space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Nome do Logradouro</label>
+                        <input type="text" name="logradouro" value="{{ fval('logradouro') }}"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+
                     <div class="space-y-1">
                         <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Tamanho (m²)</label>
-                        <input type="text" name="tamanho_m2" value="{{ fval('tamanho_m2') }}"
+                        <input type="text" name="area_lote_m2" value="{{ fval('area_lote_m2') }}"
                             class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
                             placeholder="Ex: 5000.00">
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Nº Matrícula do Módulo</label>
+                        <input type="text" name="matricula_modulo" value="{{ fval('matricula_modulo') }}"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">CCI</label>
+                        <input type="text" name="cci" value="{{ fval('cci') }}"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Inscrição Municipal</label>
+                        <input type="text" name="inscricao_municipal" value="{{ fval('inscricao_municipal') }}"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Área Institucional</label>
+                        <select name="area_institucional"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl bg-white focus:ring-2 focus:ring-blue-500 outline-none">
+                            <option value="">Não informado</option>
+                            <option value="Sim" {% if fval('area_institucional')|upper == 'SIM' %}selected{% endif %}>Sim</option>
+                            <option value="Não" {% if fval('area_institucional')|upper in ['NAO', 'NÃO'] %}selected{% endif %}>Não</option>
+                        </select>
                     </div>
                 </div>
             </div>
 
-            <!-- EMPRESA -->
+            <!-- CADASTRO DO ASSENTAMENTO -->
             <div class="section-card border-amber-500 bg-amber-50/40 rounded-xl p-5 shadow-sm">
                 <div class="flex items-center gap-2 mb-5">
                     <span class="bg-amber-500 text-white p-2 rounded-lg"><i data-lucide="building-2" class="w-4 h-4"></i></span>
                     <div>
-                        <h3 class="font-bold text-amber-900 text-base">Empresa</h3>
-                        <p class="text-xs text-amber-700">Dados do locatário ou ocupante do módulo.</p>
+                        <h3 class="font-bold text-amber-900 text-base">Cadastro do Assentamento</h3>
+                        <p class="text-xs text-amber-700">Empresa, representante legal e situação documental.</p>
                     </div>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -137,68 +181,174 @@
                     </div>
 
                     <div class="space-y-1">
-                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Empregos Gerados</label>
-                        <input type="number" name="empregos_gerados" value="{{ fval('empregos_gerados') }}"
-                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none"
-                            placeholder="Ex: 50">
-                    </div>
-                </div>
-            </div>
-
-            <!-- SITUAÇÃO JURÍDICA -->
-            <div class="section-card border-green-600 bg-green-50/40 rounded-xl p-5 shadow-sm">
-                <div class="flex items-center gap-2 mb-5">
-                    <span class="bg-green-600 text-white p-2 rounded-lg"><i data-lucide="file-text" class="w-4 h-4"></i></span>
-                    <div>
-                        <h3 class="font-bold text-green-900 text-base">Situação Jurídica e Documental</h3>
-                        <p class="text-xs text-green-700">Regularidade, matrícula e escrituração.</p>
-                    </div>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-
-                    <div class="space-y-1">
-                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Regular / Irregular</label>
-                        <select name="imovel_regular_irregular"
-                            class="w-full p-3 border-2 border-gray-200 rounded-xl bg-white focus:ring-2 focus:ring-green-500 outline-none">
-                            <option value="">Não informado</option>
-                            <option value="Regular" {% if fval('imovel_regular_irregular') == 'Regular' %}selected{% endif %}>Regular</option>
-                            <option value="Irregular" {% if fval('imovel_regular_irregular') == 'Irregular' %}selected{% endif %}>Irregular</option>
-                        </select>
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Representante Legal</label>
+                        <input type="text" name="nome_representante_legal" value="{{ fval('nome_representante_legal') }}"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none">
                     </div>
 
                     <div class="space-y-1">
-                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Ação Judicial</label>
-                        <input type="text" name="acao_judicial" value="{{ fval('acao_judicial') }}"
-                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none"
-                            placeholder="Ex: Sim / Não">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Telefone do Representante</label>
+                        <input type="text" name="telefone_representante_legal" value="{{ fval('telefone_representante_legal') }}"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none">
                     </div>
 
                     <div class="space-y-1">
-                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Matrícula(s)</label>
-                        <input type="text" name="matricula_s" value="{{ fval('matricula_s') }}"
-                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none"
-                            placeholder="Ex: 12345">
-                    </div>
-
-                    <div class="space-y-1">
-                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Data de Escrituração</label>
-                        <input type="text" name="data_escrituracao" value="{{ fval('data_escrituracao') }}"
-                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none"
-                            placeholder="Ex: 01/01/2000">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">E-mail do Representante</label>
+                        <input type="email" name="email_representante_legal" value="{{ fval('email_representante_legal') }}"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none">
                     </div>
 
                     <div class="space-y-1">
                         <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Processo SEI</label>
                         <input type="text" name="processo_sei" value="{{ fval('processo_sei') }}"
-                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none"
                             placeholder="Ex: 202300000012345">
                     </div>
 
                     <div class="space-y-1">
-                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Status</label>
-                        <input type="text" name="status" value="{{ fval('status') }}"
-                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none"
-                            placeholder="Ex: Ativo">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Data de Escrituração</label>
+                        <input type="text" name="data_escrituracao" value="{{ fval('data_escrituracao') }}"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none"
+                            placeholder="Ex: 01/01/2000">
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Data do Contrato de Compra e Venda</label>
+                        <input type="text" name="data_contrato_de_compra_e_venda" value="{{ fval('data_contrato_de_compra_e_venda') }}"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none"
+                            placeholder="Ex: 01/01/2000">
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Registro na Matrícula</label>
+                        <select name="registro_na_matricula"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl bg-white focus:ring-2 focus:ring-amber-400 outline-none">
+                            <option value="">Não informado</option>
+                            <option value="Sim" {% if fval('registro_na_matricula')|upper == 'SIM' %}selected{% endif %}>Sim</option>
+                            <option value="Não" {% if fval('registro_na_matricula')|upper in ['NAO', 'NÃO'] %}selected{% endif %}>Não</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- REGISTRO ANTERIOR -->
+            <div class="section-card border-purple-500 bg-purple-50/40 rounded-xl p-5 shadow-sm">
+                <div class="flex items-center gap-2 mb-5">
+                    <span class="bg-purple-500 text-white p-2 rounded-lg"><i data-lucide="history" class="w-4 h-4"></i></span>
+                    <div>
+                        <h3 class="font-bold text-purple-900 text-base">Registro Anterior do Assentamento</h3>
+                        <p class="text-xs text-purple-700">Empresa que ocupava o módulo anteriormente.</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+                    <div class="md:col-span-2 space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Nome da Empresa (Anterior)</label>
+                        <input type="text" name="empresa_anterior" value="{{ fval('empresa_anterior') }}"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 outline-none">
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">CNPJ (Anterior)</label>
+                        <input type="text" name="cnpj_anterior" value="{{ fval('cnpj_anterior') }}"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 outline-none">
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Número do Processo (Anterior)</label>
+                        <input type="text" name="processo_anterior" value="{{ fval('processo_anterior') }}"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 outline-none">
+                    </div>
+                </div>
+            </div>
+
+            <!-- SITUAÇÃO OCUPAÇÃO -->
+            <div class="section-card border-teal-600 bg-teal-50/40 rounded-xl p-5 shadow-sm">
+                <div class="flex items-center gap-2 mb-5">
+                    <span class="bg-teal-600 text-white p-2 rounded-lg"><i data-lucide="clipboard-check" class="w-4 h-4"></i></span>
+                    <div>
+                        <h3 class="font-bold text-teal-900 text-base">Situação Ocupação</h3>
+                        <p class="text-xs text-teal-700">Vistoria, ocupação e cronograma de obra.</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Relatório de Vistoria</label>
+                        <input type="text" name="relatorio_vistoria" value="{{ fval('relatorio_vistoria') }}"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 outline-none">
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Última Vistoria</label>
+                        <input type="text" name="ultima_vistoria" value="{{ fval('ultima_vistoria') }}"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 outline-none"
+                            placeholder="Ex: 01/01/2000">
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Taxa de Ocupação do Imóvel (%)</label>
+                        <input type="text" name="taxa_ocupacao_imovel" value="{{ fval('taxa_ocupacao_imovel') }}"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 outline-none"
+                            placeholder="Ex: 12.89">
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Atividade Industrial</label>
+                        <select name="atividade_industrial"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl bg-white focus:ring-2 focus:ring-teal-500 outline-none">
+                            <option value="">Não informado</option>
+                            <option value="Sim" {% if fval('atividade_industrial')|upper == 'SIM' %}selected{% endif %}>Sim</option>
+                            <option value="Não" {% if fval('atividade_industrial')|upper in ['NAO', 'NÃO'] %}selected{% endif %}>Não</option>
+                        </select>
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Empregos Gerados</label>
+                        <input type="number" name="empregos_gerados" value="{{ fval('empregos_gerados') }}"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 outline-none"
+                            placeholder="Ex: 50">
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Regular / Irregular</label>
+                        <select name="imovel_regular_irregular"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl bg-white focus:ring-2 focus:ring-teal-500 outline-none">
+                            <option value="">Não informado</option>
+                            <option value="Regular" {% if fval('imovel_regular_irregular')|upper == 'REGULAR' %}selected{% endif %}>Regular</option>
+                            <option value="Irregular" {% if fval('imovel_regular_irregular')|upper == 'IRREGULAR' %}selected{% endif %}>Irregular</option>
+                        </select>
+                    </div>
+
+                    <div class="md:col-span-2 space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Projeto de Ocupação da Área</label>
+                        <input type="text" name="projeto_ocupacao_area" value="{{ fval('projeto_ocupacao_area') }}"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 outline-none">
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Data de Aprovação do POA</label>
+                        <input type="text" name="data_aprovacao_poa" value="{{ fval('data_aprovacao_poa') }}"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 outline-none"
+                            placeholder="Ex: 01/01/2000">
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Cronograma de Obra (meses)</label>
+                        <input type="number" name="cronograma_fisico_obra_meses" value="{{ fval('cronograma_fisico_obra_meses') }}"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 outline-none">
+                    </div>
+
+                    <div class="md:col-span-2 space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Irregularidades</label>
+                        <textarea name="irregularidades" rows="2"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 outline-none">{{ fval('irregularidades') }}</textarea>
+                    </div>
+
+                    <div class="md:col-span-2 space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Observações</label>
+                        <textarea name="observacoes" rows="2"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 outline-none">{{ fval('observacoes') }}</textarea>
                     </div>
                 </div>
             </div>

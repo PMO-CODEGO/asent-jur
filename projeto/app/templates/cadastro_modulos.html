@@ -76,6 +76,13 @@
         .obs-cell { max-width: 160px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.75rem; color: #6b7280; }
         .empty { padding: 48px; text-align: center; color: #9ca3af; }
         td.num { text-align: right; font-variant-numeric: tabular-nums; }
+        .municipio-group-row { cursor: pointer; background-color: #eef2ff; }
+        .municipio-group-row:hover { background-color: #e0e7ff; }
+        .municipio-group-row td { padding: 12px 14px; font-weight: 700; color: #1e293b; border-bottom: 1px solid #e0e7ff; }
+        .group-toggle { display: inline-flex; align-items: center; gap: 8px; }
+        .group-toggle svg { transition: transform 0.2s ease; flex-shrink: 0; color: #4338ca; }
+        .municipio-group-row.open .group-toggle svg { transform: rotate(90deg); }
+        .group-count { font-weight: 600; color: #6b7280; font-size: 0.78rem; }
         .data-row { cursor: pointer; }
         .data-row:hover { background-color: #f0f7ff; }
         .data-row.open { background-color: #eff6ff; }
@@ -207,8 +214,20 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for r in registros %}
-                        <tr class="data-row" data-status="{{ (r.imovel_regular_irregular or '')|trim }}" data-municipio="{{ (r.municipio or '')|lower|trim }}" data-empresa="{{ '1' if r.empresa else '0' }}" onclick="toggleDetalhe('m{{ r.id }}')">
+                        {% for municipio, grupo in registros | groupby('municipio') %}
+                        {% set grupo_lista = grupo | list %}
+                        {% set gid = 'g' ~ loop.index %}
+                        <tr class="municipio-group-row" data-group="{{ gid }}" data-municipio="{{ (municipio or '')|lower|trim }}" onclick="toggleGrupo('{{ gid }}')">
+                            <td colspan="5">
+                                <span class="group-toggle">
+                                    <i data-lucide="chevron-right" style="width:16px;height:16px;"></i>
+                                    <span class="municipio-badge">{{ municipio or '' }}</span>
+                                    <span class="group-count">{{ grupo_lista|length }} módulo{{ 's' if grupo_lista|length != 1 else '' }}</span>
+                                </span>
+                            </td>
+                        </tr>
+                        {% for r in grupo_lista %}
+                        <tr class="data-row" data-group="{{ gid }}" data-detail-id="m{{ r.id }}" data-status="{{ (r.imovel_regular_irregular or '')|trim }}" data-municipio="{{ (r.municipio or '')|lower|trim }}" data-empresa="{{ '1' if r.empresa else '0' }}" style="display:none;" onclick="toggleDetalhe('m{{ r.id }}')">
                             <td class="col-fix col-fix-1">
                                 <span class="row-toggle">
                                     <i data-lucide="chevron-right" style="width:14px;height:14px;"></i>
@@ -229,11 +248,11 @@
                                 {% else %}-{% endif %}
                             </td>
                         </tr>
-                        <tr id="m{{ r.id }}" class="detail-row" style="display:none;">
+                        <tr id="m{{ r.id }}" class="detail-row" data-group="{{ gid }}" style="display:none;">
                             <td colspan="5">
                                 <div class="detail-grid">
 
-                                    <div class="detail-item detail-section-title">Dados do Imóvel</div>
+                                    <div class="detail-item detail-section-title">Cadastro do Imóvel</div>
                                     <div class="detail-item">
                                         <span class="detail-label">Distrito</span>
                                         <span class="detail-value">{{ r.distrito or '-' }}</span>
@@ -251,10 +270,6 @@
                                         <span class="detail-value">{{ r.quadra or '-' }}</span>
                                     </div>
                                     <div class="detail-item">
-                                        <span class="detail-label">Módulo(s)</span>
-                                        <span class="detail-value">{{ r.modulo_s or '-' }}</span>
-                                    </div>
-                                    <div class="detail-item">
                                         <span class="detail-label">Qtd. Módulos</span>
                                         <span class="detail-value">{{ r.qtd_modulos or '-' }}</span>
                                     </div>
@@ -264,11 +279,11 @@
                                     </div>
                                     <div class="detail-item">
                                         <span class="detail-label">Tamanho (m²)</span>
-                                        <span class="detail-value">{{ '{:,.2f}'.format(r.tamanho_m2).replace(',','X').replace('.',',').replace('X','.') if r.tamanho_m2 else '-' }}</span>
+                                        <span class="detail-value">{{ '{:,.2f}'.format(r.area_lote_m2).replace(',','X').replace('.',',').replace('X','.') if r.area_lote_m2 else '-' }}</span>
                                     </div>
                                     <div class="detail-item">
                                         <span class="detail-label">Nº Matrícula do Módulo</span>
-                                        <span class="detail-value">{{ r.matricula_s or '-' }}</span>
+                                        <span class="detail-value">{{ r.matricula_modulo or '-' }}</span>
                                     </div>
                                     <div class="detail-item">
                                         <span class="detail-label">CCI</span>
@@ -279,8 +294,8 @@
                                         <span class="detail-value">{{ r.inscricao_municipal or '-' }}</span>
                                     </div>
                                     <div class="detail-item">
-                                        <span class="detail-label">Área Institucional (m²)</span>
-                                        <span class="detail-value">{{ '{:,.2f}'.format(r.area_institucional).replace(',','X').replace('.',',').replace('X','.') if r.area_institucional else '-' }}</span>
+                                        <span class="detail-label">Área Institucional</span>
+                                        <span class="detail-value">{{ r.area_institucional or '-' }}</span>
                                     </div>
 
                                     <div class="detail-item detail-section-title">Cadastro do Assentamento</div>
@@ -290,37 +305,37 @@
                                     </div>
                                     <div class="detail-item">
                                         <span class="detail-label">Representante Legal</span>
-                                        <span class="detail-value">{{ r.representante_legal or '-' }}</span>
+                                        <span class="detail-value">{{ r.nome_representante_legal or '-' }}</span>
                                     </div>
                                     <div class="detail-item">
                                         <span class="detail-label">Telefone Representante</span>
-                                        <span class="detail-value">{{ r.telefone_representante or '-' }}</span>
+                                        <span class="detail-value">{{ r.telefone_representante_legal or '-' }}</span>
                                     </div>
                                     <div class="detail-item">
                                         <span class="detail-label">E-mail Representante</span>
-                                        <span class="detail-value">{{ r.email_representante or '-' }}</span>
+                                        <span class="detail-value">{{ r.email_representante_legal or '-' }}</span>
                                     </div>
                                     <div class="detail-item">
-                                        <span class="detail-label">Processo</span>
-                                        <span class="detail-value">{{ r.processo or '-' }}</span>
+                                        <span class="detail-label">Processo SEI</span>
+                                        <span class="detail-value">{{ r.processo_sei or '-' }}</span>
                                     </div>
                                     <div class="detail-item">
                                         <span class="detail-label">Data Escrituração</span>
                                         <span class="detail-value">{{ r.data_escrituracao or '-' }}</span>
                                     </div>
                                     <div class="detail-item">
-                                        <span class="detail-label">Registro na Matrícula</span>
-                                        <span class="detail-value">{{ r.registro_na_matricula or '-' }}</span>
+                                        <span class="detail-label">Data do Contrato de Compra e Venda</span>
+                                        <span class="detail-value">{{ r.data_contrato_de_compra_e_venda or '-' }}</span>
                                     </div>
                                     <div class="detail-item">
-                                        <span class="detail-label">Ação Judicial</span>
-                                        <span class="detail-value">{{ r.acao_judicial or '-' }}</span>
+                                        <span class="detail-label">Registro na Matrícula</span>
+                                        <span class="detail-value">{{ r.registro_na_matricula or '-' }}</span>
                                     </div>
 
                                     <div class="detail-item detail-section-title">Registro Anterior do Assentamento</div>
                                     <div class="detail-item">
                                         <span class="detail-label">Nome da Empresa (anterior)</span>
-                                        <span class="detail-value">{{ r.nome_empresa_anterior or '-' }}</span>
+                                        <span class="detail-value">{{ r.empresa_anterior or '-' }}</span>
                                     </div>
                                     <div class="detail-item">
                                         <span class="detail-label">CNPJ (anterior)</span>
@@ -328,10 +343,10 @@
                                     </div>
                                     <div class="detail-item">
                                         <span class="detail-label">Número do Processo (anterior)</span>
-                                        <span class="detail-value">{{ r.numero_processo_anterior or '-' }}</span>
+                                        <span class="detail-value">{{ r.processo_anterior or '-' }}</span>
                                     </div>
 
-                                    <div class="detail-item detail-section-title">Situação / Ocupação</div>
+                                    <div class="detail-item detail-section-title">Situação Ocupação</div>
                                     <div class="detail-item">
                                         <span class="detail-label">Relatório de Vistoria</span>
                                         <span class="detail-value">{{ r.relatorio_vistoria or '-' }}</span>
@@ -342,7 +357,7 @@
                                     </div>
                                     <div class="detail-item">
                                         <span class="detail-label">Taxa de Ocupação (%)</span>
-                                        <span class="detail-value">{{ r.taxa_e_ocupacao_do_imovel ~ '%' if r.taxa_e_ocupacao_do_imovel else '-' }}</span>
+                                        <span class="detail-value">{{ r.taxa_ocupacao_imovel ~ '%' if r.taxa_ocupacao_imovel else '-' }}</span>
                                     </div>
                                     <div class="detail-item">
                                         <span class="detail-label">Atividade Industrial</span>
@@ -366,7 +381,7 @@
                                     </div>
                                     <div class="detail-item">
                                         <span class="detail-label">Cronograma de Obra (meses)</span>
-                                        <span class="detail-value">{{ r.cronograma_obra_meses or '-' }}</span>
+                                        <span class="detail-value">{{ r.cronograma_fisico_obra_meses or '-' }}</span>
                                     </div>
                                     <div class="detail-item detail-item-wide">
                                         <span class="detail-label">Observações</span>
@@ -398,6 +413,7 @@
                                 </div>
                             </td>
                         </tr>
+                        {% endfor %}
                         {% else %}
                         <tr><td colspan="5" class="empty">Nenhum registro encontrado.</td></tr>
                         {% endfor %}
@@ -417,6 +433,14 @@
             row.style.display = isOpen ? 'none' : 'table-row';
             dataRow.classList.toggle('open', !isOpen);
             if (!isOpen) lucide.createIcons();
+        }
+
+        const groupManualOpen = {};
+
+        function toggleGrupo(gid) {
+            groupManualOpen[gid] = !groupManualOpen[gid];
+            aplicarVisibilidade();
+            lucide.createIcons();
         }
 
         const filtroStatus = document.getElementById('filtro-status');
@@ -441,26 +465,48 @@
             }
         }
 
-        function filtrar() {
+        function aplicarVisibilidade() {
             const sel = municipiosSelecionados();
             const st = filtroStatus.value.trim();
+            const filtroAtivo = sel.length > 0 || !!st;
             const municipiosVisiveis = new Set();
             let total = 0, comEmpresa = 0, regulares = 0, irregulares = 0;
 
-            document.querySelectorAll('.data-row').forEach(function(row) {
-                const munMatch = sel.length === 0 || sel.indexOf(row.dataset.municipio) !== -1;
-                const stMatch = !st || row.dataset.status.trim().toLowerCase() === st.toLowerCase();
-                const visivel = munMatch && stMatch;
-                row.style.display = visivel ? '' : 'none';
+            document.querySelectorAll('.municipio-group-row').forEach(function(grupoEl) {
+                const gid = grupoEl.dataset.group;
+                const linhas = Array.from(document.querySelectorAll('.data-row[data-group="' + gid + '"]'));
 
-                if (visivel) {
-                    total++;
-                    if (row.dataset.municipio) municipiosVisiveis.add(row.dataset.municipio);
-                    if (row.dataset.empresa === '1') comEmpresa++;
-                    const status = row.dataset.status.trim().toUpperCase();
-                    if (status === 'REGULAR') regulares++;
-                    else if (status === 'IRREGULAR') irregulares++;
-                }
+                const matches = linhas.map(function(row) {
+                    const munMatch = sel.length === 0 || sel.indexOf(row.dataset.municipio) !== -1;
+                    const stMatch = !st || row.dataset.status.trim().toLowerCase() === st.toLowerCase();
+                    return munMatch && stMatch;
+                });
+
+                const grupoTemMatch = matches.some(Boolean);
+                const aberto = filtroAtivo ? grupoTemMatch : (groupManualOpen[gid] === true);
+
+                grupoEl.style.display = (filtroAtivo && !grupoTemMatch) ? 'none' : '';
+                grupoEl.classList.toggle('open', aberto);
+
+                linhas.forEach(function(row, i) {
+                    const visivel = filtroAtivo ? (aberto && matches[i]) : aberto;
+                    row.style.display = visivel ? '' : 'none';
+
+                    if (!visivel) {
+                        const detalhe = document.getElementById(row.dataset.detailId);
+                        if (detalhe) detalhe.style.display = 'none';
+                        row.classList.remove('open');
+                    }
+
+                    if (matches[i]) {
+                        total++;
+                        if (row.dataset.municipio) municipiosVisiveis.add(row.dataset.municipio);
+                        if (row.dataset.empresa === '1') comEmpresa++;
+                        const status = row.dataset.status.trim().toUpperCase();
+                        if (status === 'REGULAR') regulares++;
+                        else if (status === 'IRREGULAR') irregulares++;
+                    }
+                });
             });
 
             document.getElementById('stat-total').textContent = total;
@@ -473,7 +519,7 @@
         munChecks.forEach(function(chk) {
             chk.addEventListener('change', function() {
                 atualizarLabelMunicipio();
-                filtrar();
+                aplicarVisibilidade();
             });
         });
 
@@ -491,10 +537,12 @@
         munLimpar.addEventListener('click', function() {
             munChecks.forEach(c => c.checked = false);
             atualizarLabelMunicipio();
-            filtrar();
+            aplicarVisibilidade();
         });
 
-        filtroStatus.addEventListener('change', filtrar);
+        filtroStatus.addEventListener('change', aplicarVisibilidade);
+
+        aplicarVisibilidade();
     </script>
     {% set guia_pagina = 'cadastro_modulos' %}{% include 'partials/guia_mascote.html' %}
 </body>

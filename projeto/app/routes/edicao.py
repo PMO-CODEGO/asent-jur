@@ -1,5 +1,4 @@
 import os
-from datetime import date, datetime, timedelta
 
 from flask import Blueprint, render_template, session, redirect, url_for, flash, request, abort, send_file
 
@@ -15,51 +14,11 @@ from app.services.processo_historico_service import (
     registrar_historico_processo,
 )
 from app.services.processo_busca_service import buscar_processos_juridicos, contar_processos_juridicos
-from app.services.municipio_service import listar_municipios
-from app.constants import (
-    COLUNAS,
-    LABELS,
-    chaves_fixas,
-    labels_fixas,
-    ramo_de_atividade_opcoes,
-    status_opcoes,
-    status_de_assentamento_opcoes,
-    acao_judicial_opcoes,
-    imovel_opcoes,
-)
+from app.constants import status_opcoes
 from app.utils.decorators import role_required
 
 
 edicao_bp = Blueprint("edicao", __name__)
-
-
-def parse_data_atualizacao(valor):
-    if valor in (None, '', '-'):
-        return None
-
-    texto = str(valor).strip()
-    for formato in ('%Y-%m-%d', '%Y-%m-%d %H:%M:%S', '%d/%m/%Y'):
-        try:
-            return datetime.strptime(texto[:19], formato).date()
-        except ValueError:
-            continue
-    return None
-
-
-def aplicar_status_atualizacao(empresas):
-    limite = date.today() - timedelta(days=365)
-    vencidas = 0
-
-    for empresa in empresas:
-        data_atualizacao = parse_data_atualizacao(empresa.get('atualizado'))
-        empresa['ultima_atualizacao_data'] = data_atualizacao.isoformat() if data_atualizacao else ''
-        empresa['atualizacao_vencida'] = bool(data_atualizacao and data_atualizacao < limite)
-        empresa['atualizacao_pendente'] = data_atualizacao is None
-
-        if empresa['atualizacao_vencida'] or empresa['atualizacao_pendente']:
-            vencidas += 1
-
-    return vencidas
 
 
 def salvar_vinculos_processo(cursor, processo_id, partes, eventos):
@@ -95,7 +54,7 @@ def salvar_vinculos_processo(cursor, processo_id, partes, eventos):
 
 
 @edicao_bp.route('/selecionar_edicao/<modo>')
-@role_required('admin', 'jur', 'assent_gestor', 'jur_gestor')
+@role_required('admin', 'jur', 'jur_gestor')
 def selecionar_edicao(modo):
     role = session.get('role')
     termo_busca = request.args.get('q', '').strip()
@@ -103,192 +62,49 @@ def selecionar_edicao(modo):
     itens_por_pagina = 50
     if pagina < 1:
         pagina = 1
-    paginacao = None
 
-    if modo == 'assent' and role not in ['admin', 'assent_gestor']:
-        abort(403)
+    if modo != 'jur':
+        abort(404)
 
-    if modo == 'jur' and role not in ['jur', 'admin', 'jur_gestor']:
+    if role not in ['jur', 'admin', 'jur_gestor']:
         abort(403)
 
     try:
         with get_db() as db:
-            if modo == 'jur':
-                garantir_schema_juridico(db)
+            garantir_schema_juridico(db)
             with db.cursor(dictionary=True) as cursor:
-                if modo == 'jur':
-                    total_registros = contar_processos_juridicos(cursor, termo_busca)
-                    total_paginas = max(1, (total_registros + itens_por_pagina - 1) // itens_por_pagina)
-                    if pagina > total_paginas:
-                        pagina = total_paginas
-                    offset = (pagina - 1) * itens_por_pagina
-                    dados = buscar_processos_juridicos(
-                        cursor,
-                        termo_busca,
-                        limite=itens_por_pagina,
-                        offset=offset,
-                    )
-                    paginacao = {
-                        'pagina': pagina,
-                        'itens_por_pagina': itens_por_pagina,
-                        'total_registros': total_registros,
-                        'total_paginas': total_paginas,
-                        'inicio': offset + 1 if total_registros else 0,
-                        'fim': min(offset + itens_por_pagina, total_registros),
-                        'tem_anterior': pagina > 1,
-                        'tem_proxima': pagina < total_paginas,
-                    }
-                else:
-                    cursor.execute("""
-                        SELECT id, municipio, empresa, cnpj, atualizado, processo_judicial, processo_sei
-                        FROM municipal_lots
-                        WHERE empresa != '-'
-                        ORDER BY empresa
-                    """)
-                    dados = cursor.fetchall()
-                    total_atualizacoes_vencidas = aplicar_status_atualizacao(dados)
+                total_registros = contar_processos_juridicos(cursor, termo_busca)
+                total_paginas = max(1, (total_registros + itens_por_pagina - 1) // itens_por_pagina)
+                if pagina > total_paginas:
+                    pagina = total_paginas
+                offset = (pagina - 1) * itens_por_pagina
+                dados = buscar_processos_juridicos(
+                    cursor,
+                    termo_busca,
+                    limite=itens_por_pagina,
+                    offset=offset,
+                )
+                paginacao = {
+                    'pagina': pagina,
+                    'itens_por_pagina': itens_por_pagina,
+                    'total_registros': total_registros,
+                    'total_paginas': total_paginas,
+                    'inicio': offset + 1 if total_registros else 0,
+                    'fim': min(offset + itens_por_pagina, total_registros),
+                    'tem_anterior': pagina > 1,
+                    'tem_proxima': pagina < total_paginas,
+                }
     except Exception as err:
         dados = []
+        paginacao = None
         print(f"Erro ao buscar dados: {err}")
 
     return render_template(
         'selecionar_edicao.html',
         dados=dados,
-        modo=modo,
         termo_busca=termo_busca,
         paginacao=paginacao,
-        total_atualizacoes_vencidas=locals().get('total_atualizacoes_vencidas', 0),
     )
-
-
-@edicao_bp.route('/editar/<int:empresa_id>', methods=['GET', 'POST'])
-@role_required('admin', 'assent_gestor')
-def editar(empresa_id):
-    try:
-        with get_db() as db:
-            garantir_schema_juridico(db)
-            with db.cursor(dictionary=True) as cursor:
-                cursor.execute("SELECT * FROM municipal_lots WHERE id = %s", (empresa_id,))
-                empresa = cursor.fetchone()
-                if not empresa:
-                    flash('Empresa nao encontrada.', 'danger')
-                    return redirect(url_for('edicao.selecionar_edicao', modo='assent'))
-
-                if request.method == 'POST':
-                    campos = [col for col in COLUNAS[:-4] if col != 'atualizado']
-                    alteracoes = []
-                    dados_normalizados = CadastroService.normalizar_dados_edicao(request.form, campos)
-
-                    for col in campos:
-                        valor_final = dados_normalizados[col]
-                        valor_velho_banco = empresa.get(col)
-
-                        if col in CadastroService.INT_FIELDS:
-                            try:
-                                valor_velho = int(valor_velho_banco) if valor_velho_banco not in ('', None) else 0
-                            except (ValueError, TypeError):
-                                valor_velho = 0
-                        elif col in CadastroService.DECIMAL_FIELDS:
-                            try:
-                                valor_velho = CadastroService._parse_decimal(str(valor_velho_banco), LABELS[col]) if valor_velho_banco not in ('', None) else 0
-                            except (ValueError, TypeError):
-                                valor_velho = 0
-                        else:
-                            valor_velho = str(valor_velho_banco) if valor_velho_banco not in ('', None) else '-'
-
-                        if valor_final != valor_velho:
-                            alteracoes.append(f"{LABELS[col]}: '{valor_velho}' -> '{valor_final}'")
-
-                    campos_update = list(campos)
-                    if alteracoes:
-                        hoje = date.today().isoformat()
-                        dados_normalizados['atualizado'] = hoje
-                        campos_update.append('atualizado')
-                        alteracoes.append(
-                            f"{LABELS['atualizado']}: '{empresa.get('atualizado') or '-'}' -> '{hoje}'"
-                        )
-
-                    set_clause = ', '.join([f"`{col}` = %s" for col in campos_update])
-                    query = f"UPDATE municipal_lots SET {set_clause} WHERE id = %s"
-                    valores = [dados_normalizados[col] for col in campos_update]
-                    valores.append(empresa_id)
-                    cursor.execute(query, valores)
-                    db.commit()
-
-                    empresa_nome = empresa['empresa'] or f'empresa {empresa_id}'
-                    descricao_log = f"Empresa: {empresa_nome} (ID {empresa_id})"
-                    if alteracoes:
-                        descricao_log += " | Alteracoes: " + "; ".join(alteracoes)
-                    else:
-                        descricao_log += " | Nenhuma alteracao realizada."
-
-                    gravar_log(
-                        acao="EDICAO_EMPRESA",
-                        descricao=descricao_log,
-                        usuario_username=session.get('username'),
-                        db_conn=db
-                    )
-                    flash('Alteracoes salvas!', 'success')
-                    return redirect(url_for('edicao.selecionar_edicao', modo='assent'))
-
-                municipios = listar_municipios()
-                with db.cursor() as cur2:
-                    cur2.execute("SELECT DISTINCT distrito FROM municipal_lots WHERE distrito IS NOT NULL AND distrito != '-' ORDER BY distrito")
-                    distritos = [r[0] for r in cur2.fetchall()]
-
-                return render_template(
-                    'editar.html',
-                    dados=empresa,
-                    colunas=chaves_fixas,
-                    labels=labels_fixas,
-                    empresa_id=empresa_id,
-                    atualizacao_vencida=bool(aplicar_status_atualizacao([empresa])),
-                    ramo_de_atividade_opcoes=ramo_de_atividade_opcoes,
-                    status_de_assentamento_opcoes=status_de_assentamento_opcoes,
-                    imovel_opcoes=imovel_opcoes,
-                    acao_judicial_opcoes=acao_judicial_opcoes,
-                    municipios=municipios,
-                    distritos=distritos,
-                )
-    except Exception as e:
-        flash(f'Erro ao editar: {e}', 'danger')
-        return redirect(url_for('edicao.selecionar_edicao', modo='assent'))
-
-
-@edicao_bp.route('/excluir_empresa/<int:empresa_id>', methods=['POST'])
-@role_required('admin')
-def excluir_empresa(empresa_id):
-    try:
-        with get_db() as db:
-            with db.cursor(dictionary=True) as cursor:
-                cursor.execute("SELECT empresa, caminho_imagem FROM municipal_lots ml LEFT JOIN empresa_infos ei ON ei.empresa_id = ml.id WHERE ml.id = %s", (empresa_id,))
-                empresa = cursor.fetchone()
-                if not empresa:
-                    flash('Empresa não encontrada.', 'danger')
-                    return redirect(url_for('edicao.selecionar_edicao', modo='assent'))
-
-                empresa_nome = empresa.get('empresa') or f'ID {empresa_id}'
-
-                caminho_imagem = empresa.get('caminho_imagem')
-                if caminho_imagem and os.path.exists(caminho_imagem):
-                    os.remove(caminho_imagem)
-
-                cursor.execute("DELETE FROM empresa_infos WHERE empresa_id = %s", (empresa_id,))
-                cursor.execute("DELETE FROM municipal_lots WHERE id = %s", (empresa_id,))
-                db.commit()
-
-                gravar_log(
-                    acao="EXCLUSAO_EMPRESA",
-                    descricao=f"ID: {empresa_id} | Nome: {empresa_nome}",
-                    usuario_username=session.get('username'),
-                    db_conn=db
-                )
-
-        flash(f'Empresa "{empresa_nome}" excluída com sucesso.', 'success')
-    except Exception as e:
-        flash(f'Erro ao excluir empresa: {e}', 'danger')
-
-    return redirect(url_for('edicao.selecionar_edicao', modo='assent'))
 
 
 @edicao_bp.route('/editar_jur/<int:processo_id>', methods=['GET', 'POST'])

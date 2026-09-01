@@ -1,82 +1,108 @@
 COLUNAS = [
-    'municipio', 'distrito', 'empresa', 'cnpj',
-    'processo_sei', 'status_de_assentamento', 'observacoes',
-    'ramo_de_atividade', 'empregos_gerados', 'observacoes_1',
-    'quadra', 'modulo_s', 'qtd_modulos', 'tamanho_m2',
-    'matricula_s', 'obsevacoes', 'data_escrituracao',
-    'data_contrato_de_compra_e_venda', 'acao_judicial',
-    'taxa_e_ocupacao_do_imovel', 'imovel_regular_irregular',
-    'irregularidades', 'ultima_vistoria', 'observacoes_2',
-    'atualizado', 'observacoes_3', 'processo_judicial',
-    'status', 'assunto_judicial', 'valor_da_causa',
+    # Cadastro do Imóvel
+    'municipio', 'matricula_loteamento', 'distrito', 'sigla_loteamento',
+    'quadra', 'qtd_modulos', 'logradouro', 'area_lote_m2',
+    'matricula_modulo', 'cci', 'inscricao_municipal', 'area_institucional',
+    # Cadastro do Assentamento
+    'empresa', 'cnpj', 'nome_representante_legal', 'telefone_representante_legal',
+    'email_representante_legal', 'processo_sei', 'ramo_de_atividade',
+    'status_de_assentamento', 'data_escrituracao', 'data_contrato_de_compra_e_venda',
+    'registro_na_matricula',
+    # Registro Anterior do Assentamento
+    'empresa_anterior', 'cnpj_anterior', 'processo_anterior',
+    # Situação de Ocupação
+    'relatorio_vistoria', 'ultima_vistoria', 'taxa_ocupacao_imovel',
+    'atividade_industrial', 'irregularidades', 'empregos_gerados',
+    'projeto_ocupacao_area', 'data_aprovacao_poa', 'cronograma_fisico_obra_meses',
+    'imovel_regular_irregular', 'observacoes',
+    # Controle (preenchido automaticamente pelo sistema)
+    'atualizado',
 ]
 
 LABELS = {
     'municipio': 'Município',
+    'matricula_loteamento': 'Matrícula do Loteamento',
     'distrito': 'Distrito',
+    'sigla_loteamento': 'Sigla do Loteamento',
+    'quadra': 'Quadra',
+    'qtd_modulos': 'Quantidade de Módulos',
+    'logradouro': 'Logradouro',
+    'area_lote_m2': 'Área do Lote (m²)',
+    'matricula_modulo': 'Matrícula do Módulo',
+    'cci': 'CCI (Certidão de Cadastro do Imóvel)',
+    'inscricao_municipal': 'Inscrição Municipal',
+    'area_institucional': 'Área Institucional',
     'empresa': 'Empresa',
     'cnpj': 'CNPJ',
+    'nome_representante_legal': 'Nome do Representante Legal',
+    'telefone_representante_legal': 'Telefone do Representante Legal',
+    'email_representante_legal': 'E-mail do Representante Legal',
     'processo_sei': 'Processo SEI',
-    'status_de_assentamento': 'Status de Assentamento',
-    'observacoes': 'Observações',
     'ramo_de_atividade': 'Ramo de Atividade',
-    'empregos_gerados': 'Empregos Gerados',
-    'observacoes_1': 'Observações 1',
-    'quadra': 'Quadra',
-    'modulo_s': 'Módulo(s)',
-    'qtd_modulos': 'Quantidade de Módulos',
-    'tamanho_m2': 'Tamanho (m²)',
-    'matricula_s': 'Matrícula(s)',
-    'obsevacoes': 'Observações',
+    'status_de_assentamento': 'Status de Assentamento',
     'data_escrituracao': 'Data de Escrituração',
     'data_contrato_de_compra_e_venda': 'Data do Contrato de Compra e Venda',
-    'acao_judicial': 'Ação Judicial',
-    'taxa_e_ocupacao_do_imovel': 'Taxa e Ocupação do Imóvel (%)',
-    'imovel_regular_irregular': 'Imóvel Regular/Irregular',
-    'irregularidades': 'Irregularidades',
+    'registro_na_matricula': 'Registro na Matrícula',
+    'empresa_anterior': 'Empresa (Registro Anterior)',
+    'cnpj_anterior': 'CNPJ (Registro Anterior)',
+    'processo_anterior': 'Processo (Registro Anterior)',
+    'relatorio_vistoria': 'Relatório de Vistoria',
     'ultima_vistoria': 'Última Vistoria',
-    'observacoes_2': 'Observações 2',
+    'taxa_ocupacao_imovel': 'Taxa de Ocupação do Imóvel (%)',
+    'atividade_industrial': 'Atividade Industrial',
+    'irregularidades': 'Irregularidades',
+    'empregos_gerados': 'Empregos Gerados',
+    'projeto_ocupacao_area': 'Projeto de Ocupação da Área',
+    'data_aprovacao_poa': 'Data de Aprovação do POA',
+    'cronograma_fisico_obra_meses': 'Cronograma Físico de Obra (meses)',
+    'imovel_regular_irregular': 'Imóvel Regular/Irregular',
+    'observacoes': 'Observações',
     'atualizado': 'Última atualização',
-    'observacoes_3': 'Observações 3',
-    'processo_judicial': 'Processo Judicial',
-    'status': 'Status',
-    'assunto_judicial': 'Assunto Judicial',
-    'valor_da_causa': 'Valor da Causa',
 }
 
-#as fixas delimitam os campos relacionados ao usuários de Assentamento 
-chaves_fixas = COLUNAS[:-4] 
-#as editáveis indicam os campos referentes aos usuários do Jurídico
-chaves_editaveis = COLUNAS[-4:]
-
-labels_fixas = {k: LABELS[k] for k in chaves_fixas}
-labels_editaveis = {k: LABELS[k] for k in chaves_editaveis}
+# todos os campos sao editaveis pelo setor de Assentamento; 'atualizado' e
+# preenchido automaticamente pelo sistema (nunca pelo usuario) e por isso e
+# filtrado a parte nas rotas de cadastro/edicao.
+chaves_fixas = COLUNAS
+labels_fixas = LABELS
 
 colunas_map = {
     'MUNICIPIO': 'municipio',
+    'MATRÍCULA DO LOTEAMENTO': 'matricula_loteamento',
     'DISTRITO': 'distrito',
+    'SIGLA DO LOTEAMENTO': 'sigla_loteamento',
+    'QUADRA': 'quadra',
+    'QTD. MÓDULOS': 'qtd_modulos',
+    'LOGRADOURO': 'logradouro',
+    'TAMANHO(M²)': 'area_lote_m2',
+    'MATRÍCULA DO MÓDULO': 'matricula_modulo',
+    'CCI': 'cci',
+    'INSCRIÇÃO MUNICIPAL': 'inscricao_municipal',
+    'ÁREA INSTITUCIONAL': 'area_institucional',
     'EMPRESA': 'empresa',
     'CNPJ': 'cnpj',
+    'NOME REPRESENTANTE LEGAL': 'nome_representante_legal',
+    'TELEFONE REPRESENTANTE LEGAL': 'telefone_representante_legal',
+    'E-MAIL REPRESENTANTE LEGAL': 'email_representante_legal',
     'PROCESSO SEI': 'processo_sei',
-    'STATUS DE ASSENTAMENTO': 'status_de_assentamento',
     'RAMO DE ATIVIDADE': 'ramo_de_atividade',
-    'EMPREGOS GERADOS': 'empregos_gerados',
-    'QUADRA': 'quadra',
-    'MÓDULO(S)': 'modulo_s',
-    'QTD. MÓDULOS': 'qtd_modulos',
-    'TAMANHO(M²)': 'tamanho_m2',
-    'MATRÍCULA(S)': 'matricula_s',
-    'OBSEVAÇÕES': 'obsevacoes',
+    'STATUS DE ASSENTAMENTO': 'status_de_assentamento',
     'DATA ESCRITURAÇÃO': 'data_escrituracao',
     'DATA CONTRATO DE COMPRA E VENDA': 'data_contrato_de_compra_e_venda',
-    'IRREGULARIDADES?': 'irregularidades',
+    'REGISTRO NA MATRÍCULA': 'registro_na_matricula',
     'ÚLTIMA VISTORIA': 'ultima_vistoria',
-    'ATUALIZADO': 'atualizado',
+    'TAXA E OCUPAÇÃO DO IMÓVEL(%)': 'taxa_ocupacao_imovel',
+    'IRREGULARIDADES?': 'irregularidades',
+    'EMPREGOS GERADOS': 'empregos_gerados',
     'IMÓVEL REGULAR/IRREGULAR': 'imovel_regular_irregular',
-    'TAXA E OCUPAÇÃO DO IMÓVEL(%)': 'taxa_e_ocupacao_do_imovel',
+    'OBSEVAÇÕES': 'observacoes',
+    'ATUALIZADO': 'atualizado',
 }
 
-campos_numericos = ['empregos_gerados', 'quadra', 'qtd_modulos', 'tamanho_m2', 'matricula_s', 'taxa_e_ocupacao_do_imovel']
+campos_numericos = [
+    'empregos_gerados', 'quadra', 'qtd_modulos', 'area_lote_m2',
+    'taxa_ocupacao_imovel', 'cronograma_fisico_obra_meses',
+]
 
 ramo_de_atividade_opcoes = [
     "ADMINISTRAÇÃO - CODEGO",
@@ -126,28 +152,21 @@ status_opcoes = [
 ]
 
 status_de_assentamento_opcoes = [
-    'ÁREA LIVRE', 
-    'ESCRITURADA', 
+    'ÁREA LIVRE',
+    'ESCRITURADA',
     'ÁREA COM CVV/CDRU',
-    'ÁREA EM ASSENTAMENTO', 
+    'ÁREA EM ASSENTAMENTO',
     'ÁREA COM ACORDO DESENVOLVE GOIÁS',
-    'ÁREA COM AÇÃO JUDICIAL', 
+    'ÁREA COM AÇÃO JUDICIAL',
     'ÁREA AÇÃO DA PGE',
     'ÁREA LOCADA PELA CIA À TERCEIROS',
-    'ÁREA EM ACORDO JUDICIAL/EXTRAJUDICIAL', 
-    '-', 
-    'ÁREA DA CODEGO',
-    'ÁREA PÚBLICA', 
-    'ÁREA COM CONTRATO DE CESSÃO DE USO',
-    'ÁREA IMITIDA NA POSSE', 
-    'ÁREA PENDENTE DE ATUALIZAÇÃO'
-]
-
-acao_judicial_opcoes = [
-    'SIM',
-    'NÃO',
+    'ÁREA EM ACORDO JUDICIAL/EXTRAJUDICIAL',
     '-',
-    'ÁREA COM ACORDO'
+    'ÁREA DA CODEGO',
+    'ÁREA PÚBLICA',
+    'ÁREA COM CONTRATO DE CESSÃO DE USO',
+    'ÁREA IMITIDA NA POSSE',
+    'ÁREA PENDENTE DE ATUALIZAÇÃO'
 ]
 
 imovel_opcoes = [
