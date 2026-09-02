@@ -140,6 +140,22 @@
         .status-livre { background-color: #d1fae5; color: #065f46; }
         .status-ocupado { background-color: #fee2e2; color: #991b1b; }
 
+        .data-row:hover { background-color: #f8faff; }
+        .data-row.open { background-color: #eff6ff; }
+        .data-row.open .row-toggle-icon { transform: rotate(90deg); }
+        .row-toggle-icon { transition: transform 0.2s ease; }
+        .detail-row td { background-color: #f8fafc; padding: 0 !important; border-bottom: 2px solid #bfdbfe; }
+        .detail-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; padding: 16px 24px; }
+        .detail-item-wide { grid-column: span 2; }
+        .detail-item { display: flex; flex-direction: column; gap: 4px; }
+        .detail-label { font-size: 0.7rem; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; }
+        .detail-value { font-size: 0.82rem; color: #1e293b; }
+        .detail-section-title { grid-column: 1 / -1; font-size: 0.72rem; font-weight: 800; color: #1e40af; text-transform: uppercase; letter-spacing: 0.05em; padding-top: 6px; border-top: 1px solid #e2e8f0; margin-top: 4px; }
+        .detail-section-title:first-child { border-top: none; margin-top: 0; padding-top: 0; }
+        @media (max-width: 768px) {
+            .detail-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
         .btn-add-perimetro { display: inline-flex; align-items: center; gap: 6px; background-color: #002b5c; color: white; border: none; padding: 7px 14px; border-radius: 8px; font-size: 0.78rem; font-weight: 600; cursor: pointer; transition: background-color 0.18s ease; }
         .btn-add-perimetro:hover { background-color: #001f42; }
         .perimetros-table td.actions-cell { white-space: nowrap; }
@@ -365,8 +381,152 @@
                 </table>
             </div>
         </div>
+        {% elif slug == 'inhumas' %}
+        <div class="map-placeholder split-col">
+            <div class="map-placeholder-header">
+                <h2>
+                    <i data-lucide="layout-grid" style="width:16px;height:16px;"></i>
+                    Módulos do Distrito
+                </h2>
+                <span class="badge-count">{{ modulos_inhumas|length }} {{ 'módulo' if modulos_inhumas|length == 1 else 'módulos' }}</span>
+            </div>
+            <div style="overflow-x:auto; overflow-y:auto; max-height:420px;">
+                <table class="perimetros-table">
+                    <thead style="position:sticky; top:0; z-index:1;">
+                        <tr>
+                            <th>Quadra</th>
+                            <th>Módulo</th>
+                            <th>Matrícula</th>
+                            <th>Área (m²)</th>
+                            <th>Empresa</th>
+                            <th>Situação</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for m in modulos_inhumas %}
+                        <tr>
+                            <td>{{ m.quadra or '-' }}</td>
+                            <td>{{ m.qtd_modulos or '-' }}</td>
+                            <td>{{ m.matricula_modulo or '-' }}</td>
+                            <td class="num">{{ '{:,.2f}'.format(m.area_lote_m2).replace(',','X').replace('.',',').replace('X','.') if m.area_lote_m2 else '-' }}</td>
+                            <td>{{ m.empresa or '-' }}</td>
+                            <td>{{ m.status_de_assentamento or '-' }}</td>
+                        </tr>
+                        {% endfor %}
+                        {% if not modulos_inhumas %}
+                        <tr>
+                            <td colspan="6" style="text-align:center;color:#9ca3af;padding:20px;">Nenhum módulo mapeado ainda.</td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
         {% endif %}
         </div>
+
+        {% if slug == 'inhumas' %}
+        <div class="map-placeholder" style="margin-bottom:20px;">
+            <div class="map-placeholder-header">
+                <h2>
+                    <i data-lucide="clipboard-list" style="width:16px;height:16px;"></i>
+                    Cadastro de Módulos — Inhumas
+                </h2>
+                <span class="badge-count">{{ cadastro_modulos_inhumas|length }} {{ 'registro' if cadastro_modulos_inhumas|length == 1 else 'registros' }}</span>
+            </div>
+            <div style="overflow-x:auto; overflow-y:auto; max-height:480px;">
+                <table class="perimetros-table">
+                    <thead style="position:sticky; top:0; z-index:1;">
+                        <tr>
+                            <th></th>
+                            <th>Distrito</th>
+                            <th>Quadra</th>
+                            <th>Matrícula do Módulo</th>
+                            <th>Empresa</th>
+                            <th>CNPJ</th>
+                            <th>Status Assent.</th>
+                            <th>Regular/Irregular</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in cadastro_modulos_inhumas %}
+                        <tr class="data-row" style="cursor:pointer;" onclick="toggleCadastroModulo('cm{{ r.id }}', this)">
+                            <td><i data-lucide="chevron-right" class="row-toggle-icon" style="width:14px;height:14px;color:#9ca3af;"></i></td>
+                            <td>{{ r.distrito or '-' }}</td>
+                            <td>{{ r.quadra or '-' }}</td>
+                            <td>{{ r.matricula_modulo or '-' }}</td>
+                            <td>{{ r.empresa or '-' }}</td>
+                            <td>{{ r.cnpj or '-' }}</td>
+                            <td>{{ r.status_de_assentamento or '-' }}</td>
+                            <td>
+                                {% set ri = r.imovel_regular_irregular or '' %}
+                                {% if ri.upper() == 'REGULAR' %}
+                                <span class="status-badge status-livre">Regular</span>
+                                {% elif ri.upper() == 'IRREGULAR' %}
+                                <span class="status-badge status-ocupado">Irregular</span>
+                                {% else %}-{% endif %}
+                            </td>
+                        </tr>
+                        <tr id="cm{{ r.id }}" class="detail-row" style="display:none;">
+                            <td colspan="8">
+                                <div class="detail-grid">
+                                    <div class="detail-item detail-section-title">Cadastro do Imóvel</div>
+                                    <div class="detail-item"><span class="detail-label">Código IBGE do Município</span><span class="detail-value">{{ r.codigo_ibge_municipio or '-' }}</span></div>
+                                    <div class="detail-item"><span class="detail-label">Nº Matrícula do Loteamento</span><span class="detail-value">{{ r.matricula_loteamento or '-' }}</span></div>
+                                    <div class="detail-item"><span class="detail-label">Sigla do Loteamento</span><span class="detail-value">{{ r.sigla_loteamento or '-' }}</span></div>
+                                    <div class="detail-item"><span class="detail-label">Qtd. Módulos</span><span class="detail-value">{{ r.qtd_modulos or '-' }}</span></div>
+                                    <div class="detail-item"><span class="detail-label">Nome do Logradouro</span><span class="detail-value">{{ r.logradouro or '-' }}</span></div>
+                                    <div class="detail-item"><span class="detail-label">Tamanho (m²)</span><span class="detail-value">{{ '{:,.2f}'.format(r.area_lote_m2).replace(',','X').replace('.',',').replace('X','.') if r.area_lote_m2 else '-' }}</span></div>
+                                    <div class="detail-item"><span class="detail-label">Código do Módulo</span><span class="detail-value">{{ r.codigo_modulo_externo or '-' }}</span></div>
+                                    <div class="detail-item"><span class="detail-label">CCI</span><span class="detail-value">{{ r.cci or '-' }}</span></div>
+                                    <div class="detail-item"><span class="detail-label">Inscrição Municipal</span><span class="detail-value">{{ r.inscricao_municipal or '-' }}</span></div>
+                                    <div class="detail-item"><span class="detail-label">Área Institucional</span><span class="detail-value">{{ r.area_institucional or '-' }}</span></div>
+
+                                    <div class="detail-item detail-section-title">Cadastro do Assentamento</div>
+                                    <div class="detail-item"><span class="detail-label">Ramo de Atividade</span><span class="detail-value">{{ r.ramo_de_atividade or '-' }}</span></div>
+                                    <div class="detail-item"><span class="detail-label">Representante Legal</span><span class="detail-value">{{ r.nome_representante_legal or '-' }}</span></div>
+                                    <div class="detail-item"><span class="detail-label">Telefone Representante</span><span class="detail-value">{{ r.telefone_representante_legal or '-' }}</span></div>
+                                    <div class="detail-item"><span class="detail-label">E-mail Representante</span><span class="detail-value">{{ r.email_representante_legal or '-' }}</span></div>
+                                    <div class="detail-item"><span class="detail-label">Processo SEI</span><span class="detail-value">{{ r.processo_sei or '-' }}</span></div>
+                                    <div class="detail-item"><span class="detail-label">Data Escrituração</span><span class="detail-value">{{ r.data_escrituracao or '-' }}</span></div>
+                                    <div class="detail-item"><span class="detail-label">Registro na Matrícula</span><span class="detail-value">{{ r.registro_na_matricula or '-' }}</span></div>
+
+                                    <div class="detail-item detail-section-title">Registro Anterior do Assentamento</div>
+                                    <div class="detail-item"><span class="detail-label">Nome da Empresa (anterior)</span><span class="detail-value">{{ r.empresa_anterior or '-' }}</span></div>
+                                    <div class="detail-item"><span class="detail-label">CNPJ (anterior)</span><span class="detail-value">{{ r.cnpj_anterior or '-' }}</span></div>
+                                    <div class="detail-item"><span class="detail-label">Número do Processo (anterior)</span><span class="detail-value">{{ r.processo_anterior or '-' }}</span></div>
+
+                                    <div class="detail-item detail-section-title">Situação Ocupação</div>
+                                    <div class="detail-item"><span class="detail-label">Relatório de Vistoria</span><span class="detail-value">{{ r.relatorio_vistoria or '-' }}</span></div>
+                                    <div class="detail-item"><span class="detail-label">Última Vistoria</span><span class="detail-value">{{ r.ultima_vistoria or '-' }}</span></div>
+                                    <div class="detail-item"><span class="detail-label">Taxa de Ocupação (%)</span><span class="detail-value">{{ r.taxa_ocupacao_imovel ~ '%' if r.taxa_ocupacao_imovel else '-' }}</span></div>
+                                    <div class="detail-item"><span class="detail-label">Atividade Industrial</span><span class="detail-value">{{ r.atividade_industrial or '-' }}</span></div>
+                                    <div class="detail-item detail-item-wide"><span class="detail-label">Irregularidades</span><span class="detail-value">{{ r.irregularidades or '-' }}</span></div>
+                                    <div class="detail-item"><span class="detail-label">Empregos</span><span class="detail-value">{{ r.empregos_gerados or '-' }}</span></div>
+                                    <div class="detail-item"><span class="detail-label">Projeto de Ocupação da Área</span><span class="detail-value">{{ r.projeto_ocupacao_area or '-' }}</span></div>
+                                    <div class="detail-item"><span class="detail-label">Data Aprovação do POA</span><span class="detail-value">{{ r.data_aprovacao_poa or '-' }}</span></div>
+                                    <div class="detail-item"><span class="detail-label">Cronograma de Obra (meses)</span><span class="detail-value">{{ r.cronograma_fisico_obra_meses or '-' }}</span></div>
+                                    <div class="detail-item detail-item-wide"><span class="detail-label">Observações</span><span class="detail-value">{{ r.observacoes or '-' }}</span></div>
+                                </div>
+                                <div style="padding:14px 24px;" onclick="event.stopPropagation()">
+                                    <a href="{{ url_for('cadastro_modulos.editar', registro_id=r.id) }}"
+                                       style="display:inline-flex;align-items:center;gap:4px;padding:5px 12px;background:#eff6ff;color:#1e40af;border-radius:6px;font-size:0.78rem;font-weight:600;text-decoration:none;">
+                                        <i data-lucide="pencil" style="width:13px;height:13px;"></i> Editar
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        {% if not cadastro_modulos_inhumas %}
+                        <tr>
+                            <td colspan="8" style="text-align:center;color:#9ca3af;padding:20px;">Nenhum registro encontrado.</td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
     </div>
 
     {% if slug == 'daia' and pode_editar_perimetros %}
@@ -435,6 +595,15 @@
 
     <script>
         lucide.createIcons();
+
+        function toggleCadastroModulo(id, gatilho) {
+            const row = document.getElementById(id);
+            if (!row) return;
+            const isOpen = row.style.display !== 'none';
+            row.style.display = isOpen ? 'none' : 'table-row';
+            if (gatilho) gatilho.classList.toggle('open', !isOpen);
+            if (!isOpen) lucide.createIcons();
+        }
 
         {% if slug == 'daia' %}
         (function() {

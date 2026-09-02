@@ -602,7 +602,11 @@ def cadastro_modulos():
     from app.db import get_db
     with get_db() as db:
         with db.cursor(dictionary=True) as cursor:
-            cursor.execute("SELECT * FROM municipal_lots ORDER BY municipio, distrito, quadra, matricula_modulo")
+            cursor.execute("""
+                SELECT *, COALESCE(municipio, '') AS municipio
+                FROM municipal_lots
+                ORDER BY municipio, distrito, quadra, matricula_modulo
+            """)
             registros = cursor.fetchall()
     return render_template('cadastro_modulos.html', registros=registros)
 
@@ -620,14 +624,35 @@ def distrito_detalhe(slug):
     tipo_label = TIPO_LABELS.get(distrito['tipo'], distrito['tipo'])
 
     perimetros = None
+    modulos_inhumas = None
+    cadastro_modulos_inhumas = None
     if slug == 'daia':
         from app.db import get_db
         with get_db() as db:
             with db.cursor(dictionary=True) as cursor:
                 cursor.execute("SELECT id, perimetro, area, coordenadas, status FROM mapas_interativo_anapolis ORDER BY id")
                 perimetros = cursor.fetchall()
+    elif slug == 'inhumas':
+        from app.db import get_db
+        with get_db() as db:
+            with db.cursor(dictionary=True) as cursor:
+                cursor.execute("""
+                    SELECT id, quadra, qtd_modulos, matricula_modulo, id_modulo, area_lote_m2, empresa, status_de_assentamento
+                    FROM mapa_inhumas
+                    ORDER BY quadra, matricula_modulo
+                """)
+                modulos_inhumas = cursor.fetchall()
 
-    return render_template('distrito_detalhe.html', distrito=distrito, slug=slug, tipo_label=tipo_label, perimetros=perimetros)
+                cursor.execute("""
+                    SELECT * FROM municipal_lots
+                    WHERE UPPER(municipio) = 'INHUMAS'
+                    ORDER BY quadra, matricula_modulo
+                """)
+                cadastro_modulos_inhumas = cursor.fetchall()
+
+    return render_template('distrito_detalhe.html', distrito=distrito, slug=slug, tipo_label=tipo_label,
+                           perimetros=perimetros, modulos_inhumas=modulos_inhumas,
+                           cadastro_modulos_inhumas=cadastro_modulos_inhumas)
 
 @dashboard_bp.route('/menu/<modo>')
 @role_required('assent', 'jur', 'admin','assent_gestor','jur_gestor')

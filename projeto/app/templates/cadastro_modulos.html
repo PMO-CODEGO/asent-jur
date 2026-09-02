@@ -221,7 +221,7 @@
                             <td colspan="5">
                                 <span class="group-toggle">
                                     <i data-lucide="chevron-right" style="width:16px;height:16px;"></i>
-                                    <span class="municipio-badge">{{ municipio or '' }}</span>
+                                    <span class="municipio-badge">{{ municipio or 'Sem Município' }}</span>
                                     <span class="group-count">{{ grupo_lista|length }} módulo{{ 's' if grupo_lista|length != 1 else '' }}</span>
                                 </span>
                             </td>
@@ -254,6 +254,10 @@
 
                                     <div class="detail-item detail-section-title">Cadastro do Imóvel</div>
                                     <div class="detail-item">
+                                        <span class="detail-label">Código IBGE do Município</span>
+                                        <span class="detail-value">{{ r.codigo_ibge_municipio or '-' }}</span>
+                                    </div>
+                                    <div class="detail-item">
                                         <span class="detail-label">Distrito</span>
                                         <span class="detail-value">{{ r.distrito or '-' }}</span>
                                     </div>
@@ -284,6 +288,10 @@
                                     <div class="detail-item">
                                         <span class="detail-label">Nº Matrícula do Módulo</span>
                                         <span class="detail-value">{{ r.matricula_modulo or '-' }}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Código do Módulo</span>
+                                        <span class="detail-value">{{ r.codigo_modulo_externo or '-' }}</span>
                                     </div>
                                     <div class="detail-item">
                                         <span class="detail-label">CCI</span>

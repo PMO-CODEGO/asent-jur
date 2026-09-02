@@ -9,6 +9,7 @@ cadastro_modulos_bp = Blueprint('cadastro_modulos', __name__)
 CAMPOS = [
     # Cadastro do Imóvel
     ('municipio',                       'Município'),
+    ('codigo_ibge_municipio',           'Código IBGE do Município'),
     ('distrito',                        'Distrito'),
     ('matricula_loteamento',            'Nº Matrícula do Loteamento'),
     ('sigla_loteamento',                'Sigla do Loteamento'),
@@ -17,6 +18,7 @@ CAMPOS = [
     ('logradouro',                      'Nome do Logradouro'),
     ('area_lote_m2',                    'Tamanho (m²)'),
     ('matricula_modulo',                'Nº Matrícula do Módulo'),
+    ('codigo_modulo_externo',           'Código do Módulo'),
     ('cci',                             'CCI'),
     ('inscricao_municipal',             'Inscrição Municipal'),
     ('area_institucional',              'Área Institucional'),
