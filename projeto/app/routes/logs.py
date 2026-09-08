@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request
+from flask import Blueprint, render_template, request, current_app
 from app.db import get_db
 from app.utils.decorators import role_required
 
@@ -47,7 +47,7 @@ def logs():
                 cursor.execute(query, tuple(params))
                 logs_data = cursor.fetchall()
     except Exception as err:
-        print(f"Erro logs: {err}")
+        current_app.logger.error(f"Erro ao buscar logs: {err}")
     return render_template(
         'logs.html',
         logs=logs_data,

@@ -1,6 +1,6 @@
 import os
 
-from flask import Blueprint, render_template, session, redirect, url_for, flash, request, abort, send_file
+from flask import Blueprint, render_template, session, redirect, url_for, flash, request, abort, send_file, current_app
 
 from app.db import get_db
 from app.services.log_service import gravar_log
@@ -97,7 +97,7 @@ def selecionar_edicao(modo):
     except Exception as err:
         dados = []
         paginacao = None
-        print(f"Erro ao buscar dados: {err}")
+        current_app.logger.error(f"Erro ao buscar dados de selecionar_edicao: {err}")
 
     return render_template(
         'selecionar_edicao.html',
@@ -230,8 +230,12 @@ def editar_jur(processo_id):
                     processo_id=processo_id,
                     status_opcoes=status_opcoes,
                 )
+    except ValueError as e:
+        flash(str(e), 'danger')
+        return redirect(url_for('edicao.selecionar_edicao', modo='jur'))
     except Exception as e:
-        flash(f'Erro ao editar juridico: {e}', 'danger')
+        current_app.logger.error(f"Erro ao editar processo juridico: {e}")
+        flash('Erro ao editar. Tente novamente ou contate o suporte.', 'danger')
         return redirect(url_for('edicao.selecionar_edicao', modo='jur'))
 
 
@@ -281,7 +285,8 @@ def detalhe_jur(processo_id):
             processo_id=processo_id,
         )
     except Exception as e:
-        flash(f'Erro ao carregar processo: {e}', 'danger')
+        current_app.logger.error(f"Erro ao carregar processo juridico: {e}")
+        flash('Erro ao carregar processo. Tente novamente ou contate o suporte.', 'danger')
         return redirect(url_for('edicao.selecionar_edicao', modo='jur'))
 
 
@@ -316,5 +321,6 @@ def baixar_documento_jur(documento_id):
             mimetype=documento.get('content_type') or None,
         )
     except Exception as e:
-        flash(f'Erro ao baixar documento: {e}', 'danger')
+        current_app.logger.error(f"Erro ao baixar documento do processo juridico: {e}")
+        flash('Erro ao baixar documento. Tente novamente ou contate o suporte.', 'danger')
         return redirect(url_for('edicao.selecionar_edicao', modo='jur'))

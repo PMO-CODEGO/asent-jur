@@ -219,8 +219,11 @@ def cadastro_jur():
                     )
             flash('Informacoes juridicas adicionadas com sucesso!', 'success')
             return redirect(url_for('dashboard.menu', modo='jur'))
+        except ValueError as e:
+            flash(str(e), 'danger')
         except Exception as e:
-            flash(f'Erro ao salvar: {e}', 'danger')
+            current_app.logger.error(f"Erro ao salvar processo juridico: {e}")
+            flash('Erro ao salvar. Tente novamente ou contate o suporte.', 'danger')
 
     return render_template('cadastro_jur.html', username=session.get('username'))
 
@@ -308,8 +311,11 @@ def importar_processos_jur():
                 'relatorio_erros': salvar_relatorio_erros_importacao(erros),
             }
             flash('Importacao concluida.', 'success')
+        except ValueError as e:
+            flash(str(e), 'danger')
         except Exception as e:
-            flash(f'Erro ao importar processos: {e}', 'danger')
+            current_app.logger.error(f"Erro ao importar processos juridicos: {e}")
+            flash('Erro ao importar processos. Tente novamente ou contate o suporte.', 'danger')
 
     return render_template('importar_processos_jur.html', resultado=resultado, previa=previa)
 

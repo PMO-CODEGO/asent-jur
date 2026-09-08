@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request
+from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app
 
 from app.constants import chaves_fixas, labels_fixas
 from app.db import get_db
@@ -27,7 +27,7 @@ def consultar_assentamento():
                 dados = cursor.fetchall()
     except Exception as err:
         dados = []
-        print(f"Erro ao buscar dados de assentamento para o juridico: {err}")
+        current_app.logger.error(f"Erro ao buscar dados de assentamento para o juridico: {err}")
 
     return render_template('consulta_assentamento_jur.html', dados=dados)
 
@@ -42,7 +42,7 @@ def detalhe_assentamento(empresa_id):
                 cursor.execute("SELECT * FROM municipal_lots WHERE id = %s", (empresa_id,))
                 dados = cursor.fetchone()
     except Exception as err:
-        print(f"Erro ao buscar detalhe de assentamento para o juridico: {err}")
+        current_app.logger.error(f"Erro ao buscar detalhe de assentamento para o juridico: {err}")
         flash('Erro ao carregar dados de assentamento.', 'danger')
         return redirect(url_for('juridico.consultar_assentamento'))
 
@@ -90,7 +90,7 @@ def prazos_juridicos():
             'sem_data': 0,
             'alertas': 0,
         }
-        print(f"Erro ao buscar prazos juridicos: {err}")
+        current_app.logger.error(f"Erro ao buscar prazos juridicos: {err}")
         flash('Erro ao carregar prazos juridicos.', 'danger')
 
     return render_template(

@@ -230,5 +230,25 @@
     <script>
         lucide.createIcons();
     </script>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="fixed bottom-6 right-6 z-50 flex flex-col gap-3 max-w-sm" id="flashContainer">
+        {% for category, message in messages %}
+        <div class="flex items-start gap-3 p-4 rounded-xl shadow-2xl border text-sm font-medium
+            {% if category == 'success' %}bg-green-50 border-green-200 text-green-800
+            {% elif category == 'danger' %}bg-red-50 border-red-200 text-red-800
+            {% else %}bg-blue-50 border-blue-200 text-blue-800{% endif %}">
+            <i data-lucide="{% if category == 'success' %}check-circle{% elif category == 'danger' %}alert-triangle{% else %}info{% endif %}" class="w-5 h-5 shrink-0 mt-0.5"></i>
+            <span>{{ message }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    <script>
+        lucide.createIcons();
+        setTimeout(function(){ var c = document.getElementById('flashContainer'); if(c) c.remove(); }, 4000);
+    </script>
+    {% endif %}
+    {% endwith %}
 </body>
 </html>

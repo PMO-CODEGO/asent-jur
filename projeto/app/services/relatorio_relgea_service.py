@@ -43,7 +43,7 @@ DISTRITO_DB_MAP = {
     'disc':        'DISC',
     'goianesia':   'GOIANÉSIA',
     'goianira':    'GOIANIRA',
-    'inhumas':     'INHUMAS',
+    'inhumas':     'DISTRITO AGROINDUSTRIAL DE INHUMAS',
     'luziania':    'LUZIÂNIA',
     'mineiros-i':  'MINEIROS I E II',
     'mineiros-ii': 'MINEIROS I E II',
@@ -214,21 +214,21 @@ def gerar_relatorio_distrito_pdf(db, distrito_db, emitido_por='SISTEMA'):
     # seção 6.1-IV do manual: título principal centralizado, negrito, tamanho 14
     titulo_style = ParagraphStyle('DistritoTitulo', parent=styles['Normal'],
         fontName=FONTE_NEGRITO, fontSize=14, leading=18, alignment=1,
-        spaceAfter=12, textColor=AZUL_CODEGO)
+        spaceAfter=12, textColor=AZUL_CODEGO, splitLongWords=0)
     # seção 6.1-I: subtítulos Arial 11, negrito, esquerda
     subtitle_style = ParagraphStyle('DistritoSubtitle', parent=styles['Normal'],
         fontName=FONTE_NEGRITO, fontSize=11, leading=14, spaceAfter=6,
-        spaceBefore=4, textColor=AZUL_CODEGO)
+        spaceBefore=4, textColor=AZUL_CODEGO, splitLongWords=0)
     # seção 6.1-IV / tabela 6.2: cabeçalhos de coluna Arial 10, negrito, centralizados
     header_cell_style = ParagraphStyle('DistritoHeaderCell', parent=styles['Normal'],
-        fontName=FONTE_NEGRITO, fontSize=10, leading=12, alignment=1, textColor=colors.whitesmoke, wordWrap='CJK')
+        fontName=FONTE_NEGRITO, fontSize=10, leading=12, alignment=1, textColor=colors.whitesmoke, splitLongWords=0)
     # conteúdo das células Arial 10; alinhamento por coluna decidido na hora de montar a linha
     cell_style_centro = ParagraphStyle('DistritoCellCentro', parent=styles['Normal'],
-        fontName=FONTE_REGULAR, fontSize=10, leading=12, alignment=1, wordWrap='CJK')
+        fontName=FONTE_REGULAR, fontSize=10, leading=12, alignment=1, splitLongWords=0)
     cell_style_esquerda = ParagraphStyle('DistritoCellEsquerda', parent=styles['Normal'],
-        fontName=FONTE_REGULAR, fontSize=10, leading=12, alignment=0, wordWrap='CJK')
+        fontName=FONTE_REGULAR, fontSize=10, leading=12, alignment=0, splitLongWords=0)
     identificacao_style = ParagraphStyle('DistritoIdentCell', parent=styles['Normal'],
-        fontName=FONTE_REGULAR, fontSize=8, leading=10, wordWrap='CJK')
+        fontName=FONTE_REGULAR, fontSize=8, leading=10, splitLongWords=0)
     styles_map = {'cell': identificacao_style, 'bold': subtitle_style}
 
     story = []
@@ -333,18 +333,18 @@ def gerar_relatorio_individual_pdf(familia, registro, emitido_por='SISTEMA'):
     # seção 6.1-IV do manual: título principal centralizado, negrito, tamanho 14
     titulo_style = ParagraphStyle('FichaTitulo', parent=styles['Normal'],
         fontName=FONTE_NEGRITO, fontSize=14, leading=18, alignment=1,
-        spaceAfter=12, textColor=AZUL_CODEGO)
+        spaceAfter=12, textColor=AZUL_CODEGO, splitLongWords=0)
     # seção 6.1-I: subtítulos Arial 11, negrito, esquerda
     subtitle_style = ParagraphStyle('FichaSubtitle', parent=styles['Normal'],
         fontName=FONTE_NEGRITO, fontSize=11, leading=14, spaceAfter=6,
-        spaceBefore=4, textColor=AZUL_CODEGO)
+        spaceBefore=4, textColor=AZUL_CODEGO, splitLongWords=0)
     # formulários/campos de preenchimento: Arial 10 (seção 6.2)
     label_style = ParagraphStyle('FichaLabel', parent=styles['Normal'],
-        fontName=FONTE_NEGRITO, fontSize=10, leading=13, textColor=colors.whitesmoke)
+        fontName=FONTE_NEGRITO, fontSize=10, leading=13, textColor=colors.whitesmoke, splitLongWords=0)
     value_style = ParagraphStyle('FichaValue', parent=styles['Normal'],
-        fontName=FONTE_REGULAR, fontSize=10, leading=13, wordWrap='CJK')
+        fontName=FONTE_REGULAR, fontSize=10, leading=13, splitLongWords=0)
     identificacao_style = ParagraphStyle('FichaIdentCell', parent=styles['Normal'],
-        fontName=FONTE_REGULAR, fontSize=8, leading=10, wordWrap='CJK')
+        fontName=FONTE_REGULAR, fontSize=8, leading=10, splitLongWords=0)
     styles_map = {'cell': identificacao_style, 'bold': subtitle_style}
 
     story = []

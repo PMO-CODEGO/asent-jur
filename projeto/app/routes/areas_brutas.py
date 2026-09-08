@@ -421,11 +421,11 @@ def relatorio(familia, registro_id):
     CINZA      = colors.HexColor('#f3f4f6')
     CINZA_TEXT = colors.HexColor('#6b7280')
 
-    secao_style = ParagraphStyle('secao', fontSize=10, textColor=AZUL, fontName='Helvetica-Bold', spaceBefore=12, spaceAfter=6)
-    label_style = ParagraphStyle('label', fontSize=8, textColor=CINZA_TEXT, fontName='Helvetica')
-    valor_style = ParagraphStyle('valor', fontSize=9, textColor=colors.HexColor('#111827'), fontName='Helvetica')
-    titulo_doc_style = ParagraphStyle('titdoc', fontSize=13, textColor=AZUL, fontName='Helvetica-Bold', spaceAfter=2)
-    sub_doc_style = ParagraphStyle('subdoc', fontSize=8, textColor=CINZA_TEXT, fontName='Helvetica', spaceAfter=10)
+    secao_style = ParagraphStyle('secao', fontSize=10, textColor=AZUL, fontName='Helvetica-Bold', spaceBefore=12, spaceAfter=6, splitLongWords=0)
+    label_style = ParagraphStyle('label', fontSize=8, textColor=CINZA_TEXT, fontName='Helvetica', splitLongWords=0)
+    valor_style = ParagraphStyle('valor', fontSize=9, textColor=colors.HexColor('#111827'), fontName='Helvetica', splitLongWords=0)
+    titulo_doc_style = ParagraphStyle('titdoc', fontSize=13, textColor=AZUL, fontName='Helvetica-Bold', spaceAfter=2, splitLongWords=0)
+    sub_doc_style = ParagraphStyle('subdoc', fontSize=8, textColor=CINZA_TEXT, fontName='Helvetica', spaceAfter=10, splitLongWords=0)
 
     tipo_label = config['label']
     municipio  = r.get('municipio') or ''

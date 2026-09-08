@@ -312,14 +312,14 @@ def gerar_pdf_processo(processo, partes, eventos, documentos):
     styles = getSampleStyleSheet()
     title_style = ParagraphStyle('ProcessoTitle', parent=styles['Heading1'],
         fontName='Helvetica-Bold', fontSize=14, leading=20, alignment=1,
-        spaceAfter=6, textColor=colors.HexColor('#002b5c'))
+        spaceAfter=6, textColor=colors.HexColor('#002b5c'), splitLongWords=0)
     subtitle_style = ParagraphStyle('ProcessoSubtitle', parent=styles['Normal'],
         fontName='Helvetica-Bold', fontSize=10, leading=14, spaceAfter=6,
         spaceBefore=12, textColor=colors.HexColor('#002b5c'),
         borderPad=4, backColor=colors.HexColor('#f0f4f8'),
-        borderColor=colors.HexColor('#002b5c'), borderWidth=0.5, borderRadius=2)
+        borderColor=colors.HexColor('#002b5c'), borderWidth=0.5, borderRadius=2, splitLongWords=0)
     cell_style = ParagraphStyle('ProcessoCell', parent=styles['Normal'],
-        fontName='Helvetica', fontSize=9, leading=12, wordWrap='CJK')
+        fontName='Helvetica', fontSize=9, leading=12, splitLongWords=0)
     styles_map = {'cell': cell_style, 'bold': title_style}
 
     story = []
@@ -379,9 +379,9 @@ def gerar_pdf_geral_processos(processos):
         fontName='Helvetica-Bold', fontSize=10, leading=14, spaceAfter=6,
         spaceBefore=12, textColor=colors.HexColor('#002b5c'),
         borderPad=4, backColor=colors.HexColor('#f0f4f8'),
-        borderColor=colors.HexColor('#002b5c'), borderWidth=0.5, borderRadius=2)
+        borderColor=colors.HexColor('#002b5c'), borderWidth=0.5, borderRadius=2, splitLongWords=0)
     cell_style = ParagraphStyle('GeralCell', parent=styles['Normal'],
-        fontName='Helvetica', fontSize=7, leading=9, wordWrap='CJK')
+        fontName='Helvetica', fontSize=7, leading=9, splitLongWords=0)
     styles_map = {'cell': cell_style, 'bold': subtitle_style}
 
     story = []
@@ -578,12 +578,12 @@ def relatorios():
 
             styles = getSampleStyleSheet()
             cell_style = ParagraphStyle('AssCell', parent=styles['Normal'],
-                fontName='Helvetica', fontSize=9, leading=12, wordWrap='CJK')
+                fontName='Helvetica', fontSize=9, leading=12, splitLongWords=0)
             subtitle_style = ParagraphStyle('AssSubtitle', parent=styles['Normal'],
                 fontName='Helvetica-Bold', fontSize=10, leading=14, spaceAfter=6,
                 spaceBefore=12, textColor=colors.HexColor('#002b5c'),
                 borderPad=4, backColor=colors.HexColor('#f0f4f8'),
-                borderColor=colors.HexColor('#002b5c'), borderWidth=0.5, borderRadius=2)
+                borderColor=colors.HexColor('#002b5c'), borderWidth=0.5, borderRadius=2, splitLongWords=0)
             styles_map = {'cell': cell_style, 'bold': subtitle_style}
 
             story = []
