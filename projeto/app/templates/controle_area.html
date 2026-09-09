@@ -291,6 +291,19 @@
                     </a>
                 </div>
             </div>
+
+            {% if session.get('role') == 'admin' %}
+            <a href="{{ url_for('estoque.bruto') }}" class="card">
+                <div class="card-icon" style="background-color:#e0e7ff;color:#3730a3;">
+                    <i data-lucide="warehouse"></i>
+                </div>
+                <h2>Estoque de Áreas</h2>
+                <p>Visão contábil do estoque de glebas brutas em posse da CODEGO, com valores de mercado, subsidiado e ajustes patrimoniais por ano.</p>
+                <div class="card-arrow">
+                    <i data-lucide="arrow-right" style="width:22px;height:22px;"></i>
+                </div>
+            </a>
+            {% endif %}
         </div>
     </div>
 

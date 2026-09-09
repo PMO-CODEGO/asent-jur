@@ -38,6 +38,7 @@ def create_app():
     from app.routes.areas_brutas_parceladas import areas_brutas_parceladas_bp
     from app.routes.cadastro_modulos import cadastro_modulos_bp
     from app.routes.mapas_interativo import mapas_interativo_bp
+    from app.routes.estoque import estoque_bp
 
     app.register_blueprint(auth_login_bp)
     app.register_blueprint(auth_password_bp)
@@ -52,5 +53,6 @@ def create_app():
     app.register_blueprint(areas_brutas_parceladas_bp)
     app.register_blueprint(cadastro_modulos_bp)
     app.register_blueprint(mapas_interativo_bp)
+    app.register_blueprint(estoque_bp)
 
     return app
