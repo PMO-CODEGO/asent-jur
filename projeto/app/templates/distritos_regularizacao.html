@@ -73,10 +73,13 @@
         .data-row { cursor: pointer; }
         .data-row:hover { background-color: #f0f7ff; }
         .data-row.open { background-color: #eff6ff; }
-        .row-toggle { display: inline-flex; align-items: center; gap: 6px; color: #6b7280; font-size: 0.75rem; }
+        .row-toggle { display: inline-flex; align-items: center; gap: 8px; color: #6b7280; font-size: 0.75rem; }
         .row-toggle svg { transition: transform 0.2s ease; flex-shrink: 0; }
         .data-row.open .row-toggle svg { transform: rotate(90deg); }
         .data-row:hover .row-toggle { color: #1e3a5f; }
+        .row-toggle-icon { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background-color: #eff6ff; color: #0f4c81; flex-shrink: 0; transition: background-color 0.2s ease; }
+        .row-toggle-icon-sm { width: 18px; height: 18px; }
+        .data-row:hover .row-toggle-icon { background-color: #dbeafe; }
         .detail-row td { background-color: #f8fafc; padding: 0 !important; border-bottom: 2px solid #bfdbfe; }
         .detail-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; padding: 16px 24px; }
         .detail-grid.compact { padding: 12px 16px; }
@@ -338,7 +341,7 @@
                         <tr class="data-row" data-municipio="{{ (grupo.municipio or '')|lower|trim }}" data-area="{{ grupo.area_total }}" data-valor="{{ grupo.valor_total }}" onclick="toggleDetalhe('p{{ r.id }}')">
                             <td class="col-fix col-fix-1">
                                 <span class="row-toggle">
-                                    <i data-lucide="chevron-right" style="width:14px;height:14px;"></i>
+                                    <span class="row-toggle-icon"><i data-lucide="chevron-right" style="width:14px;height:14px;"></i></span>
                                     <span class="municipio-badge">{{ grupo.municipio or '' }}</span>
                                 </span>
                             </td>
@@ -378,7 +381,7 @@
                                             <tr class="data-row sub-row" onclick="toggleDetalhe('sub-p{{ o.id }}')" style="cursor:pointer;">
                                                 <td>
                                                     <span class="row-toggle">
-                                                        <i data-lucide="chevron-right" style="width:12px;height:12px;"></i>
+                                                        <span class="row-toggle-icon row-toggle-icon-sm"><i data-lucide="chevron-right" style="width:11px;height:11px;"></i></span>
                                                         {{ o.num_matricula_fmt or '-' }}
                                                     </span>
                                                 </td>
