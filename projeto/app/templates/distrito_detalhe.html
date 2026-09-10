@@ -95,6 +95,7 @@
         .map-legend-item + .map-legend-item { margin-top: 5px; }
         .map-legend-swatch { width: 14px; height: 14px; border-radius: 4px; flex-shrink: 0; }
         .filtro-bar { display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap; background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); padding: 14px 18px; margin-bottom: 16px; }
+        .filtro-bar-inline { background: #f8fafc; box-shadow: none; border-radius: 0; margin-bottom: 0; padding: 12px 22px; border-bottom: 1px solid #f3f4f6; border-top: 1px solid #f3f4f6; }
         .filtro-group { display: flex; flex-direction: column; gap: 5px; }
         .filtro-group label { font-size: 0.7rem; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.04em; }
         .filtro-group select { border: 1.5px solid #e5e7eb; border-radius: 8px; padding: 8px 12px; font-size: 0.85rem; font-family: 'Inter', sans-serif; color: #1f2937; min-width: 140px; outline: none; cursor: pointer; }
@@ -154,6 +155,8 @@
         .data-row.open { background-color: #eff6ff; }
         .data-row.open .row-toggle-icon { transform: rotate(90deg); }
         .row-toggle-icon { transition: transform 0.2s ease; }
+        .row-toggle-icon-badge { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background-color: #eff6ff; color: #0f4c81; transition: background-color 0.2s ease; }
+        .data-row:hover .row-toggle-icon-badge { background-color: #dbeafe; }
         .detail-row td { background-color: #f8fafc; padding: 0 !important; border-bottom: 2px solid #bfdbfe; }
         .detail-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; padding: 16px 24px; }
         .detail-item-wide { grid-column: span 2; }
@@ -273,31 +276,6 @@
         </div>
 
         {% set pode_editar_perimetros = session.get('role') in ['assent', 'admin', 'assent_gestor'] %}
-
-        {% if slug == 'inhumas' %}
-        <div class="filtro-bar">
-            <div class="filtro-group">
-                <label for="filtroQuadra">Quadra</label>
-                <select id="filtroQuadra" onchange="aplicarFiltroInhumas()">
-                    <option value="">Todas</option>
-                    {% for q in quadras_inhumas %}
-                    <option value="{{ q }}">{{ q }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="filtro-group filtro-group-busca">
-                <label for="filtroLote">Lote / Matrícula</label>
-                <div class="search-box">
-                    <i data-lucide="search" style="width:15px;height:15px;color:#9ca3af;"></i>
-                    <input type="text" id="filtroLote" oninput="aplicarFiltroInhumas()" placeholder="Buscar por matrícula do módulo...">
-                </div>
-            </div>
-            <button type="button" class="btn-limpar-filtro" onclick="limparFiltroInhumas()">
-                <i data-lucide="x" style="width:14px;height:14px;"></i>
-                Limpar filtro
-            </button>
-        </div>
-        {% endif %}
 
         <div class="split-row">
         <div class="map-placeholder split-col">
@@ -440,7 +418,7 @@
                     </thead>
                     <tbody id="tbody-modulos-distrito">
                         {% for m in modulos_inhumas %}
-                        <tr class="inhumas-row" data-quadra="{{ m.quadra or '' }}" data-lote="{{ (m.matricula_modulo or '')|string|lower }}">
+                        <tr>
                             <td>{{ m.quadra or '-' }}</td>
                             <td>{{ m.qtd_modulos or '-' }}</td>
                             <td>{{ m.matricula_modulo or '-' }}</td>
@@ -470,6 +448,28 @@
                 </h2>
                 <span class="badge-count" id="count-cadastro-inhumas">{{ cadastro_modulos_inhumas|length }} {{ 'registro' if cadastro_modulos_inhumas|length == 1 else 'registros' }}</span>
             </div>
+            <div class="filtro-bar filtro-bar-inline">
+                <div class="filtro-group">
+                    <label for="filtroQuadra">Quadra</label>
+                    <select id="filtroQuadra" onchange="aplicarFiltroInhumas()">
+                        <option value="">Todas</option>
+                        {% for q in quadras_inhumas %}
+                        <option value="{{ q }}">{{ q }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="filtro-group filtro-group-busca">
+                    <label for="filtroLote">Lote / Matrícula</label>
+                    <div class="search-box">
+                        <i data-lucide="search" style="width:15px;height:15px;color:#9ca3af;"></i>
+                        <input type="text" id="filtroLote" oninput="aplicarFiltroInhumas()" placeholder="Buscar por matrícula do módulo...">
+                    </div>
+                </div>
+                <button type="button" class="btn-limpar-filtro" onclick="limparFiltroInhumas()">
+                    <i data-lucide="x" style="width:14px;height:14px;"></i>
+                    Limpar filtro
+                </button>
+            </div>
             <div style="overflow-x:auto; overflow-y:auto; max-height:480px;">
                 <table class="perimetros-table">
                     <thead style="position:sticky; top:0; z-index:1;">
@@ -477,9 +477,9 @@
                             <th></th>
                             <th>Distrito</th>
                             <th>Quadra</th>
-                            <th>Matrícula do Módulo</th>
-                            <th>Empresa</th>
-                            <th>CNPJ</th>
+                            <th>Módulo</th>
+                            <th>Matrícula</th>
+                            <th class="num">Tamanho (m²)</th>
                             <th>Status Assent.</th>
                             <th>Regular/Irregular</th>
                         </tr>
@@ -487,12 +487,16 @@
                     <tbody id="tbody-cadastro-inhumas">
                         {% for r in cadastro_modulos_inhumas %}
                         <tr class="data-row inhumas-row" data-quadra="{{ r.quadra or '' }}" data-lote="{{ (r.matricula_modulo or '')|string|lower }}" data-detail-id="cm{{ r.id }}" style="cursor:pointer;" onclick="toggleCadastroModulo('cm{{ r.id }}', this)">
-                            <td><i data-lucide="chevron-right" class="row-toggle-icon" style="width:14px;height:14px;color:#9ca3af;"></i></td>
+                            <td>
+                                <span class="row-toggle-icon-badge">
+                                    <i data-lucide="chevron-right" class="row-toggle-icon" style="width:14px;height:14px;"></i>
+                                </span>
+                            </td>
                             <td>{{ r.distrito or '-' }}</td>
                             <td>{{ r.quadra or '-' }}</td>
+                            <td>{{ r.qtd_modulos or '-' }}</td>
                             <td>{{ r.matricula_modulo or '-' }}</td>
-                            <td>{{ r.empresa or '-' }}</td>
-                            <td>{{ r.cnpj or '-' }}</td>
+                            <td class="num">{{ '{:,.2f}'.format(r.area_lote_m2).replace(',','X').replace('.',',').replace('X','.') if r.area_lote_m2 else '-' }}</td>
                             <td>{{ r.status_de_assentamento or '-' }}</td>
                             <td>
                                 {% set ri = r.imovel_regular_irregular or '' %}
@@ -519,6 +523,8 @@
                                     <div class="detail-item"><span class="detail-label">Área Institucional</span><span class="detail-value">{{ r.area_institucional or '-' }}</span></div>
 
                                     <div class="detail-item detail-section-title">Cadastro do Assentamento</div>
+                                    <div class="detail-item"><span class="detail-label">Empresa</span><span class="detail-value">{{ r.empresa or '-' }}</span></div>
+                                    <div class="detail-item"><span class="detail-label">CNPJ</span><span class="detail-value">{{ r.cnpj or '-' }}</span></div>
                                     <div class="detail-item"><span class="detail-label">Ramo de Atividade</span><span class="detail-value">{{ r.ramo_de_atividade or '-' }}</span></div>
                                     <div class="detail-item"><span class="detail-label">Representante Legal</span><span class="detail-value">{{ r.nome_representante_legal or '-' }}</span></div>
                                     <div class="detail-item"><span class="detail-label">Telefone Representante</span><span class="detail-value">{{ r.telefone_representante_legal or '-' }}</span></div>
@@ -646,7 +652,7 @@
             const quadra = document.getElementById('filtroQuadra').value;
             const lote = document.getElementById('filtroLote').value.trim().toLowerCase();
 
-            ['tbody-modulos-distrito', 'tbody-cadastro-inhumas'].forEach(function (tbodyId) {
+            ['tbody-cadastro-inhumas'].forEach(function (tbodyId) {
                 const tbody = document.getElementById(tbodyId);
                 if (!tbody) return;
                 let visiveis = 0;
@@ -678,11 +684,7 @@
                     vazio.remove();
                 }
 
-                if (tbodyId === 'tbody-modulos-distrito') {
-                    document.getElementById('count-modulos-distrito').textContent = visiveis + (visiveis === 1 ? ' módulo' : ' módulos');
-                } else {
-                    document.getElementById('count-cadastro-inhumas').textContent = visiveis + (visiveis === 1 ? ' registro' : ' registros');
-                }
+                document.getElementById('count-cadastro-inhumas').textContent = visiveis + (visiveis === 1 ? ' registro' : ' registros');
             });
         }
 

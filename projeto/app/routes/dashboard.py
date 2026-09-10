@@ -639,14 +639,14 @@ def distrito_detalhe(slug):
                 cursor.execute("""
                     SELECT id, quadra, qtd_modulos, matricula_modulo, id_modulo, area_lote_m2, empresa, status_de_assentamento
                     FROM mapa_inhumas
-                    ORDER BY quadra, matricula_modulo
+                    ORDER BY (quadra IS NULL), quadra, (qtd_modulos IS NULL), qtd_modulos, matricula_modulo
                 """)
                 modulos_inhumas = cursor.fetchall()
 
                 cursor.execute("""
                     SELECT * FROM municipal_lots
                     WHERE UPPER(municipio) = 'INHUMAS'
-                    ORDER BY quadra, matricula_modulo
+                    ORDER BY (quadra IS NULL), quadra, (qtd_modulos IS NULL), qtd_modulos, matricula_modulo
                 """)
                 cadastro_modulos_inhumas = cursor.fetchall()
 
