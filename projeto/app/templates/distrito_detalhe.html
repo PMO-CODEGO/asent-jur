@@ -16,7 +16,7 @@
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body, html { height: 100%; font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
 
-        .topbar { background-color: #002b5c; color: white; padding: 0 32px; height: 68px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); position: sticky; top: 0; z-index: 100; }
+        .topbar { background-color: #002b5c; color: white; padding: 0 32px; height: 68px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); position: sticky; top: 0; z-index: 1500; }
         .topbar-left { display: flex; align-items: center; gap: 16px; }
         .topbar img { height: 56px; }
         .topbar-title { font-size: 1rem; font-weight: 600; opacity: 0.9; }
@@ -94,6 +94,16 @@
         .map-legend-item { display: flex; align-items: center; gap: 8px; color: #374151; }
         .map-legend-item + .map-legend-item { margin-top: 5px; }
         .map-legend-swatch { width: 14px; height: 14px; border-radius: 4px; flex-shrink: 0; }
+        .filtro-bar { display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap; background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); padding: 14px 18px; margin-bottom: 16px; }
+        .filtro-group { display: flex; flex-direction: column; gap: 5px; }
+        .filtro-group label { font-size: 0.7rem; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.04em; }
+        .filtro-group select { border: 1.5px solid #e5e7eb; border-radius: 8px; padding: 8px 12px; font-size: 0.85rem; font-family: 'Inter', sans-serif; color: #1f2937; min-width: 140px; outline: none; cursor: pointer; }
+        .filtro-group select:focus { border-color: #002b5c; }
+        .filtro-group-busca { flex: 1 1 220px; min-width: 220px; }
+        .filtro-group .search-box { display: flex; align-items: center; gap: 8px; border: 1.5px solid #e5e7eb; border-radius: 8px; padding: 8px 12px; }
+        .filtro-group .search-box input { border: none; outline: none; font-size: 0.85rem; width: 100%; background: transparent; }
+        .btn-limpar-filtro { display: inline-flex; align-items: center; gap: 6px; background: #f3f4f6; color: #4b5563; border: none; padding: 9px 14px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: background-color 0.15s ease; }
+        .btn-limpar-filtro:hover { background: #e5e7eb; }
         .split-row { display: flex; gap: 20px; align-items: stretch; margin-bottom: 20px; }
         .split-col { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; }
 
@@ -263,6 +273,32 @@
         </div>
 
         {% set pode_editar_perimetros = session.get('role') in ['assent', 'admin', 'assent_gestor'] %}
+
+        {% if slug == 'inhumas' %}
+        <div class="filtro-bar">
+            <div class="filtro-group">
+                <label for="filtroQuadra">Quadra</label>
+                <select id="filtroQuadra" onchange="aplicarFiltroInhumas()">
+                    <option value="">Todas</option>
+                    {% for q in quadras_inhumas %}
+                    <option value="{{ q }}">{{ q }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="filtro-group filtro-group-busca">
+                <label for="filtroLote">Lote / Matrícula</label>
+                <div class="search-box">
+                    <i data-lucide="search" style="width:15px;height:15px;color:#9ca3af;"></i>
+                    <input type="text" id="filtroLote" oninput="aplicarFiltroInhumas()" placeholder="Buscar por matrícula do módulo...">
+                </div>
+            </div>
+            <button type="button" class="btn-limpar-filtro" onclick="limparFiltroInhumas()">
+                <i data-lucide="x" style="width:14px;height:14px;"></i>
+                Limpar filtro
+            </button>
+        </div>
+        {% endif %}
+
         <div class="split-row">
         <div class="map-placeholder split-col">
             <div class="map-placeholder-header">
@@ -388,7 +424,7 @@
                     <i data-lucide="layout-grid" style="width:16px;height:16px;"></i>
                     Módulos do Distrito
                 </h2>
-                <span class="badge-count">{{ modulos_inhumas|length }} {{ 'módulo' if modulos_inhumas|length == 1 else 'módulos' }}</span>
+                <span class="badge-count" id="count-modulos-distrito">{{ modulos_inhumas|length }} {{ 'módulo' if modulos_inhumas|length == 1 else 'módulos' }}</span>
             </div>
             <div style="overflow-x:auto; overflow-y:auto; max-height:420px;">
                 <table class="perimetros-table">
@@ -402,9 +438,9 @@
                             <th>Situação</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="tbody-modulos-distrito">
                         {% for m in modulos_inhumas %}
-                        <tr>
+                        <tr class="inhumas-row" data-quadra="{{ m.quadra or '' }}" data-lote="{{ (m.matricula_modulo or '')|string|lower }}">
                             <td>{{ m.quadra or '-' }}</td>
                             <td>{{ m.qtd_modulos or '-' }}</td>
                             <td>{{ m.matricula_modulo or '-' }}</td>
@@ -432,7 +468,7 @@
                     <i data-lucide="clipboard-list" style="width:16px;height:16px;"></i>
                     Cadastro de Módulos — Inhumas
                 </h2>
-                <span class="badge-count">{{ cadastro_modulos_inhumas|length }} {{ 'registro' if cadastro_modulos_inhumas|length == 1 else 'registros' }}</span>
+                <span class="badge-count" id="count-cadastro-inhumas">{{ cadastro_modulos_inhumas|length }} {{ 'registro' if cadastro_modulos_inhumas|length == 1 else 'registros' }}</span>
             </div>
             <div style="overflow-x:auto; overflow-y:auto; max-height:480px;">
                 <table class="perimetros-table">
@@ -448,9 +484,9 @@
                             <th>Regular/Irregular</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="tbody-cadastro-inhumas">
                         {% for r in cadastro_modulos_inhumas %}
-                        <tr class="data-row" style="cursor:pointer;" onclick="toggleCadastroModulo('cm{{ r.id }}', this)">
+                        <tr class="data-row inhumas-row" data-quadra="{{ r.quadra or '' }}" data-lote="{{ (r.matricula_modulo or '')|string|lower }}" data-detail-id="cm{{ r.id }}" style="cursor:pointer;" onclick="toggleCadastroModulo('cm{{ r.id }}', this)">
                             <td><i data-lucide="chevron-right" class="row-toggle-icon" style="width:14px;height:14px;color:#9ca3af;"></i></td>
                             <td>{{ r.distrito or '-' }}</td>
                             <td>{{ r.quadra or '-' }}</td>
@@ -474,7 +510,7 @@
                                     <div class="detail-item"><span class="detail-label">Código IBGE do Município</span><span class="detail-value">{{ r.codigo_ibge_municipio or '-' }}</span></div>
                                     <div class="detail-item"><span class="detail-label">Nº Matrícula do Loteamento</span><span class="detail-value">{{ r.matricula_loteamento or '-' }}</span></div>
                                     <div class="detail-item"><span class="detail-label">Sigla do Loteamento</span><span class="detail-value">{{ r.sigla_loteamento or '-' }}</span></div>
-                                    <div class="detail-item"><span class="detail-label">Qtd. Módulos</span><span class="detail-value">{{ r.qtd_modulos or '-' }}</span></div>
+                                    <div class="detail-item"><span class="detail-label">Módulo</span><span class="detail-value">{{ r.qtd_modulos or '-' }}</span></div>
                                     <div class="detail-item"><span class="detail-label">Nome do Logradouro</span><span class="detail-value">{{ r.logradouro or '-' }}</span></div>
                                     <div class="detail-item"><span class="detail-label">Tamanho (m²)</span><span class="detail-value">{{ '{:,.2f}'.format(r.area_lote_m2).replace(',','X').replace('.',',').replace('X','.') if r.area_lote_m2 else '-' }}</span></div>
                                     <div class="detail-item"><span class="detail-label">Código do Módulo</span><span class="detail-value">{{ r.codigo_modulo_externo or '-' }}</span></div>
@@ -604,6 +640,58 @@
             if (gatilho) gatilho.classList.toggle('open', !isOpen);
             if (!isOpen) lucide.createIcons();
         }
+
+        {% if slug == 'inhumas' %}
+        function aplicarFiltroInhumas() {
+            const quadra = document.getElementById('filtroQuadra').value;
+            const lote = document.getElementById('filtroLote').value.trim().toLowerCase();
+
+            ['tbody-modulos-distrito', 'tbody-cadastro-inhumas'].forEach(function (tbodyId) {
+                const tbody = document.getElementById(tbodyId);
+                if (!tbody) return;
+                let visiveis = 0;
+
+                tbody.querySelectorAll('tr.inhumas-row').forEach(function (row) {
+                    const quadraMatch = !quadra || row.dataset.quadra === quadra;
+                    const loteMatch = !lote || row.dataset.lote.indexOf(lote) !== -1;
+                    const visivel = quadraMatch && loteMatch;
+                    row.style.display = visivel ? '' : 'none';
+                    if (visivel) visiveis++;
+
+                    if (!visivel && row.dataset.detailId) {
+                        const detalhe = document.getElementById(row.dataset.detailId);
+                        if (detalhe) detalhe.style.display = 'none';
+                        row.classList.remove('open');
+                    }
+                });
+
+                let vazio = tbody.querySelector('.filtro-vazio');
+                if (visiveis === 0) {
+                    if (!vazio) {
+                        const colunas = tbody.closest('table').querySelectorAll('thead th').length;
+                        vazio = document.createElement('tr');
+                        vazio.className = 'filtro-vazio';
+                        vazio.innerHTML = '<td colspan="' + colunas + '" style="text-align:center;color:#9ca3af;padding:20px;">Nenhum registro encontrado para esse filtro.</td>';
+                        tbody.appendChild(vazio);
+                    }
+                } else if (vazio) {
+                    vazio.remove();
+                }
+
+                if (tbodyId === 'tbody-modulos-distrito') {
+                    document.getElementById('count-modulos-distrito').textContent = visiveis + (visiveis === 1 ? ' módulo' : ' módulos');
+                } else {
+                    document.getElementById('count-cadastro-inhumas').textContent = visiveis + (visiveis === 1 ? ' registro' : ' registros');
+                }
+            });
+        }
+
+        function limparFiltroInhumas() {
+            document.getElementById('filtroQuadra').value = '';
+            document.getElementById('filtroLote').value = '';
+            aplicarFiltroInhumas();
+        }
+        {% endif %}
 
         {% if slug == 'daia' %}
         (function() {

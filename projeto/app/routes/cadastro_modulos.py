@@ -14,7 +14,7 @@ CAMPOS = [
     ('matricula_loteamento',            'Nº Matrícula do Loteamento'),
     ('sigla_loteamento',                'Sigla do Loteamento'),
     ('quadra',                          'Quadra'),
-    ('qtd_modulos',                     'Qtd. Módulos'),
+    ('qtd_modulos',                     'Módulo'),
     ('logradouro',                      'Nome do Logradouro'),
     ('area_lote_m2',                    'Tamanho (m²)'),
     ('matricula_modulo',                'Nº Matrícula do Módulo'),

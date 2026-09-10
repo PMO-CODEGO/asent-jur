@@ -26,7 +26,7 @@ LABELS = {
     'distrito': 'Distrito',
     'sigla_loteamento': 'Sigla do Loteamento',
     'quadra': 'Quadra',
-    'qtd_modulos': 'Quantidade de Módulos',
+    'qtd_modulos': 'Módulo',
     'logradouro': 'Logradouro',
     'area_lote_m2': 'Área do Lote (m²)',
     'matricula_modulo': 'Matrícula do Módulo',

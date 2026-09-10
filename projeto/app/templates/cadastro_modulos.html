@@ -72,7 +72,7 @@
         .status-regular   { background-color: #d1fae5; color: #065f46; }
         .status-irregular { background-color: #fee2e2; color: #991b1b; }
         .status-outro     { background-color: #f3f4f6; color: #6b7280; }
-        .empresa-cell { max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .truncate-cell { max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .obs-cell { max-width: 160px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.75rem; color: #6b7280; }
         .empty { padding: 48px; text-align: center; color: #9ca3af; }
         td.num { text-align: right; font-variant-numeric: tabular-nums; }
@@ -86,10 +86,12 @@
         .data-row { cursor: pointer; }
         .data-row:hover { background-color: #f0f7ff; }
         .data-row.open { background-color: #eff6ff; }
-        .row-toggle { display: inline-flex; align-items: center; gap: 6px; color: #6b7280; font-size: 0.75rem; }
-        .row-toggle svg { transition: transform 0.2s ease; flex-shrink: 0; }
-        .data-row.open .row-toggle svg { transform: rotate(90deg); }
+        .row-toggle { display: inline-flex; align-items: center; gap: 8px; color: #6b7280; font-size: 0.75rem; }
+        .row-toggle-icon { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background-color: #eff6ff; color: #0f4c81; flex-shrink: 0; transition: background-color 0.2s ease, transform 0.2s ease; }
+        .row-toggle-icon svg { transition: transform 0.2s ease; }
+        .data-row.open .row-toggle-icon svg { transform: rotate(90deg); }
         .data-row:hover .row-toggle { color: #1e3a5f; }
+        .data-row:hover .row-toggle-icon { background-color: #dbeafe; }
         .detail-row td { background-color: #f8fafc; padding: 0 !important; border-bottom: 2px solid #bfdbfe; }
         .detail-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; padding: 16px 24px; }
         .detail-item-wide { grid-column: span 2; }
@@ -207,8 +209,11 @@
                     <thead>
                         <tr>
                             <th class="col-fix col-fix-1">Município</th>
-                            <th>Empresa</th>
-                            <th>CNPJ</th>
+                            <th>Logradouro</th>
+                            <th>Quadra</th>
+                            <th>Módulo</th>
+                            <th>Matrícula</th>
+                            <th class="num">Tamanho (m²)</th>
                             <th>Status Assent.</th>
                             <th>Regular/Irregular</th>
                         </tr>
@@ -218,7 +223,7 @@
                         {% set grupo_lista = grupo | list %}
                         {% set gid = 'g' ~ loop.index %}
                         <tr class="municipio-group-row" data-group="{{ gid }}" data-municipio="{{ (municipio or '')|lower|trim }}" onclick="toggleGrupo('{{ gid }}')">
-                            <td colspan="5">
+                            <td colspan="8">
                                 <span class="group-toggle">
                                     <i data-lucide="chevron-right" style="width:16px;height:16px;"></i>
                                     <span class="municipio-badge">{{ municipio or 'Sem Município' }}</span>
@@ -230,12 +235,17 @@
                         <tr class="data-row" data-group="{{ gid }}" data-detail-id="m{{ r.id }}" data-status="{{ (r.imovel_regular_irregular or '')|trim }}" data-municipio="{{ (r.municipio or '')|lower|trim }}" data-empresa="{{ '1' if r.empresa else '0' }}" style="display:none;" onclick="toggleDetalhe('m{{ r.id }}')">
                             <td class="col-fix col-fix-1">
                                 <span class="row-toggle">
-                                    <i data-lucide="chevron-right" style="width:14px;height:14px;"></i>
+                                    <span class="row-toggle-icon">
+                                        <i data-lucide="chevron-right" style="width:14px;height:14px;"></i>
+                                    </span>
                                     <span class="municipio-badge">{{ r.municipio or '' }}</span>
                                 </span>
                             </td>
-                            <td class="empresa-cell" title="{{ r.empresa or '' }}">{{ r.empresa or '-' }}</td>
-                            <td>{{ r.cnpj or '-' }}</td>
+                            <td class="truncate-cell" title="{{ r.logradouro or '' }}">{{ r.logradouro or '-' }}</td>
+                            <td>{{ r.quadra or '-' }}</td>
+                            <td>{{ r.qtd_modulos or '-' }}</td>
+                            <td>{{ r.matricula_modulo or '-' }}</td>
+                            <td class="num">{{ '{:,.2f}'.format(r.area_lote_m2).replace(',','X').replace('.',',').replace('X','.') if r.area_lote_m2 else '-' }}</td>
                             <td>{{ r.status_de_assentamento or '-' }}</td>
                             <td>
                                 {% set ri = r.imovel_regular_irregular or '' %}
@@ -249,7 +259,7 @@
                             </td>
                         </tr>
                         <tr id="m{{ r.id }}" class="detail-row" data-group="{{ gid }}" style="display:none;">
-                            <td colspan="5">
+                            <td colspan="8">
                                 <div class="detail-grid">
 
                                     <div class="detail-item detail-section-title">Cadastro do Imóvel</div>
@@ -274,7 +284,7 @@
                                         <span class="detail-value">{{ r.quadra or '-' }}</span>
                                     </div>
                                     <div class="detail-item">
-                                        <span class="detail-label">Qtd. Módulos</span>
+                                        <span class="detail-label">Módulo</span>
                                         <span class="detail-value">{{ r.qtd_modulos or '-' }}</span>
                                     </div>
                                     <div class="detail-item">
@@ -307,6 +317,14 @@
                                     </div>
 
                                     <div class="detail-item detail-section-title">Cadastro do Assentamento</div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Empresa</span>
+                                        <span class="detail-value">{{ r.empresa or '-' }}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">CNPJ</span>
+                                        <span class="detail-value">{{ r.cnpj or '-' }}</span>
+                                    </div>
                                     <div class="detail-item">
                                         <span class="detail-label">Ramo de Atividade</span>
                                         <span class="detail-value">{{ r.ramo_de_atividade or '-' }}</span>
@@ -423,7 +441,7 @@
                         </tr>
                         {% endfor %}
                         {% else %}
-                        <tr><td colspan="5" class="empty">Nenhum registro encontrado.</td></tr>
+                        <tr><td colspan="8" class="empty">Nenhum registro encontrado.</td></tr>
                         {% endfor %}
                     </tbody>
                 </table>

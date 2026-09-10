@@ -605,7 +605,7 @@ def cadastro_modulos():
             cursor.execute("""
                 SELECT *, COALESCE(municipio, '') AS municipio
                 FROM municipal_lots
-                ORDER BY municipio, distrito, quadra, matricula_modulo
+                ORDER BY municipio, (quadra IS NULL), quadra, (qtd_modulos IS NULL), qtd_modulos, distrito, matricula_modulo
             """)
             registros = cursor.fetchall()
     return render_template('cadastro_modulos.html', registros=registros)
@@ -650,9 +650,17 @@ def distrito_detalhe(slug):
                 """)
                 cadastro_modulos_inhumas = cursor.fetchall()
 
+    quadras_inhumas = []
+    if slug == 'inhumas':
+        quadras_inhumas = sorted({
+            r['quadra'] for r in (modulos_inhumas or []) + (cadastro_modulos_inhumas or [])
+            if r.get('quadra') is not None
+        })
+
     return render_template('distrito_detalhe.html', distrito=distrito, slug=slug, tipo_label=tipo_label,
                            perimetros=perimetros, modulos_inhumas=modulos_inhumas,
-                           cadastro_modulos_inhumas=cadastro_modulos_inhumas)
+                           cadastro_modulos_inhumas=cadastro_modulos_inhumas,
+                           quadras_inhumas=quadras_inhumas)
 
 @dashboard_bp.route('/menu/<modo>')
 @role_required('assent', 'jur', 'admin','assent_gestor','jur_gestor')
