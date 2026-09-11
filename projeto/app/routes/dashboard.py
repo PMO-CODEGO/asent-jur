@@ -596,6 +596,17 @@ TIPO_LABELS = {
     "area": "Área / Gleba",
 }
 
+def _fmt_brl(val):
+    if val is None:
+        return '-'
+    try:
+        n = float(val)
+    except (TypeError, ValueError):
+        return str(val)
+    s = '{:,.2f}'.format(abs(n)).replace(',', 'X').replace('.', ',').replace('X', '.')
+    return ('-R$ ' if n < 0 else 'R$ ') + s
+
+
 @dashboard_bp.route('/assent/cadastro-modulos')
 @role_required('assent', 'admin', 'assent_gestor')
 def cadastro_modulos():
@@ -608,6 +619,50 @@ def cadastro_modulos():
                 ORDER BY municipio, (quadra IS NULL), quadra, (qtd_modulos IS NULL), qtd_modulos, distrito, matricula_modulo
             """)
             registros = cursor.fetchall()
+
+            cursor.execute("""
+                SELECT id_modulo, matricula_atual, custo_terreno, custo_implantacao, custo_aquisicao,
+                       area_vendida, custo_venda,
+                       valor_mercado_2021, valor_subsidiado_2021, ajuste_efeito_pl_2021,
+                       valor_mercado_2022, valor_subsidiado_2022, ajuste_efeito_pl_2022,
+                       valor_mercado_2023, valor_subsidiado_2023, ajuste_efeito_pl_2023,
+                       valor_mercado_2024, valor_subsidiado_2024, ajuste_vrl_2024,
+                       valor_mercado_2025, valor_subsidiado_2025, ajuste_vrl_2025,
+                       estoque_2024, observacoes, dossie, reconhecimento_estoque
+                FROM mapa_inhumas
+                WHERE status_de_assentamento = 'LIVRE' AND custo_aquisicao IS NOT NULL
+            """)
+            estoque_rows = cursor.fetchall()
+
+    estoque_por_modulo = {}
+    for e in estoque_rows:
+        anos = []
+        for ano, ajuste_label in (('2021', None), ('2022', None), ('2023', None), ('2024', 'ajuste_vrl_2024'), ('2025', 'ajuste_vrl_2025')):
+            ajuste_col = ajuste_label or f'ajuste_efeito_pl_{ano}'
+            anos.append({
+                'ano': ano,
+                'mercado': _fmt_brl(e.get(f'valor_mercado_{ano}')),
+                'subsidiado': _fmt_brl(e.get(f'valor_subsidiado_{ano}')),
+                'ajuste': _fmt_brl(e.get(ajuste_col)),
+            })
+        estoque_por_modulo[e['id_modulo']] = {
+            'id_modulo': e['id_modulo'],
+            'matricula_atual': e.get('matricula_atual'),
+            'custo_terreno_fmt': _fmt_brl(e.get('custo_terreno')),
+            'custo_implantacao_fmt': _fmt_brl(e.get('custo_implantacao')),
+            'custo_aquisicao_fmt': _fmt_brl(e.get('custo_aquisicao')),
+            'custo_venda_fmt': _fmt_brl(e.get('custo_venda')),
+            'area_vendida': e.get('area_vendida'),
+            'estoque_2024_fmt': _fmt_brl(e.get('estoque_2024')),
+            'observacoes': e.get('observacoes'),
+            'dossie': e.get('dossie'),
+            'reconhecimento_estoque': e.get('reconhecimento_estoque'),
+            'anos': anos,
+        }
+
+    for r in registros:
+        r['estoque_financeiro'] = estoque_por_modulo.get(r.get('codigo_modulo_externo'))
+
     return render_template('cadastro_modulos.html', registros=registros)
 
 @dashboard_bp.route('/mapa-distritos')

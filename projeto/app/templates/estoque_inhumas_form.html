@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Estoque de Áreas — Inhumas - CODEGO</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='imagens_empresas/asentjur.png') }}" type="image/png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .section-card { border-left: 4px solid; }
+        input:focus, select:focus, textarea:focus { background: #fff !important; }
+    </style>
+</head>
+<body class="min-h-screen bg-[#002b5c] p-3 sm:p-4 md:p-8">
+
+{% macro fval(field) %}{{ registro[field] if registro and registro[field] is not none else '' }}{% endmacro %}
+
+<div class="max-w-4xl mx-auto">
+    <div class="bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-200">
+
+        <!-- Cabeçalho -->
+        <div class="bg-[#002b5c] p-6 text-white flex justify-between items-center">
+            <div>
+                <h2 class="text-2xl font-bold flex items-center gap-2">
+                    <i data-lucide="landmark"></i>
+                    Editar Estoque de Áreas — Inhumas
+                </h2>
+                <p class="text-blue-100 text-sm italic">Módulo {{ id_modulo }}{% if registro.matricula_modulo %} — Matrícula {{ registro.matricula_modulo }}{% endif %}</p>
+            </div>
+            <a href="{{ url_for('dashboard.cadastro_modulos') }}"
+               class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition-all text-sm font-bold">
+                VOLTAR
+            </a>
+        </div>
+
+        <form action="{{ url_for('cadastro_modulos.editar_estoque_inhumas', id_modulo=id_modulo) }}"
+              method="POST" class="p-5 md:p-8 space-y-8">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <!-- IDENTIFICAÇÃO / CUSTOS -->
+            <div class="section-card border-indigo-600 bg-indigo-50/40 rounded-xl p-5 shadow-sm">
+                <div class="flex items-center gap-2 mb-5">
+                    <span class="bg-indigo-600 text-white p-2 rounded-lg"><i data-lucide="wallet" class="w-4 h-4"></i></span>
+                    <div>
+                        <h3 class="font-bold text-indigo-900 text-base">Identificação e Custos</h3>
+                        <p class="text-xs text-indigo-600">Matrícula atual e custos de aquisição/venda.</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Matrícula Atual</label>
+                        <input type="text" name="matricula_atual" value="{{ fval('matricula_atual') }}"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Custo Terreno</label>
+                        <input type="text" name="custo_terreno" value="{{ fval('custo_terreno') }}"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
+                            placeholder="Ex: 65450.00">
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Custo Implantação</label>
+                        <input type="text" name="custo_implantacao" value="{{ fval('custo_implantacao') }}"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Custo de Aquisição</label>
+                        <input type="text" name="custo_aquisicao" value="{{ fval('custo_aquisicao') }}"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Área Vendida (m²)</label>
+                        <input type="text" name="area_vendida" value="{{ fval('area_vendida') }}"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Custo Venda</label>
+                        <input type="text" name="custo_venda" value="{{ fval('custo_venda') }}"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
+                    </div>
+                </div>
+            </div>
+
+            <!-- VALORES POR ANO -->
+            <div class="section-card border-blue-600 bg-blue-50/40 rounded-xl p-5 shadow-sm">
+                <div class="flex items-center gap-2 mb-5">
+                    <span class="bg-blue-600 text-white p-2 rounded-lg"><i data-lucide="calendar-range" class="w-4 h-4"></i></span>
+                    <div>
+                        <h3 class="font-bold text-blue-900 text-base">Valores por Ano</h3>
+                        <p class="text-xs text-blue-600">Valor de mercado, subsidiado e ajuste — 2021 a 2025.</p>
+                    </div>
+                </div>
+
+                {% for ano, ajuste_campo, ajuste_label in [
+                    ('2021', 'ajuste_efeito_pl_2021', 'Ajuste Efeito PL'),
+                    ('2022', 'ajuste_efeito_pl_2022', 'Ajuste Efeito PL'),
+                    ('2023', 'ajuste_efeito_pl_2023', 'Ajuste Efeito PL'),
+                    ('2024', 'ajuste_vrl_2024', 'Ajuste/Reversão VRL'),
+                    ('2025', 'ajuste_vrl_2025', 'Ajuste/Reversão VRL'),
+                ] %}
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 {% if not loop.last %}mb-4 pb-4 border-b border-blue-100{% endif %}">
+                    <div class="flex items-center">
+                        <span class="text-sm font-extrabold text-blue-900">{{ ano }}</span>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Valor de Mercado</label>
+                        <input type="text" name="valor_mercado_{{ ano }}" value="{{ fval('valor_mercado_' ~ ano) }}"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Valor Subsidiado</label>
+                        <input type="text" name="valor_subsidiado_{{ ano }}" value="{{ fval('valor_subsidiado_' ~ ano) }}"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">{{ ajuste_label }}</label>
+                        <input type="text" name="{{ ajuste_campo }}" value="{{ fval(ajuste_campo) }}"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- ESTOQUE / RECONHECIMENTO -->
+            <div class="section-card border-amber-500 bg-amber-50/40 rounded-xl p-5 shadow-sm">
+                <div class="flex items-center gap-2 mb-5">
+                    <span class="bg-amber-500 text-white p-2 rounded-lg"><i data-lucide="archive" class="w-4 h-4"></i></span>
+                    <div>
+                        <h3 class="font-bold text-amber-900 text-base">Estoque e Reconhecimento</h3>
+                        <p class="text-xs text-amber-700">Estoque contábil, dossiê e observações.</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Estoque em 31/12/2024</label>
+                        <input type="text" name="estoque_2024" value="{{ fval('estoque_2024') }}"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none">
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Dossiê</label>
+                        <input type="text" name="dossie" value="{{ fval('dossie') }}"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none"
+                            placeholder="Ex: OK">
+                    </div>
+
+                    <div class="md:col-span-2 space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Reconhecimento de Estoque</label>
+                        <input type="text" name="reconhecimento_estoque" value="{{ fval('reconhecimento_estoque') }}"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none">
+                    </div>
+
+                    <div class="md:col-span-2 space-y-1">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider">Observações</label>
+                        <textarea name="observacoes" rows="2"
+                            class="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none">{{ fval('observacoes') }}</textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botões -->
+            <div class="flex gap-3 pt-2">
+                <button type="submit"
+                    class="flex-1 bg-[#002b5c] hover:bg-blue-900 text-white font-bold py-3 px-6 rounded-xl transition-all flex items-center justify-center gap-2">
+                    <i data-lucide="save" class="w-4 h-4"></i>
+                    Salvar Alterações
+                </button>
+                <a href="{{ url_for('dashboard.cadastro_modulos') }}"
+                    class="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl transition-all flex items-center gap-2">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                    Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>lucide.createIcons();</script>
+</body>
+</html>

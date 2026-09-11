@@ -102,11 +102,21 @@
         .detail-grid > .detail-item:first-child .detail-section-title,
         .detail-section-title:first-child { border-top: none; margin-top: 0; padding-top: 0; }
 
+        .estoque-financeiro-box { margin: 4px 24px 16px; padding: 14px 18px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; }
+        .estoque-financeiro-title { display: flex; align-items: center; gap: 6px; font-size: 0.72rem; font-weight: 800; color: #1e40af; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+        .estoque-financeiro-box .detail-grid { padding: 10px 0 0; grid-template-columns: repeat(4, 1fr); }
+        .anos-table { border-collapse: collapse; font-size: 0.78rem; width: 100%; }
+        .anos-table thead tr { background: #e0e7ef; }
+        .anos-table th { padding: 5px 12px; text-align: left; font-weight: 700; color: #002b5c; background: #e0e7ef; }
+        .anos-table th.num, .anos-table td.num { text-align: right; }
+        .anos-table td { padding: 5px 12px; font-variant-numeric: tabular-nums; border-bottom: 1px solid #e5e7eb; }
+
         @media (max-width: 768px) {
             .page-body { padding: 16px; }
             .topbar { padding: 0 16px; }
             .topbar-title { display: none; }
             .detail-grid { grid-template-columns: repeat(2, 1fr); }
+            .estoque-financeiro-box .detail-grid { grid-template-columns: repeat(2, 1fr); }
         }
     </style>
 </head>
@@ -437,6 +447,71 @@
                                         </button>
                                     </form>
                                 </div>
+                                {% if r.estoque_financeiro %}
+                                {% set ef = r.estoque_financeiro %}
+                                <div class="estoque-financeiro-box" onclick="event.stopPropagation()">
+                                    <div class="estoque-financeiro-title" style="justify-content:space-between;">
+                                        <span style="display:flex;align-items:center;gap:6px;">
+                                            <i data-lucide="landmark" style="width:14px;height:14px;"></i>
+                                            Estoque de Áreas — Inhumas
+                                        </span>
+                                        <a href="{{ url_for('cadastro_modulos.editar_estoque_inhumas', id_modulo=ef.id_modulo) }}"
+                                           style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:#e0e7ff;color:#3730a3;border-radius:6px;font-size:0.8rem;font-weight:700;text-decoration:none;text-transform:none;letter-spacing:normal;">
+                                            <i data-lucide="pencil" style="width:13px;height:13px;"></i> Editar
+                                        </a>
+                                    </div>
+                                    <div class="detail-grid">
+                                        <div class="detail-item">
+                                            <span class="detail-label">Matrícula Atual</span>
+                                            <span class="detail-value">{{ ef.matricula_atual or '-' }}</span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="detail-label">Custo de Aquisição</span>
+                                            <span class="detail-value">{{ ef.custo_aquisicao_fmt }}</span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="detail-label">Estoque em 31/12/2024</span>
+                                            <span class="detail-value">{{ ef.estoque_2024_fmt }}</span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="detail-label">Dossiê</span>
+                                            <span class="detail-value">{{ ef.dossie or '-' }}</span>
+                                        </div>
+                                        <div class="detail-item detail-item-wide">
+                                            <span class="detail-label">Reconhecimento de Estoque</span>
+                                            <span class="detail-value">{{ ef.reconhecimento_estoque or '-' }}</span>
+                                        </div>
+                                        {% if ef.observacoes %}
+                                        <div class="detail-item detail-item-wide">
+                                            <span class="detail-label">Observações</span>
+                                            <span class="detail-value">{{ ef.observacoes }}</span>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    <div style="overflow-x:auto; margin-top:14px;">
+                                        <table class="anos-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Ano</th>
+                                                    <th class="num">V. Mercado</th>
+                                                    <th class="num">V. Subsidiado</th>
+                                                    <th class="num">Ajuste</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for a in ef.anos %}
+                                                <tr>
+                                                    <td style="font-weight:600;">{{ a.ano }}</td>
+                                                    <td class="num">{{ a.mercado }}</td>
+                                                    <td class="num">{{ a.subsidiado }}</td>
+                                                    <td class="num">{{ a.ajuste }}</td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                {% endif %}
                             </td>
                         </tr>
                         {% endfor %}
