@@ -18,7 +18,7 @@ CAMPOS = [
     ('logradouro',                      'Nome do Logradouro'),
     ('area_lote_m2',                    'Tamanho (m²)'),
     ('matricula_modulo',                'Nº Matrícula do Módulo'),
-    ('codigo_modulo_externo',           'Código do Módulo'),
+    ('id_modulo',                       'Código do Módulo'),
     ('cci',                             'CCI'),
     ('inscricao_municipal',             'Inscrição Municipal'),
     ('area_institucional',              'Área Institucional'),
@@ -52,7 +52,7 @@ CAMPOS = [
     ('observacoes',                     'Observações'),
 ]
 
-CAMPOS_ESTOQUE_INHUMAS = [
+CAMPOS_ESTOQUE_FINANCEIRO = [
     ('matricula_atual',        'Matrícula Atual'),
     ('custo_terreno',          'Custo Terreno'),
     ('custo_implantacao',      'Custo Implantação'),
@@ -146,22 +146,28 @@ def excluir(registro_id):
     return redirect(url_for('dashboard.cadastro_modulos'))
 
 
-@cadastro_modulos_bp.route('/assent/cadastro-modulos/estoque-inhumas/<id_modulo>/editar', methods=['GET', 'POST'])
+@cadastro_modulos_bp.route('/assent/cadastro-modulos/estoque/<municipio_id>/<id_modulo>/editar', methods=['GET', 'POST'])
 @role_required('assent', 'admin', 'assent_gestor')
-def editar_estoque_inhumas(id_modulo):
+def editar_estoque_financeiro(municipio_id, id_modulo):
     with get_db() as db:
         with db.cursor(dictionary=True) as cursor:
             if request.method == 'POST':
-                fields = [f for f, _ in CAMPOS_ESTOQUE_INHUMAS]
+                fields = [f for f, _ in CAMPOS_ESTOQUE_FINANCEIRO]
                 set_clause = ', '.join(f'{f}=%s' for f in fields)
                 values = tuple(request.form.get(f) or None for f in fields)
-                cursor.execute(f'UPDATE mapa_inhumas SET {set_clause} WHERE id_modulo=%s', values + (id_modulo,))
+                cursor.execute(
+                    f'UPDATE estoque_financeiro_modulos SET {set_clause} WHERE municipio_id=%s AND id_modulo=%s',
+                    values + (municipio_id, id_modulo)
+                )
                 db.commit()
-                gravar_log('ESTOQUE_INHUMAS_EDITADO', f"Módulo: {id_modulo}")
+                gravar_log('ESTOQUE_FINANCEIRO_EDITADO', f"Município: {municipio_id} | Módulo: {id_modulo}")
                 return redirect(url_for('dashboard.cadastro_modulos'))
-            cursor.execute('SELECT * FROM mapa_inhumas WHERE id_modulo=%s', (id_modulo,))
+            cursor.execute(
+                'SELECT * FROM estoque_financeiro_modulos WHERE municipio_id=%s AND id_modulo=%s',
+                (municipio_id, id_modulo)
+            )
             registro = cursor.fetchone()
     if not registro:
         return redirect(url_for('dashboard.cadastro_modulos'))
-    return render_template('estoque_inhumas_form.html', registro=registro, campos=CAMPOS_ESTOQUE_INHUMAS,
-                           id_modulo=id_modulo)
+    return render_template('estoque_financeiro_form.html', registro=registro, campos=CAMPOS_ESTOQUE_FINANCEIRO,
+                           id_modulo=id_modulo, municipio_id=municipio_id)

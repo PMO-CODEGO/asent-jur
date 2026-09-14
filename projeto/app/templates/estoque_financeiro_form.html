@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Editar Estoque de Áreas — Inhumas - CODEGO</title>
+    <title>Editar Estoque de Áreas - CODEGO</title>
     <link rel="shortcut icon" href="{{ url_for('static', filename='imagens_empresas/asentjur.png') }}" type="image/png">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -24,9 +24,11 @@
             <div>
                 <h2 class="text-2xl font-bold flex items-center gap-2">
                     <i data-lucide="landmark"></i>
-                    Editar Estoque de Áreas — Inhumas
+                    Editar Estoque de Áreas
                 </h2>
-                <p class="text-blue-100 text-sm italic">Módulo {{ id_modulo }}{% if registro.matricula_modulo %} — Matrícula {{ registro.matricula_modulo }}{% endif %}</p>
+                <p class="text-blue-100 text-sm italic">
+                    {{ registro.municipio or '' }} — Módulo {{ id_modulo }}{% if registro.matricula_atual %} — Matrícula {{ registro.matricula_atual }}{% endif %}
+                </p>
             </div>
             <a href="{{ url_for('dashboard.cadastro_modulos') }}"
                class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition-all text-sm font-bold">
@@ -34,7 +36,7 @@
             </a>
         </div>
 
-        <form action="{{ url_for('cadastro_modulos.editar_estoque_inhumas', id_modulo=id_modulo) }}"
+        <form action="{{ url_for('cadastro_modulos.editar_estoque_financeiro', municipio_id=municipio_id, id_modulo=id_modulo) }}"
               method="POST" class="p-5 md:p-8 space-y-8">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 

@@ -2,7 +2,7 @@ COLUNAS = [
     # Cadastro do Imóvel
     'municipio', 'codigo_ibge_municipio', 'matricula_loteamento', 'distrito', 'sigla_loteamento',
     'quadra', 'qtd_modulos', 'logradouro', 'area_lote_m2',
-    'matricula_modulo', 'codigo_modulo_externo', 'cci', 'inscricao_municipal', 'area_institucional',
+    'matricula_modulo', 'id_modulo', 'cci', 'inscricao_municipal', 'area_institucional',
     # Cadastro do Assentamento
     'empresa', 'cnpj', 'nome_representante_legal', 'telefone_representante_legal',
     'email_representante_legal', 'processo_sei', 'ramo_de_atividade',
@@ -30,7 +30,7 @@ LABELS = {
     'logradouro': 'Logradouro',
     'area_lote_m2': 'Área do Lote (m²)',
     'matricula_modulo': 'Matrícula do Módulo',
-    'codigo_modulo_externo': 'Código do Módulo',
+    'id_modulo': 'Código do Módulo',
     'cci': 'CCI (Certidão de Cadastro do Imóvel)',
     'inscricao_municipal': 'Inscrição Municipal',
     'area_institucional': 'Área Institucional',

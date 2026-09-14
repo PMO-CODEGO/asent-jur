@@ -212,6 +212,19 @@
         <i data-lucide="map-pin" style="width:16px;height:16px;"></i>
         Mapa de Distritos
     </a>
+
+    {% if session.get('role') == 'admin' %}
+    <!-- Botão Importar Cadastro de Módulos (Verde) -->
+    <a href="{{ url_for('cadastro_importacao.importar') }}" style="display:inline-flex;background-color:#15803d;text-decoration:none;padding:10px 20px;border-radius:8px;font-weight:700;font-size:0.88rem;color:white;gap:8px;align-items:center;transition:background 0.2s;" onmouseover="this.style.backgroundColor='#166534'" onmouseout="this.style.backgroundColor='#15803d'">
+        <i data-lucide="clipboard-list" style="width:16px;height:16px;"></i>
+        Importar Cadastro de Módulos
+    </a>
+    <!-- Botão Importar Estoque Financeiro (Índigo) -->
+    <a href="{{ url_for('estoque_financeiro.importar') }}" style="display:inline-flex;background-color:#4338ca;text-decoration:none;padding:10px 20px;border-radius:8px;font-weight:700;font-size:0.88rem;color:white;gap:8px;align-items:center;transition:background 0.2s;" onmouseover="this.style.backgroundColor='#3730a3'" onmouseout="this.style.backgroundColor='#4338ca'">
+        <i data-lucide="landmark" style="width:16px;height:16px;"></i>
+        Importar Estoque Financeiro
+    </a>
+    {% endif %}
 </div>
         <div class="table-wrap">
             <div class="table-scroll">
@@ -311,7 +324,7 @@
                                     </div>
                                     <div class="detail-item">
                                         <span class="detail-label">Código do Módulo</span>
-                                        <span class="detail-value">{{ r.codigo_modulo_externo or '-' }}</span>
+                                        <span class="detail-value">{{ r.id_modulo or '-' }}</span>
                                     </div>
                                     <div class="detail-item">
                                         <span class="detail-label">CCI</span>
@@ -453,9 +466,9 @@
                                     <div class="estoque-financeiro-title" style="justify-content:space-between;">
                                         <span style="display:flex;align-items:center;gap:6px;">
                                             <i data-lucide="landmark" style="width:14px;height:14px;"></i>
-                                            Estoque de Áreas — Inhumas
+                                            Estoque de Áreas
                                         </span>
-                                        <a href="{{ url_for('cadastro_modulos.editar_estoque_inhumas', id_modulo=ef.id_modulo) }}"
+                                        <a href="{{ url_for('cadastro_modulos.editar_estoque_financeiro', municipio_id=ef.municipio_id, id_modulo=ef.id_modulo) }}"
                                            style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:#e0e7ff;color:#3730a3;border-radius:6px;font-size:0.8rem;font-weight:700;text-decoration:none;text-transform:none;letter-spacing:normal;">
                                             <i data-lucide="pencil" style="width:13px;height:13px;"></i> Editar
                                         </a>

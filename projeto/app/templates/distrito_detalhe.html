@@ -517,7 +517,7 @@
                                     <div class="detail-item"><span class="detail-label">Módulo</span><span class="detail-value">{{ r.qtd_modulos or '-' }}</span></div>
                                     <div class="detail-item"><span class="detail-label">Nome do Logradouro</span><span class="detail-value">{{ r.logradouro or '-' }}</span></div>
                                     <div class="detail-item"><span class="detail-label">Tamanho (m²)</span><span class="detail-value">{{ '{:,.2f}'.format(r.area_lote_m2).replace(',','X').replace('.',',').replace('X','.') if r.area_lote_m2 else '-' }}</span></div>
-                                    <div class="detail-item"><span class="detail-label">Código do Módulo</span><span class="detail-value">{{ r.codigo_modulo_externo or '-' }}</span></div>
+                                    <div class="detail-item"><span class="detail-label">Código do Módulo</span><span class="detail-value">{{ r.id_modulo or '-' }}</span></div>
                                     <div class="detail-item"><span class="detail-label">CCI</span><span class="detail-value">{{ r.cci or '-' }}</span></div>
                                     <div class="detail-item"><span class="detail-label">Inscrição Municipal</span><span class="detail-value">{{ r.inscricao_municipal or '-' }}</span></div>
                                     <div class="detail-item"><span class="detail-label">Área Institucional</span><span class="detail-value">{{ r.area_institucional or '-' }}</span></div>

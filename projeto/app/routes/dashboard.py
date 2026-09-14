@@ -621,7 +621,7 @@ def cadastro_modulos():
             registros = cursor.fetchall()
 
             cursor.execute("""
-                SELECT id_modulo, matricula_atual, custo_terreno, custo_implantacao, custo_aquisicao,
+                SELECT municipio_id, id_modulo, matricula_atual, custo_terreno, custo_implantacao, custo_aquisicao,
                        area_vendida, custo_venda,
                        valor_mercado_2021, valor_subsidiado_2021, ajuste_efeito_pl_2021,
                        valor_mercado_2022, valor_subsidiado_2022, ajuste_efeito_pl_2022,
@@ -629,8 +629,8 @@ def cadastro_modulos():
                        valor_mercado_2024, valor_subsidiado_2024, ajuste_vrl_2024,
                        valor_mercado_2025, valor_subsidiado_2025, ajuste_vrl_2025,
                        estoque_2024, observacoes, dossie, reconhecimento_estoque
-                FROM mapa_inhumas
-                WHERE status_de_assentamento = 'LIVRE' AND custo_aquisicao IS NOT NULL
+                FROM estoque_financeiro_modulos
+                WHERE custo_aquisicao IS NOT NULL
             """)
             estoque_rows = cursor.fetchall()
 
@@ -647,6 +647,7 @@ def cadastro_modulos():
             })
         estoque_por_modulo[e['id_modulo']] = {
             'id_modulo': e['id_modulo'],
+            'municipio_id': e.get('municipio_id'),
             'matricula_atual': e.get('matricula_atual'),
             'custo_terreno_fmt': _fmt_brl(e.get('custo_terreno')),
             'custo_implantacao_fmt': _fmt_brl(e.get('custo_implantacao')),
@@ -661,7 +662,7 @@ def cadastro_modulos():
         }
 
     for r in registros:
-        r['estoque_financeiro'] = estoque_por_modulo.get(r.get('codigo_modulo_externo'))
+        r['estoque_financeiro'] = estoque_por_modulo.get(r.get('id_modulo'))
 
     return render_template('cadastro_modulos.html', registros=registros)
 
