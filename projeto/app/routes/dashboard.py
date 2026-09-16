@@ -616,6 +616,7 @@ def cadastro_modulos():
             cursor.execute("""
                 SELECT *, COALESCE(municipio, '') AS municipio
                 FROM municipal_lots
+                WHERE municipio IS NOT NULL AND municipio <> ''
                 ORDER BY municipio, (quadra IS NULL), quadra, (qtd_modulos IS NULL), qtd_modulos, distrito, matricula_modulo
             """)
             registros = cursor.fetchall()

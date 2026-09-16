@@ -72,10 +72,13 @@
         .status-regular   { background-color: #d1fae5; color: #065f46; }
         .status-irregular { background-color: #fee2e2; color: #991b1b; }
         .status-outro     { background-color: #f3f4f6; color: #6b7280; }
+        .status-assent-badge { background-color: #ede9fe; color: #5b21b6; }
         .truncate-cell { max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .obs-cell { max-width: 160px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.75rem; color: #6b7280; }
         .empty { padding: 48px; text-align: center; color: #9ca3af; }
+        th.num { text-align: center; }
         td.num { text-align: right; font-variant-numeric: tabular-nums; }
+        th.col-center, td.col-center { text-align: center; }
         .municipio-group-row { cursor: pointer; background-color: #eef2ff; }
         .municipio-group-row:hover { background-color: #e0e7ff; }
         .municipio-group-row td { padding: 12px 14px; font-weight: 700; color: #1e293b; border-bottom: 1px solid #e0e7ff; }
@@ -195,10 +198,11 @@
             {% endfor %}
         </div>
     </div>
-    <select class="filter-select" id="filtro-status">
-        <option value="">Todos os status</option>
-        <option value="Regular">Regular</option>
-        <option value="Irregular">Irregular</option>
+    <select class="filter-select" id="filtro-status-assent">
+        <option value="">Todos os status assent.</option>
+        {% for s in registros | map(attribute='status_de_assentamento') | select | unique | sort %}
+        <option value="{{ s }}">{{ s }}</option>
+        {% endfor %}
     </select>
 
     <!-- Botão Novo Módulo -->
@@ -219,10 +223,10 @@
         <i data-lucide="clipboard-list" style="width:16px;height:16px;"></i>
         Importar Cadastro de Módulos
     </a>
-    <!-- Botão Importar Estoque Financeiro (Índigo) -->
+    <!-- Botão Importar Estoque Contabilidade (Índigo) -->
     <a href="{{ url_for('estoque_financeiro.importar') }}" style="display:inline-flex;background-color:#4338ca;text-decoration:none;padding:10px 20px;border-radius:8px;font-weight:700;font-size:0.88rem;color:white;gap:8px;align-items:center;transition:background 0.2s;" onmouseover="this.style.backgroundColor='#3730a3'" onmouseout="this.style.backgroundColor='#4338ca'">
         <i data-lucide="landmark" style="width:16px;height:16px;"></i>
-        Importar Estoque Financeiro
+        Importar Estoque Contabilidade
     </a>
     {% endif %}
 </div>
@@ -237,7 +241,7 @@
                             <th>Módulo</th>
                             <th>Matrícula</th>
                             <th class="num">Tamanho (m²)</th>
-                            <th>Status Assent.</th>
+                            <th class="col-center">Status Assent.</th>
                             <th>Regular/Irregular</th>
                         </tr>
                     </thead>
@@ -255,7 +259,7 @@
                             </td>
                         </tr>
                         {% for r in grupo_lista %}
-                        <tr class="data-row" data-group="{{ gid }}" data-detail-id="m{{ r.id }}" data-status="{{ (r.imovel_regular_irregular or '')|trim }}" data-municipio="{{ (r.municipio or '')|lower|trim }}" data-empresa="{{ '1' if r.empresa else '0' }}" style="display:none;" onclick="toggleDetalhe('m{{ r.id }}')">
+                        <tr class="data-row" data-group="{{ gid }}" data-detail-id="m{{ r.id }}" data-status="{{ (r.imovel_regular_irregular or '')|trim }}" data-status-assent="{{ (r.status_de_assentamento or '')|trim }}" data-municipio="{{ (r.municipio or '')|lower|trim }}" data-empresa="{{ '1' if r.empresa else '0' }}" style="display:none;" onclick="toggleDetalhe('m{{ r.id }}')">
                             <td class="col-fix col-fix-1">
                                 <span class="row-toggle">
                                     <span class="row-toggle-icon">
@@ -269,7 +273,11 @@
                             <td>{{ r.qtd_modulos or '-' }}</td>
                             <td>{{ r.matricula_modulo or '-' }}</td>
                             <td class="num">{{ '{:,.2f}'.format(r.area_lote_m2).replace(',','X').replace('.',',').replace('X','.') if r.area_lote_m2 else '-' }}</td>
-                            <td>{{ r.status_de_assentamento or '-' }}</td>
+                            <td class="col-center">
+                                {% if r.status_de_assentamento %}
+                                    <span class="status-badge status-assent-badge">{{ r.status_de_assentamento }}</span>
+                                {% else %}-{% endif %}
+                            </td>
                             <td>
                                 {% set ri = r.imovel_regular_irregular or '' %}
                                 {% if ri.upper() == 'REGULAR' %}
@@ -557,7 +565,7 @@
             lucide.createIcons();
         }
 
-        const filtroStatus = document.getElementById('filtro-status');
+        const filtroStatus = document.getElementById('filtro-status-assent');
         const munBtn = document.getElementById('filtro-municipio-btn');
         const munPanel = document.getElementById('filtro-municipio-panel');
         const munLabel = document.getElementById('filtro-municipio-label');
@@ -592,7 +600,7 @@
 
                 const matches = linhas.map(function(row) {
                     const munMatch = sel.length === 0 || sel.indexOf(row.dataset.municipio) !== -1;
-                    const stMatch = !st || row.dataset.status.trim().toLowerCase() === st.toLowerCase();
+                    const stMatch = !st || row.dataset.statusAssent.trim().toLowerCase() === st.toLowerCase();
                     return munMatch && stMatch;
                 });
 
