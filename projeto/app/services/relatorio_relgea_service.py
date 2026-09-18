@@ -204,9 +204,9 @@ def gerar_relatorio_distrito_pdf(db, distrito_db, emitido_por='SISTEMA'):
     doc = SimpleDocTemplate(buffer, pagesize=landscape(A4), leftMargin=40, rightMargin=40, topMargin=90, bottomMargin=60)
 
     data_emissao = datetime.now().strftime('%d/%m/%Y')
-    codigo = 'RELGEASDISTRITODE' + strip_accents(distrito_db).upper().replace(' ', '') + 'REV000'
+    codigo = 'RELGEASDISTRITODE' + strip_accents(distrito_db).upper().replace(' ', '') + 'REV001'
     doc._iso_doc_code = codigo
-    doc._iso_rev = 'Rev. 00'
+    doc._iso_rev = 'Rev. 01'
     doc._iso_data = data_emissao
     doc._iso_emitido_por = emitido_por
 
@@ -235,7 +235,7 @@ def gerar_relatorio_distrito_pdf(db, distrito_db, emitido_por='SISTEMA'):
     story.append(Paragraph(f'RELATÓRIO RELGEA — DISTRITO DE {distrito_db}'.upper(), titulo_style))
     bloco_identificacao(story,
         titulo=f'Relatório RELGEA — Distrito de {distrito_db}',
-        doc_code=codigo, rev='Rev. 00', data_emissao=data_emissao,
+        doc_code=codigo, rev='Rev. 01', data_emissao=data_emissao,
         emitido_por=emitido_por, styles_map=styles_map,
         unidade_responsavel=UNIDADE_RESPONSAVEL, revisado_por='A definir', controle=CONTROLE,
         aprovado_por='A definir')
@@ -289,7 +289,7 @@ def gerar_relatorio_distrito_pdf(db, distrito_db, emitido_por='SISTEMA'):
     doc.build(story, onFirstPage=pagina_relgea, onLaterPages=pagina_relgea)
     buffer.seek(0)
 
-    nome_arquivo = f'REL-GEAS_DISTRITO_DE_{strip_accents(distrito_db).replace(" ", "_")}_REV000.pdf'
+    nome_arquivo = f'REL-GEAS_DISTRITO_DE_{strip_accents(distrito_db).replace(" ", "_")}_Rev_01.pdf'
     nome_arquivo = re.sub(r'[<>:"/\\|?*]', '', nome_arquivo)
     return buffer, nome_arquivo, len(registros)
 
@@ -319,13 +319,13 @@ def gerar_relatorio_individual_pdf(familia, registro, emitido_por='SISTEMA'):
     matricula = _clean(registro.get('num_matricula')) or f"SN{registro.get('id')}"
     reg_id = registro.get('id')
 
-    codigo = f'RELGEAS{safe_filename(TIPO_LABELS[tipo])}{safe_filename(municipio)}{safe_filename(matricula)}ID{reg_id}REV000'
+    codigo = f'RELGEAS{safe_filename(TIPO_LABELS[tipo])}{safe_filename(municipio)}{safe_filename(matricula)}ID{reg_id}REV001'
     data_emissao = datetime.now().strftime('%d/%m/%Y')
 
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=A4, leftMargin=54, rightMargin=54, topMargin=90, bottomMargin=72)
     doc._iso_doc_code = codigo
-    doc._iso_rev = 'Rev. 00'
+    doc._iso_rev = 'Rev. 01'
     doc._iso_data = data_emissao
     doc._iso_emitido_por = emitido_por
 
@@ -351,7 +351,7 @@ def gerar_relatorio_individual_pdf(familia, registro, emitido_por='SISTEMA'):
     story.append(Paragraph(f'FICHA DE ÁREA — {TIPO_LABELS[tipo]}', titulo_style))
     bloco_identificacao(story,
         titulo=f'Ficha de Área — {TIPO_LABELS[tipo]}',
-        doc_code=codigo, rev='Rev. 00', data_emissao=data_emissao,
+        doc_code=codigo, rev='Rev. 01', data_emissao=data_emissao,
         emitido_por=emitido_por, styles_map=styles_map,
         unidade_responsavel=UNIDADE_RESPONSAVEL, revisado_por='A definir', controle=CONTROLE,
         aprovado_por='A definir')
@@ -391,5 +391,5 @@ def gerar_relatorio_individual_pdf(familia, registro, emitido_por='SISTEMA'):
     doc.build(story, onFirstPage=pagina_relgea, onLaterPages=pagina_relgea)
     buffer.seek(0)
 
-    nome_arquivo = f'REL-GEAS_{safe_filename(TIPO_LABELS[tipo])}_{safe_filename(municipio)}_{safe_filename(matricula)}_ID{reg_id}_REV000.pdf'
+    nome_arquivo = f'REL-GEAS_{safe_filename(TIPO_LABELS[tipo])}_{safe_filename(municipio)}_{safe_filename(matricula)}_ID{reg_id}_Rev_01.pdf'
     return buffer, nome_arquivo

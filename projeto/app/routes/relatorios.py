@@ -305,7 +305,7 @@ def gerar_pdf_processo(processo, partes, eventos, documentos):
     doc_code = f"CODEGO-JUR-{processo.get('id', '000'):04}" if isinstance(processo.get('id'), int) else 'CODEGO-JUR'
     
     doc._iso_doc_code = doc_code
-    doc._iso_rev = 'Rev. 00'
+    doc._iso_rev = 'Rev. 01'
     doc._iso_data = data_emissao
     doc._iso_emitido_por = emitido_por
 
@@ -326,7 +326,7 @@ def gerar_pdf_processo(processo, partes, eventos, documentos):
 
     bloco_identificacao(story,
         titulo=f"Relatório de Processo Jurídico — {valor_pdf(processo.get('numero_processo'))}",
-        doc_code=doc_code, rev='Rev. 00', data_emissao=data_emissao,
+        doc_code=doc_code, rev='Rev. 01', data_emissao=data_emissao,
         emitido_por=emitido_por, styles_map=styles_map)
 
     story.append(Paragraph("DADOS PRINCIPAIS DO PROCESSO", subtitle_style))
@@ -370,7 +370,7 @@ def gerar_pdf_geral_processos(processos):
     emitido_por = obter_usuario_logado()
     data_emissao = datetime.now().strftime('%d/%m/%Y')
     doc._iso_doc_code = 'CODEGO-JUR-GERAL'
-    doc._iso_rev = 'Rev. 00'
+    doc._iso_rev = 'Rev. 01'
     doc._iso_data = data_emissao
     doc._iso_emitido_por = emitido_por
 
@@ -388,7 +388,7 @@ def gerar_pdf_geral_processos(processos):
 
     bloco_identificacao(story,
         titulo=f"Relatório Geral de Processos Jurídicos ({len(processos)} processos)",
-        doc_code='CODEGO-JUR-GERAL', rev='Rev. 00', data_emissao=data_emissao,
+        doc_code='CODEGO-JUR-GERAL', rev='Rev. 01', data_emissao=data_emissao,
         emitido_por=emitido_por, styles_map=styles_map)
 
     # Resumo por status
@@ -484,8 +484,8 @@ def relatorios():
 
                     buffer = gerar_pdf_geral_processos(processos)
                     
-                    # Nome formatado igual ao rodapé/cabeçalho: CODEGO-JUR-GERAL_Rev_00.pdf
-                    filename = "CODEGO-JUR-GERAL_Rev_00.pdf"
+                    # Nome formatado igual ao rodapé/cabeçalho: CODEGO-JUR-GERAL_Rev_01.pdf
+                    filename = "CODEGO-JUR-GERAL_Rev_01.pdf"
                     
                     response = make_response(buffer.getvalue())
                     response.headers['Content-Type'] = 'application/pdf'
@@ -535,8 +535,8 @@ def relatorios():
 
                 buffer = gerar_pdf_processo(processo, partes, eventos, documentos)
                 
-                # Nome formatado igual ao rodapé/cabeçalho: CODEGO-JUR-XXXX_Rev_00.pdf
-                filename = f"CODEGO-JUR-{int(processo_id):04d}_Rev_00.pdf"
+                # Nome formatado igual ao rodapé/cabeçalho: CODEGO-JUR-XXXX_Rev_01.pdf
+                filename = f"CODEGO-JUR-{int(processo_id):04d}_Rev_01.pdf"
                 
                 response = make_response(buffer.getvalue())
                 response.headers['Content-Type'] = 'application/pdf'
@@ -572,7 +572,7 @@ def relatorios():
             doc_code = f"{prefixo_doc}-{str(empresa_id).zfill(4)}"
             
             doc._iso_doc_code = doc_code
-            doc._iso_rev = 'Rev. 00'
+            doc._iso_rev = 'Rev. 01'
             doc._iso_data = data_emissao
             doc._iso_emitido_por = emitido_por
 
@@ -591,7 +591,7 @@ def relatorios():
             titulo_relatorio = "Relatório Jurídico de Empresa" if modo == 'jur' else "Relatório de Assentamento Industrial"
             bloco_identificacao(story,
                 titulo=f"{titulo_relatorio} — {lot.get('empresa', 'N/A')}",
-                doc_code=doc_code, rev='Rev. 00', data_emissao=data_emissao,
+                doc_code=doc_code, rev='Rev. 01', data_emissao=data_emissao,
                 emitido_por=emitido_por, styles_map=styles_map)
 
             story.append(Paragraph("DADOS CADASTRAIS", subtitle_style))
@@ -640,8 +640,8 @@ def relatorios():
 
             buffer.seek(0)
             
-            # Nome formatado igual ao rodapé/cabeçalho: CODEGO-ASS-0012_Rev_00.pdf ou CODEGO-JUR-0012_Rev_00.pdf
-            filename = f"{doc_code}_Rev_00.pdf"
+            # Nome formatado igual ao rodapé/cabeçalho: CODEGO-ASS-0012_Rev_01.pdf ou CODEGO-JUR-0012_Rev_01.pdf
+            filename = f"{doc_code}_Rev_01.pdf"
             
             response = make_response(buffer.getvalue())
             response.headers['Content-Type'] = 'application/pdf'

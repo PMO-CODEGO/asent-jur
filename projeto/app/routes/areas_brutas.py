@@ -358,7 +358,7 @@ def relatorio(familia, registro_id):
     ]
 
     codigo_doc   = f"CODEGO/ASSENT/{config['codigo_prefixo']}/{registro_id:04d}"
-    revisao      = 'Rev. 00'
+    revisao      = 'Rev. 01'
     data_emissao = datetime.date.today().strftime('%d/%m/%Y')
     usuario      = session.get('username') or 'Sistema'
 
