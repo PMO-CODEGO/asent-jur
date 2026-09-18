@@ -1,5 +1,4 @@
 import os
-import re
 from datetime import datetime
 from pathlib import Path
 from reportlab.lib import colors
@@ -33,108 +32,78 @@ except Exception:
     FONTE_NEGRITO = 'Helvetica-Bold'
 
 
+CINZA_LINHA_TIMBRADO = colors.HexColor('#818699')
+
+
 def add_header_footer(canvas, doc):
-    """Cabeçalho e rodapé padronizados em todas as páginas."""
+    """Cabeçalho e rodapé padronizados em todas as páginas, reproduzindo o papel timbrado
+    oficial da CODEGO (logo + linha no topo; brasão de Goiás + contato no rodapé)."""
     canvas.saveState()
     page_width, page_height = getattr(doc, 'pagesize', A4)
     margin = 54
+    # O timbrado (logo/brasão/linhas) usa uma margem própria, mais próxima da borda da
+    # página que a margem do corpo do texto — igual ao papel timbrado oficial de referência.
+    margin_timbrado = 32
 
-    # Variáveis dinâmicas passadas pelo Flask / ReportLab
+    # Variáveis dinâmicas passadas pelo Flask / ReportLab (mantidas para o título do PDF;
+    # o timbrado oficial não exibe código/revisão no cabeçalho/rodapé, pois esses dados já
+    # aparecem no bloco de identificação, no corpo do documento).
     raw_doc_code = str(getattr(doc, '_iso_doc_code', 'CODEGO-DOC'))
-    raw_rev = str(getattr(doc, '_iso_rev', 'Rev. 00'))
-    emissao = str(getattr(doc, '_iso_data', datetime.now().strftime('%d/%m/%Y'))).upper()
-    emitido_por = str(getattr(doc, '_iso_emitido_por', None) or getattr(doc, 'emitido_por', 'SISTEMA')).upper()
-
-    doc_code_header = raw_doc_code.upper()
-    rev_header = raw_rev.upper()
-
-    # Define o título das propriedades do documento PDF com o mesmo código do relatório
     if hasattr(doc, 'title') and not doc.title:
-        canvas.setTitle(doc_code_header)
+        canvas.setTitle(raw_doc_code.upper())
 
     # ==========================================
-    # 1. CABEÇALHO (Em todas as páginas)
+    # 1. CABEÇALHO: logo CodeGO + linha
     # ==========================================
-    header_y = page_height - 52
-    header_h = 44
+    logo_top_gap = 32
+    logo_h = 29
+    logo_top_y = page_height - logo_top_gap
+    logo_w = logo_h * (255 / 80)  # proporção do arquivo logo_codego_timbrado.png
 
-    # Fundo azul do cabeçalho
-    canvas.setFillColor(AZUL_CODEGO)
-    canvas.rect(margin, header_y, page_width - 2 * margin, header_h, fill=1, stroke=0)
-
-    # Logo no cabeçalho (Lado Esquerdo)
-    logo_path = os.path.join(current_app.root_path, 'static', 'logo_codego.png')
+    logo_path = os.path.join(current_app.root_path, 'static', 'logo_codego_timbrado.png')
     if os.path.exists(logo_path):
         try:
             logo = ImageReader(logo_path)
             iw, ih = logo.getSize()
-            logo_w = 90
-            logo_h = logo_w * ih / iw
-            canvas.drawImage(logo, margin + 6, header_y + (header_h - logo_h) / 2,
-                             width=logo_w, height=logo_h, mask='auto')
+            logo_w = logo_h * iw / ih
+            canvas.drawImage(logo, margin_timbrado, logo_top_y - logo_h, width=logo_w, height=logo_h, mask='auto')
         except Exception:
             pass
 
-    # Informações concentradas no CANTO SUPERIOR DIREITO do cabeçalho
-    canvas.setFillColor(colors.white)
-    canvas.setFont(FONTE_NEGRITO, 6.5)
-    
-    right_x = page_width - margin - 8
-    
-    # Textos formatados em Maiúsculo antecedidos do nome + dois pontos
-    canvas.drawRightString(right_x, header_y + 32, f'CÓDIGO: {doc_code_header}')
-    canvas.drawRightString(right_x, header_y + 23, f'REVISÃO: {rev_header}')
-    canvas.drawRightString(right_x, header_y + 14, f'EMISSÃO: {emissao}')
-    canvas.drawRightString(right_x, header_y + 5, f'ELABORADO POR: {emitido_por}')
-
-    # Linha separadora abaixo do cabeçalho
-    canvas.setStrokeColor(AZUL_CODEGO)
+    canvas.setStrokeColor(CINZA_LINHA_TIMBRADO)
     canvas.setLineWidth(1)
-    canvas.line(margin, header_y - 2, page_width - margin, header_y - 2)
+    linha_header_y = logo_top_y - logo_h / 2
+    canvas.line(margin_timbrado + logo_w + 16, linha_header_y, page_width - margin_timbrado, linha_header_y)
 
     # ==========================================
-    # 2. MARCA D'ÁGUA
+    # 2. RODAPÉ: brasão de Goiás + linha + contato
     # ==========================================
-    logo_grey_path = os.path.join(current_app.root_path, 'static', 'logo_codego_grey.png')
-    if os.path.exists(logo_grey_path):
+    shield_bottom_y = 29
+    shield_h = 38
+    shield_w = shield_h * (80 / 100)  # proporção do arquivo brasao_goias_rodape.png
+    text_x = margin_timbrado + shield_w + 14
+
+    shield_path = os.path.join(current_app.root_path, 'static', 'brasao_goias_rodape.png')
+    if os.path.exists(shield_path):
         try:
-            logo_grey = ImageReader(logo_grey_path)
-            iw, ih = logo_grey.getSize()
-            scale = 500 / iw
-            w = 500
-            h = ih * scale
-            canvas.translate(page_width / 2, page_height / 2)
-            canvas.rotate(45)
-            canvas.setFillAlpha(0.06)
-            canvas.drawImage(logo_grey, -w / 2, -h / 2, width=w, height=h, mask='auto')
-            canvas.setFillAlpha(1.0)
-            canvas.rotate(-45)
-            canvas.translate(-page_width / 2, -page_height / 2)
+            shield = ImageReader(shield_path)
+            iw, ih = shield.getSize()
+            shield_w = shield_h * iw / ih
+            text_x = margin_timbrado + shield_w + 14
+            canvas.drawImage(shield, margin_timbrado, shield_bottom_y, width=shield_w, height=shield_h, mask='auto')
         except Exception:
             pass
 
-    # ==========================================
-    # 3. RODAPÉ (Em todas as páginas)
-    # ==========================================
-    footer_y = 30
-
-    # Linha de fechamento contínua
-    canvas.setStrokeColor(AZUL_CODEGO)
-    canvas.setLineWidth(0.5)
-    canvas.line(margin, footer_y + 14, page_width - margin, footer_y + 14)
+    canvas.setStrokeColor(CINZA_LINHA_TIMBRADO)
+    canvas.setLineWidth(0.75)
+    linha_footer_y = shield_bottom_y + shield_h - 4
+    canvas.line(text_x, linha_footer_y, page_width - margin_timbrado, linha_footer_y)
 
     canvas.setFillColor(CINZA_TEXTO)
-    canvas.setFont(FONTE_REGULAR, 7)
-
-    # Esquerda: Remove qualquer espaço, traço, ponto ou caractere especial
-    texto_combinado = f"{raw_doc_code}{raw_rev}".upper()
-    codigo_revisao_juntos = re.sub(r'[^A-Z0-9]', '', texto_combinado)
-    
-    canvas.drawString(margin, footer_y + 4, codigo_revisao_juntos)
-
-    # Direita: Número da página
-    page_num = canvas.getPageNumber()
-    canvas.drawRightString(page_width - margin, footer_y + 4, f'PÁGINA {page_num}')
+    canvas.setFont(FONTE_REGULAR, 7.5)
+    canvas.drawString(text_x, shield_bottom_y + 26, 'Fone: (62) 3604-3100 / Fax: 3604-3101')
+    canvas.drawString(text_x, shield_bottom_y + 16, 'Avenida 85, esquina com Alameda Ricardo Paranhos, nº 1593.')
+    canvas.drawString(text_x, shield_bottom_y + 6, 'Setor Marista, Goiânia-GO • CEP: 74.160-010')
 
     canvas.restoreState()
 

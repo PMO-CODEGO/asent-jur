@@ -13,6 +13,7 @@ from app.utils.decorators import role_required
 from app.db import get_db
 from app.services.log_service import gravar_log
 from app.services.municipio_service import listar_municipios
+from app.services.pdf_service import add_header_footer
 
 areas_brutas_bp = Blueprint('areas_brutas', __name__)
 
@@ -338,53 +339,6 @@ def _fmt_m2(val):
         return str(val) if val else '-'
 
 
-def _pdf_header_footer(canvas, doc, codigo_doc, revisao, data_emissao, usuario):
-    canvas.saveState()
-    width, height = A4
-
-    _AZUL      = colors.HexColor('#002b5c')
-    _CINZA_BG  = colors.HexColor('#f3f4f6')
-    _CINZA_TXT = colors.HexColor('#6b7280')
-    _BORDA     = colors.HexColor('#e5e7eb')
-
-    canvas.setFillColor(_AZUL)
-    canvas.rect(0, height - 2.8*cm, width, 2.8*cm, fill=1, stroke=0)
-
-    canvas.setFillColor(colors.white)
-    canvas.setFont('Helvetica-Bold', 15)
-    canvas.drawString(2*cm, height - 1.15*cm, 'CODEGO')
-    canvas.setFont('Helvetica', 7.5)
-    canvas.drawString(2*cm, height - 1.65*cm, 'Companhia de Desenvolvimento Econômico de Goiás')
-    canvas.setFont('Helvetica', 7)
-    canvas.drawString(2*cm, height - 2.1*cm, 'Relatório de Área Bruta — Informação Documentada')
-
-    canvas.setFont('Helvetica', 7)
-    canvas.drawRightString(width - 2*cm, height - 0.75*cm, f'Código: {codigo_doc}')
-    canvas.drawRightString(width - 2*cm, height - 1.15*cm, f'Revisão: {revisao}')
-    canvas.drawRightString(width - 2*cm, height - 1.55*cm, f'Emissão: {data_emissao}')
-    canvas.drawRightString(width - 2*cm, height - 1.95*cm, f'Elaborado por: {usuario}')
-    canvas.drawRightString(width - 2*cm, height - 2.35*cm, f'Página {doc.page}')
-
-    canvas.setStrokeColor(_BORDA)
-    canvas.setLineWidth(0.5)
-    canvas.line(2*cm, height - 2.8*cm, width - 2*cm, height - 2.8*cm)
-
-    canvas.setFillColor(_CINZA_BG)
-    canvas.rect(0, 0, width, 1.6*cm, fill=1, stroke=0)
-
-    canvas.setStrokeColor(_BORDA)
-    canvas.line(2*cm, 1.6*cm, width - 2*cm, 1.6*cm)
-
-    raw_footer = f"{codigo_doc}{revisao}"
-    footer_code = re.sub(r'[\s./\-]', '', raw_footer).upper()
-
-    canvas.setFillColor(_CINZA_TXT)
-    canvas.setFont('Helvetica', 7)
-    canvas.drawString(2*cm, 0.8*cm, footer_code)
-
-    canvas.restoreState()
-
-
 @areas_brutas_bp.route('/assent/areas-brutas/<familia>/<int:registro_id>/relatorio')
 @role_required('assent', 'admin', 'assent_gestor')
 def relatorio(familia, registro_id):
@@ -415,6 +369,10 @@ def relatorio(familia, registro_id):
         topMargin=3.4*cm,
         bottomMargin=2.2*cm,
     )
+    doc._iso_doc_code = codigo_doc
+    doc._iso_rev = revisao
+    doc._iso_data = data_emissao
+    doc._iso_emitido_por = usuario
 
     AZUL       = colors.HexColor('#002b5c')
     AZUL_CLARO = colors.HexColor('#eff6ff')
@@ -537,8 +495,7 @@ def relatorio(familia, registro_id):
         ]))
         story.append(t)
 
-    cb = lambda c, d: _pdf_header_footer(c, d, codigo_doc, revisao, data_emissao, usuario)
-    doc.build(story, onFirstPage=cb, onLaterPages=cb)
+    doc.build(story, onFirstPage=add_header_footer, onLaterPages=add_header_footer)
     buf.seek(0)
 
     doc_code_filename = codigo_doc.replace('/', '-')
