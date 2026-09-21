@@ -5,10 +5,22 @@ from app.services.log_service import gravar_log
 
 auth_user_bp = Blueprint("auth_user", __name__)
 
+DEPARTAMENTOS_POR_ROLE = {
+    'admin': {'Gestor - Assentamento', 'Gestor - Jurídico', 'Administrador',
+              'Usuário - Assentamento', 'Usuário - Jurídico'},
+    'assent_gestor': {'Usuário - Assentamento'},
+    'jur_gestor': {'Usuário - Jurídico'},
+}
+
+
 @auth_user_bp.route('/registrar-usuario', methods=['GET', 'POST'])
+@role_required('admin', 'assent_gestor', 'jur_gestor')
 def registrar_usuario():
     if request.method == 'POST':
         try:
+            departamento = request.form.get('departamento', '').strip()
+            if departamento not in DEPARTAMENTOS_POR_ROLE[session.get('role')]:
+                raise ValueError('Você não tem permissão para criar usuários nesse departamento.')
             AuthService.registrar_usuario(request.form)
             novo_username = request.form.get('username', '').strip()
             gravar_log('USUARIO_CRIADO', f"Novo usuário registrado: '{novo_username}'")
