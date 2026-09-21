@@ -367,7 +367,7 @@ def relatorio(familia, registro_id):
         buf, pagesize=A4,
         leftMargin=2*cm, rightMargin=2*cm,
         topMargin=3.4*cm,
-        bottomMargin=2.9*cm,
+        bottomMargin=2.2*cm,
     )
     doc._iso_doc_code = codigo_doc
     doc._iso_rev = revisao

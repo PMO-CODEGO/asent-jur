@@ -217,12 +217,6 @@
         Mapa de Distritos
     </a>
 
-    <!-- Botão Relatório Estoque de Áreas (Âmbar) -->
-    <a id="btn-relatorio-estoque" href="{{ url_for('estoque_financeiro.relatorio') }}" target="_blank" style="display:inline-flex;background-color:#b45309;text-decoration:none;padding:10px 20px;border-radius:8px;font-weight:700;font-size:0.88rem;color:white;gap:8px;align-items:center;transition:background 0.2s;" onmouseover="this.style.backgroundColor='#92400e'" onmouseout="this.style.backgroundColor='#b45309'">
-        <i data-lucide="file-text" style="width:16px;height:16px;"></i>
-        Relatório Estoque de Áreas
-    </a>
-
     {% if session.get('role') == 'admin' %}
     <!-- Botão Importar Cadastro de Módulos (Verde) -->
     <a href="{{ url_for('cadastro_importacao.importar') }}" style="display:inline-flex;background-color:#15803d;text-decoration:none;padding:10px 20px;border-radius:8px;font-weight:700;font-size:0.88rem;color:white;gap:8px;align-items:center;transition:background 0.2s;" onmouseover="this.style.backgroundColor='#166534'" onmouseout="this.style.backgroundColor='#15803d'">
@@ -593,16 +587,7 @@
             }
         }
 
-        const btnRelEstoque = document.getElementById('btn-relatorio-estoque');
-        const relEstoqueBase = btnRelEstoque.getAttribute('href');
-        function atualizarLinkRelatorioEstoque() {
-            const marcados = Array.from(munChecks).filter(c => c.checked).map(c => c.value);
-            btnRelEstoque.href = relEstoqueBase + (marcados.length
-                ? '?' + marcados.map(m => 'municipio=' + encodeURIComponent(m)).join('&') : '');
-        }
-
         function aplicarVisibilidade() {
-            atualizarLinkRelatorioEstoque();
             const sel = municipiosSelecionados();
             const st = filtroStatus.value.trim();
             const filtroAtivo = sel.length > 0 || !!st;

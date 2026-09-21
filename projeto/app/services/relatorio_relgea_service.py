@@ -201,7 +201,7 @@ def gerar_relatorio_distrito_pdf(db, distrito_db, emitido_por='SISTEMA'):
         return None, None, 0
 
     buffer = BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=landscape(A4), leftMargin=40, rightMargin=40, topMargin=90, bottomMargin=80)
+    doc = SimpleDocTemplate(buffer, pagesize=landscape(A4), leftMargin=40, rightMargin=40, topMargin=90, bottomMargin=60)
 
     data_emissao = datetime.now().strftime('%d/%m/%Y')
     codigo = 'RELGEASDISTRITODE' + strip_accents(distrito_db).upper().replace(' ', '') + 'REV001'
