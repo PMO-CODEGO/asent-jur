@@ -1,12 +1,13 @@
 import os
 from uuid import uuid4
 
-from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
+from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app, make_response, session
 from werkzeug.utils import secure_filename
 
 from app.db import get_db
 from app.utils.decorators import role_required
 from app.services.log_service import gravar_log
+from app.services.relatorio_estoque_service import gerar_relatorio_estoque_pdf
 from app.services.estoque_financeiro_service import (
     listar_abas_candidatas,
     detectar_aba_padrao,
@@ -200,3 +201,22 @@ def importar():
             flash('Erro ao processar a planilha. Confira o arquivo e tente novamente.', 'danger')
 
     return render_template('importar_estoque_financeiro.html', previa=previa)
+
+
+@estoque_financeiro_bp.route('/assent/estoque-financeiro/relatorio')
+@role_required('assent', 'admin', 'assent_gestor')
+def relatorio():
+    municipios = [m.strip() for m in request.args.getlist('municipio') if m.strip()]
+    with get_db() as db:
+        buffer, filename, total = gerar_relatorio_estoque_pdf(
+            db, session.get('username') or 'SISTEMA', municipios or None)
+
+    if not buffer:
+        flash('Nenhum registro de estoque encontrado para gerar o relatório.', 'warning')
+        return redirect(url_for('dashboard.cadastro_modulos'))
+
+    gravar_log('RELATORIO_ESTOQUE_AREAS', f"Arquivo: {filename} | Registros: {total}")
+    response = make_response(buffer.getvalue())
+    response.headers['Content-Type'] = 'application/pdf'
+    response.headers['Content-Disposition'] = f'inline; filename="{filename}"'
+    return response
