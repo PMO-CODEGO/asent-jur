@@ -1,12 +1,13 @@
 import os
 from uuid import uuid4
 
-from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
+from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app, make_response, session, abort
 from werkzeug.utils import secure_filename
 
 from app.db import get_db
 from app.utils.decorators import role_required
 from app.services.log_service import gravar_log
+from app.services.relatorio_estoque_service import buscar_estoque_registro, gerar_ficha_estoque_pdf
 from app.services.estoque_financeiro_service import (
     listar_abas_candidatas,
     detectar_aba_padrao,
@@ -200,3 +201,19 @@ def importar():
             flash('Erro ao processar a planilha. Confira o arquivo e tente novamente.', 'danger')
 
     return render_template('importar_estoque_financeiro.html', previa=previa)
+
+
+@estoque_financeiro_bp.route('/assent/cadastro-modulos/estoque/<municipio_id>/<id_modulo>/relatorio')
+@role_required('assent', 'admin', 'assent_gestor')
+def relatorio_registro(municipio_id, id_modulo):
+    with get_db() as db:
+        estoque, modulo = buscar_estoque_registro(db, municipio_id, id_modulo)
+    if not estoque:
+        abort(404)
+
+    buffer, filename = gerar_ficha_estoque_pdf(estoque, modulo, session.get('username') or 'SISTEMA')
+    gravar_log('RELATORIO_ESTOQUE_AREAS', f"Município: {municipio_id} | Módulo: {id_modulo} | Arquivo: {filename}")
+    response = make_response(buffer.getvalue())
+    response.headers['Content-Type'] = 'application/pdf'
+    response.headers['Content-Disposition'] = f'inline; filename="{filename}"'
+    return response
