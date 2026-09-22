@@ -58,8 +58,6 @@
         .map-placeholder { background: white; border-radius: 14px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); overflow: hidden; }
         .map-placeholder-header { padding: 16px 22px; border-bottom: 1px solid #f3f4f6; display: flex; align-items: center; justify-content: space-between; }
         .map-placeholder-header h2 { font-size: 1rem; font-weight: 700; color: #002b5c; display: flex; align-items: center; gap: 8px; }
-        .map-header-distrito { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; color: #475569; }
-        .map-header-distrito::before { content: ''; width: 1px; height: 16px; background: #cbd5e1; }
         .badge-em-breve { background-color: #fef3c7; color: #92400e; font-size: 0.68rem; font-weight: 700; padding: 3px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.04em; }
         .badge-count { background-color: #d1fae5; color: #065f46; font-size: 0.68rem; font-weight: 700; padding: 3px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.04em; }
         .map-area { flex: 1 1 auto; min-height: 320px; padding: 18px; display: flex; }
@@ -98,10 +96,12 @@
         .map-legend-item + .map-legend-item { margin-top: 5px; }
         .map-legend-swatch { width: 14px; height: 14px; border-radius: 4px; flex-shrink: 0; }
         .map-legend-title { font-size: 0.68rem; font-weight: 700; color: #002b5c; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 7px; padding-bottom: 5px; border-bottom: 1px solid #e5e7eb; }
-        /* Inhumas: botão de tela cheia à esquerda da legenda */
+        /* Inhumas: legenda no canto inferior direito */
         .map-bottom-controls { position: absolute; bottom: 14px; right: 14px; display: flex; align-items: flex-end; gap: 10px; z-index: 1000; }
-        .map-bottom-controls .map-legend,
-        .map-bottom-controls .map-fullscreen-btn { position: static; }
+        .map-bottom-controls .map-legend { position: static; }
+        /* Inhumas: botão de tela cheia logo abaixo da rosa dos ventos, sem fundo */
+        .map-fullscreen-btn.map-fullscreen-btn-compass { top: 84px; bottom: auto; right: 17.5px; background: transparent; box-shadow: none; }
+        .map-fullscreen-btn.map-fullscreen-btn-compass:hover { background-color: rgba(255,255,255,0.35); }
         .filtro-bar { display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap; background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); padding: 14px 18px; margin-bottom: 16px; }
         .filtro-bar-inline { background: #f8fafc; box-shadow: none; border-radius: 0; margin-bottom: 0; padding: 12px 22px; border-bottom: 1px solid #f3f4f6; border-top: 1px solid #f3f4f6; }
         .filtro-group { display: flex; flex-direction: column; gap: 5px; }
@@ -291,9 +291,6 @@
                 <h2>
                     <i data-lucide="map" style="width:16px;height:16px;"></i>
                     Mapa Detalhado do Distrito
-                    {% if slug == 'inhumas' %}
-                    <span class="map-header-distrito">{{ distrito.nome }}</span>
-                    {% endif %}
                 </h2>
                 {% if slug in slugs_com_mapa %}
                 <span class="badge-count">Mapa Interativo</span>
@@ -308,12 +305,10 @@
                         <i data-lucide="maximize" id="iconFullscreenMapa" style="width:24px;height:24px;color:#002b5c;"></i>
                     </button>
                     {% endif %}
-                    {% if slug != 'inhumas' %}
                     <div class="map-canvas-title">
                         <i data-lucide="map" style="width:14px;height:14px;"></i>
                         {{ distrito.nome }}
                     </div>
-                    {% endif %}
                     <div class="map-compass" title="Norte">
                         <svg viewBox="0 0 100 100" width="100%" height="100%">
                             <circle cx="50" cy="50" r="47" fill="white" stroke="#dbe2ea" stroke-width="2"/>
@@ -328,10 +323,10 @@
                     {% if slug in slugs_com_mapa %}
                     <div id="mapaLeaflet" class="map-leaflet"></div>
                     {% if slug == 'inhumas' %}
+                    <button type="button" class="map-fullscreen-btn map-fullscreen-btn-compass" id="btnFullscreenMapa" title="Tela cheia" onclick="toggleFullscreenMapa()">
+                        <i data-lucide="maximize" id="iconFullscreenMapa" style="width:24px;height:24px;color:#002b5c;"></i>
+                    </button>
                     <div class="map-bottom-controls">
-                        <button type="button" class="map-fullscreen-btn" id="btnFullscreenMapa" title="Tela cheia" onclick="toggleFullscreenMapa()">
-                            <i data-lucide="maximize" id="iconFullscreenMapa" style="width:24px;height:24px;color:#002b5c;"></i>
-                        </button>
                         <div class="map-legend">
                             <div class="map-legend-title">Status Assent.</div>
                             <div class="map-legend-item"><span class="map-legend-swatch" style="background:#2ecc71;"></span> Livre</div>
