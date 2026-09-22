@@ -43,9 +43,31 @@ def geojson(slug):
             cursor.execute(f"SELECT id, perimetro, area, coordenadas, status FROM {config['tabela']}")
             linhas = cursor.fetchall()
 
+            # Resolve id_modulo -> id do Cadastro de Módulos, pra virar link clicável no popup
+            # do mapa (ver bloco "modulos" nas properties do .geojson, vindo da planilha de
+            # correspondência entre agrupamento do DXF e id_modulo real).
+            registro_id_por_modulo = {}
+            todos_modulos = {
+                m for feature in geojson_data.get('features', [])
+                for m in feature.get('properties', {}).get('modulos', [])
+            }
+            if todos_modulos:
+                formato = ', '.join(['%s'] * len(todos_modulos))
+                cursor.execute(
+                    f"SELECT id, id_modulo FROM municipal_lots WHERE id_modulo IN ({formato})",
+                    tuple(todos_modulos)
+                )
+                registro_id_por_modulo = {row['id_modulo']: row['id'] for row in cursor.fetchall()}
+
     dados_por_id = {str(item['id']): item for item in linhas}
 
     for feature in geojson_data.get('features', []):
+        modulos = feature.get('properties', {}).get('modulos')
+        if modulos:
+            feature['properties']['modulos_detalhe'] = [
+                {'id_modulo': m, 'registro_id': registro_id_por_modulo.get(m)} for m in modulos
+            ]
+
         poly_id = str(feature.get('id') or feature.get('properties', {}).get('id'))
         info = dados_por_id.get(poly_id)
         if info:

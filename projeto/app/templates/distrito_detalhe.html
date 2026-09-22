@@ -683,9 +683,24 @@
                             const props = feature.properties || {};
                             layer.on('mouseover', function() { this.setStyle({ weight: 4, fillOpacity: 0.8 }); });
                             layer.on('mouseout', function() { camada.resetStyle(this); });
+
+                            let modulosHtml = '';
+                            if (props.modulos_detalhe && props.modulos_detalhe.length) {
+                                const urlBase = "{{ url_for('cadastro_modulos.editar', registro_id=999999) }}";
+                                const links = props.modulos_detalhe.map(function(m) {
+                                    if (m.registro_id) {
+                                        return '<a href="' + urlBase.replace('999999', m.registro_id) + '" target="_blank">' + m.id_modulo + '</a>';
+                                    }
+                                    return m.id_modulo;
+                                });
+                                modulosHtml = '<b>' + (props.modulos_detalhe.length === 1 ? 'Módulo:' : 'Módulos (' + props.modulos_detalhe.length + '):') + '</b> ' + links.join(', ') + '<br>';
+                            }
+
                             layer.bindPopup(
                                 '<div style="font-size:13px;line-height:1.5;">' +
                                 '<b>Perímetro:</b> ' + (props.perimetro || 'Não informado') + '<br>' +
+                                (props.empresa ? '<b>Empresa:</b> ' + props.empresa + '<br>' : '') +
+                                modulosHtml +
                                 '<b>Área:</b> ' + (props.area || 'Não informada') + '<br>' +
                                 '<b>Status:</b> ' + (props.status || 'Desconhecido') +
                                 '</div>'
