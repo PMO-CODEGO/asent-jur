@@ -680,16 +680,21 @@ def distrito_detalhe(slug):
         abort(404)
     tipo_label = TIPO_LABELS.get(distrito['tipo'], distrito['tipo'])
 
+    from app.routes.mapas_interativo import DISTRITOS_MAPA
+
     perimetros = None
     modulos_inhumas = None
     cadastro_modulos_inhumas = None
-    if slug == 'daia':
+
+    if slug in DISTRITOS_MAPA:
         from app.db import get_db
         with get_db() as db:
             with db.cursor(dictionary=True) as cursor:
-                cursor.execute("SELECT id, perimetro, area, coordenadas, status FROM mapas_interativo_anapolis ORDER BY id")
+                tabela = DISTRITOS_MAPA[slug]['tabela']
+                cursor.execute(f"SELECT id, perimetro, area, coordenadas, status FROM {tabela} ORDER BY id")
                 perimetros = cursor.fetchall()
-    elif slug == 'inhumas':
+
+    if slug == 'inhumas':
         from app.db import get_db
         with get_db() as db:
             with db.cursor(dictionary=True) as cursor:
