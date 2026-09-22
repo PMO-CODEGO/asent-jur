@@ -43,10 +43,11 @@ def geojson(slug):
             cursor.execute(f"SELECT id, perimetro, area, coordenadas, status FROM {config['tabela']}")
             linhas = cursor.fetchall()
 
-            # Resolve id_modulo -> id do Cadastro de Módulos, pra virar link clicável no popup
-            # do mapa (ver bloco "modulos" nas properties do .geojson, vindo da planilha de
-            # correspondência entre agrupamento do DXF e id_modulo real).
-            registro_id_por_modulo = {}
+            # Resolve id_modulo -> id/status do Cadastro de Módulos, pra virar link clicável e
+            # colorir o polígono pela situação de assentamento real (ver bloco "modulos" nas
+            # properties do .geojson, vindo da planilha de correspondência entre agrupamento do
+            # DXF e id_modulo real).
+            dados_por_modulo = {}
             todos_modulos = {
                 m for feature in geojson_data.get('features', [])
                 for m in feature.get('properties', {}).get('modulos', [])
@@ -54,10 +55,10 @@ def geojson(slug):
             if todos_modulos:
                 formato = ', '.join(['%s'] * len(todos_modulos))
                 cursor.execute(
-                    f"SELECT id, id_modulo FROM municipal_lots WHERE id_modulo IN ({formato})",
+                    f"SELECT id, id_modulo, status_de_assentamento FROM municipal_lots WHERE id_modulo IN ({formato})",
                     tuple(todos_modulos)
                 )
-                registro_id_por_modulo = {row['id_modulo']: row['id'] for row in cursor.fetchall()}
+                dados_por_modulo = {row['id_modulo']: row for row in cursor.fetchall()}
 
     dados_por_id = {str(item['id']): item for item in linhas}
 
@@ -65,8 +66,13 @@ def geojson(slug):
         modulos = feature.get('properties', {}).get('modulos')
         if modulos:
             feature['properties']['modulos_detalhe'] = [
-                {'id_modulo': m, 'registro_id': registro_id_por_modulo.get(m)} for m in modulos
+                {'id_modulo': m, 'registro_id': (dados_por_modulo.get(m) or {}).get('id')} for m in modulos
             ]
+            # Situação de assentamento do polígono: só atribui uma cor certa quando todos os
+            # módulos daquele grupo compartilham a mesma situação; se estiver misto (ou faltando
+            # dado), deixa null em vez de chutar uma das situações.
+            situacoes = {(dados_por_modulo.get(m) or {}).get('status_de_assentamento') for m in modulos}
+            feature['properties']['status_assentamento'] = situacoes.pop() if len(situacoes) == 1 else None
 
         poly_id = str(feature.get('id') or feature.get('properties', {}).get('id'))
         info = dados_por_id.get(poly_id)

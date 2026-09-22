@@ -316,8 +316,14 @@
                     {% if slug in slugs_com_mapa %}
                     <div id="mapaLeaflet" class="map-leaflet"></div>
                     <div class="map-legend">
+                        {% if slug == 'inhumas' %}
+                        <div class="map-legend-item"><span class="map-legend-swatch" style="background:#2ecc71;"></span> Livre</div>
+                        <div class="map-legend-item"><span class="map-legend-swatch" style="background:#f1c40f;"></span> Escriturada</div>
+                        <div class="map-legend-item"><span class="map-legend-swatch" style="background:#e74c3c;"></span> Área com Ação Judicial</div>
+                        {% else %}
                         <div class="map-legend-item"><span class="map-legend-swatch" style="background:#2ecc71;"></span> Livre</div>
                         <div class="map-legend-item"><span class="map-legend-swatch" style="background:#e74c3c;"></span> Ocupado</div>
+                        {% endif %}
                     </div>
                     {% else %}
                     <div class="map-area-icon">
@@ -351,7 +357,9 @@
                 <table class="perimetros-table">
                     <thead style="position:sticky; top:0; z-index:1;">
                         <tr>
+                            {% if slug != 'inhumas' %}
                             <th>Perímetro</th>
+                            {% endif %}
                             <th>Área</th>
                             <th>Coordenadas</th>
                             <th>Status</th>
@@ -363,7 +371,9 @@
                     <tbody>
                         {% for p in perimetros %}
                         <tr>
+                            {% if slug != 'inhumas' %}
                             <td>{{ p.perimetro or '-' }}</td>
+                            {% endif %}
                             <td class="num">{{ p.area or '-' }}</td>
                             <td>{{ p.coordenadas or '-' }}</td>
                             <td>
@@ -388,8 +398,9 @@
                         </tr>
                         {% endfor %}
                         {% if not perimetros %}
+                        {% set n_colunas = (3 if slug == 'inhumas' else 4) + (1 if pode_editar_perimetros else 0) %}
                         <tr>
-                            <td colspan="{{ 5 if pode_editar_perimetros else 4 }}" style="text-align:center;color:#9ca3af;padding:20px;">Nenhum perímetro cadastrado ainda.</td>
+                            <td colspan="{{ n_colunas }}" style="text-align:center;color:#9ca3af;padding:20px;">Nenhum perímetro cadastrado ainda.</td>
                         </tr>
                         {% endif %}
                     </tbody>
@@ -664,6 +675,19 @@
                 return '#95a5a6';
             }
 
+            function corStatusAssentamento(status) {
+                const s = (status || '').toString().trim().toUpperCase();
+                if (s === 'LIVRE') return '#2ecc71';
+                if (s === 'ESCRITURADA') return '#f1c40f';
+                if (s === 'AREA COM ACAO JUDICIAL') return '#e74c3c';
+                return '#95a5a6';
+            }
+
+            function corPoligono(props) {
+                if (props.status_assentamento !== undefined) return corStatusAssentamento(props.status_assentamento);
+                return corStatus(props.status);
+            }
+
             window.mapaDaia = L.map('mapaLeaflet', { crs: L.CRS.Simple, minZoom: -5, maxZoom: 5, attributionControl: false });
             const map = window.mapaDaia;
 
@@ -676,8 +700,8 @@
                     }
                     const camada = L.geoJSON(res.dados, {
                         style: function(feature) {
-                            const status = feature.properties ? feature.properties.status : null;
-                            return { color: corStatus(status), weight: 2, fillOpacity: 0.5, fillColor: corStatus(status) };
+                            const cor = corPoligono(feature.properties || {});
+                            return { color: cor, weight: 2, fillOpacity: 0.5, fillColor: cor };
                         },
                         onEachFeature: function(feature, layer) {
                             const props = feature.properties || {};
@@ -696,15 +720,26 @@
                                 modulosHtml = '<b>' + (props.modulos_detalhe.length === 1 ? 'Módulo:' : 'Módulos (' + props.modulos_detalhe.length + '):') + '</b> ' + links.join(', ') + '<br>';
                             }
 
+                            {% if slug == 'inhumas' %}
+                            const nomesSituacao = { 'LIVRE': 'Livre', 'ESCRITURADA': 'Escriturada', 'AREA COM ACAO JUDICIAL': 'Área com Ação Judicial' };
+                            const situacao = props.status_assentamento ? (nomesSituacao[props.status_assentamento.toUpperCase()] || props.status_assentamento) : 'Não informada';
+                            layer.bindPopup(
+                                '<div style="font-size:13px;line-height:1.5;">' +
+                                (props.empresa ? '<b>Empresa:</b> ' + props.empresa + '<br>' : '') +
+                                modulosHtml +
+                                '<b>Área:</b> ' + (props.area || 'Não informada') + '<br>' +
+                                '<b>Situação de Assentamento:</b> ' + situacao +
+                                '</div>'
+                            );
+                            {% else %}
                             layer.bindPopup(
                                 '<div style="font-size:13px;line-height:1.5;">' +
                                 '<b>Perímetro:</b> ' + (props.perimetro || 'Não informado') + '<br>' +
-                                (props.empresa ? '<b>Empresa:</b> ' + props.empresa + '<br>' : '') +
-                                modulosHtml +
                                 '<b>Área:</b> ' + (props.area || 'Não informada') + '<br>' +
                                 '<b>Status:</b> ' + (props.status || 'Desconhecido') +
                                 '</div>'
                             );
+                            {% endif %}
                         }
                     }).addTo(map);
                     window.mapaDaiaBounds = camada.getBounds();
