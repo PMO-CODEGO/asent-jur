@@ -95,6 +95,11 @@
         .map-legend-item { display: flex; align-items: center; gap: 8px; color: #374151; }
         .map-legend-item + .map-legend-item { margin-top: 5px; }
         .map-legend-swatch { width: 14px; height: 14px; border-radius: 4px; flex-shrink: 0; }
+        .map-legend-title { font-size: 0.68rem; font-weight: 700; color: #002b5c; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 7px; padding-bottom: 5px; border-bottom: 1px solid #e5e7eb; }
+        /* Inhumas: botão de tela cheia à esquerda da legenda */
+        .map-bottom-controls { position: absolute; bottom: 14px; right: 14px; display: flex; align-items: flex-end; gap: 10px; z-index: 1000; }
+        .map-bottom-controls .map-legend,
+        .map-bottom-controls .map-fullscreen-btn { position: static; }
         .filtro-bar { display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap; background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); padding: 14px 18px; margin-bottom: 16px; }
         .filtro-bar-inline { background: #f8fafc; box-shadow: none; border-radius: 0; margin-bottom: 0; padding: 12px 22px; border-bottom: 1px solid #f3f4f6; border-top: 1px solid #f3f4f6; }
         .filtro-group { display: flex; flex-direction: column; gap: 5px; }
@@ -293,7 +298,7 @@
             </div>
             <div class="map-area">
                 <div class="map-canvas" id="mapaCanvasDaia">
-                    {% if slug in slugs_com_mapa %}
+                    {% if slug in slugs_com_mapa and slug != 'inhumas' %}
                     <button type="button" class="map-fullscreen-btn" id="btnFullscreenMapa" title="Tela cheia" onclick="toggleFullscreenMapa()">
                         <i data-lucide="maximize" id="iconFullscreenMapa" style="width:24px;height:24px;color:#002b5c;"></i>
                     </button>
@@ -315,16 +320,24 @@
                     </div>
                     {% if slug in slugs_com_mapa %}
                     <div id="mapaLeaflet" class="map-leaflet"></div>
+                    {% if slug == 'inhumas' %}
+                    <div class="map-bottom-controls">
+                        <button type="button" class="map-fullscreen-btn" id="btnFullscreenMapa" title="Tela cheia" onclick="toggleFullscreenMapa()">
+                            <i data-lucide="maximize" id="iconFullscreenMapa" style="width:24px;height:24px;color:#002b5c;"></i>
+                        </button>
+                        <div class="map-legend">
+                            <div class="map-legend-title">Status Assent.</div>
+                            <div class="map-legend-item"><span class="map-legend-swatch" style="background:#2ecc71;"></span> Livre</div>
+                            <div class="map-legend-item"><span class="map-legend-swatch" style="background:#f1c40f;"></span> Escriturada</div>
+                            <div class="map-legend-item"><span class="map-legend-swatch" style="background:#e74c3c;"></span> Área com Ação Judicial</div>
+                        </div>
+                    </div>
+                    {% else %}
                     <div class="map-legend">
-                        {% if slug == 'inhumas' %}
-                        <div class="map-legend-item"><span class="map-legend-swatch" style="background:#2ecc71;"></span> Livre</div>
-                        <div class="map-legend-item"><span class="map-legend-swatch" style="background:#f1c40f;"></span> Escriturada</div>
-                        <div class="map-legend-item"><span class="map-legend-swatch" style="background:#e74c3c;"></span> Área com Ação Judicial</div>
-                        {% else %}
                         <div class="map-legend-item"><span class="map-legend-swatch" style="background:#2ecc71;"></span> Livre</div>
                         <div class="map-legend-item"><span class="map-legend-swatch" style="background:#e74c3c;"></span> Ocupado</div>
-                        {% endif %}
                     </div>
+                    {% endif %}
                     {% else %}
                     <div class="map-area-icon">
                         <i data-lucide="map-pin" style="width:28px;height:28px;color:#94a3b8;"></i>
