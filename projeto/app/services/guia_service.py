@@ -104,14 +104,6 @@ GUIA_CONTEUDO = {
             'Pode ficar tranquilo: eu gero o relatório na hora, sempre com os dados mais recentes do banco.',
         ],
     },
-    'mapa_distritos': {
-        'titulo': 'sobre o Mapa de Distritos',
-        'pose': 'apontando_mapa',
-        'dicas': [
-            'Clica num distrito que eu te levo pros detalhes dele, com opção de baixar o relatório.',
-            'Usa o filtro de município ali no canto pra achar mais rápido o distrito que você procura.',
-        ],
-    },
     'distrito_detalhe': {
         'titulo': 'sobre este distrito',
         'pose': 'thumbs_phone',

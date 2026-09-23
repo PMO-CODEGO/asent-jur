@@ -211,10 +211,14 @@
         Novo Módulo
     </a>
 
-    <!-- Botão Mapa de Distritos (Verde) -->
-    <a href="/mapa-distritos" style="display:inline-flex;background-color:#059669;text-decoration:none;padding:10px 20px;border-radius:8px;font-weight:700;font-size:0.88rem;color:white;gap:8px;align-items:center;transition:background 0.2s;" onmouseover="this.style.backgroundColor='#047857'" onmouseout="this.style.backgroundColor='#059669'">
+    <!-- Botões de mapa interativo por distrito (Verde) -->
+    <a href="{{ url_for('dashboard.distrito_detalhe', slug='daia') }}" style="display:inline-flex;background-color:#059669;text-decoration:none;padding:10px 20px;border-radius:8px;font-weight:700;font-size:0.88rem;color:white;gap:8px;align-items:center;transition:background 0.2s;" onmouseover="this.style.backgroundColor='#047857'" onmouseout="this.style.backgroundColor='#059669'">
         <i data-lucide="map-pin" style="width:16px;height:16px;"></i>
-        Mapa de Distritos
+        Mapa DAIA
+    </a>
+    <a href="{{ url_for('dashboard.distrito_detalhe', slug='inhumas') }}" style="display:inline-flex;background-color:#059669;text-decoration:none;padding:10px 20px;border-radius:8px;font-weight:700;font-size:0.88rem;color:white;gap:8px;align-items:center;transition:background 0.2s;" onmouseover="this.style.backgroundColor='#047857'" onmouseout="this.style.backgroundColor='#059669'">
+        <i data-lucide="map-pin" style="width:16px;height:16px;"></i>
+        Mapa Inhumas
     </a>
 
     {% if session.get('role') == 'admin' %}

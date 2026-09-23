@@ -667,11 +667,6 @@ def cadastro_modulos():
 
     return render_template('cadastro_modulos.html', registros=registros)
 
-@dashboard_bp.route('/mapa-distritos')
-@role_required('assent', 'jur', 'admin', 'assent_gestor', 'jur_gestor')
-def mapa_distritos():
-    return render_template('mapa_distritos.html')
-
 @dashboard_bp.route('/mapa-distritos/<slug>')
 @role_required('assent', 'jur', 'admin', 'assent_gestor', 'jur_gestor')
 def distrito_detalhe(slug):

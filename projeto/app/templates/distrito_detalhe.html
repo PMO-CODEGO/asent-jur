@@ -217,9 +217,9 @@
             <span class="topbar-title">{{ distrito.nome }}</span>
         </div>
         <div class="topbar-actions">
-            <a href="{{ url_for('dashboard.mapa_distritos') }}" class="btn-topbar btn-back">
+            <a href="{{ url_for('dashboard.cadastro_modulos') }}" class="btn-topbar btn-back">
                 <i data-lucide="arrow-left" style="width:16px;height:16px;"></i>
-                Voltar ao Mapa
+                Voltar ao Cadastro
             </a>
             {% if session.get('role') == 'admin' %}
             <a href="{{ url_for('logs.logs') }}" class="btn-topbar btn-logs">
@@ -236,9 +236,9 @@
 
     <div class="page-body">
         <div class="breadcrumb">
-            <a href="{{ url_for('dashboard.mapa_distritos') }}">
+            <a href="{{ url_for('dashboard.cadastro_modulos') }}">
                 <i data-lucide="map" style="width:14px;height:14px;"></i>
-                Mapa de Distritos
+                Cadastro de Módulos
             </a>
             <span class="breadcrumb-sep">/</span>
             <span>{{ distrito.municipio }}</span>
