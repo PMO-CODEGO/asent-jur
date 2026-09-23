@@ -674,6 +674,17 @@
 
         filtroStatus.addEventListener('change', aplicarVisibilidade);
 
+        // Chegando com ?municipio=NOME na URL (ex: vindo do seletor do Controle de Área),
+        // já marca aquele município no filtro.
+        const municipioNaUrl = new URLSearchParams(window.location.search).get('municipio');
+        if (municipioNaUrl) {
+            const alvo = municipioNaUrl.trim().toLowerCase();
+            munChecks.forEach(function(c) {
+                if (c.value.trim().toLowerCase() === alvo) c.checked = true;
+            });
+            atualizarLabelMunicipio();
+        }
+
         aplicarVisibilidade();
     </script>
     {% set guia_pagina = 'cadastro_modulos' %}{% include 'partials/guia_mascote.html' %}

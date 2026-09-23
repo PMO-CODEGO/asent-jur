@@ -12,7 +12,24 @@ def inicio_assent():
 @dashboard_bp.route('/assent/controle-area')
 @role_required('assent', 'admin', 'assent_gestor')
 def controle_area():
-    return render_template('controle_area.html')
+    import unicodedata
+    from app.services.municipio_service import listar_municipios
+    from app.routes.mapas_interativo import DISTRITOS_MAPA
+
+    def _sem_acentos(texto):
+        nfkd = unicodedata.normalize('NFKD', texto)
+        return ''.join(c for c in nfkd if not unicodedata.combining(c))
+
+    # município (nome sem acento, como está na tabela municipio) -> slug do distrito com
+    # mapa interativo, pra o seletor de município do Controle de Área saber pra onde ir.
+    slug_por_municipio = {
+        _sem_acentos(DISTRITOS.get(slug, {}).get('municipio', '')).strip().upper(): slug
+        for slug in DISTRITOS_MAPA
+        if DISTRITOS.get(slug)
+    }
+
+    return render_template('controle_area.html', municipios=listar_municipios(),
+                           slug_por_municipio=slug_por_municipio)
 
 def _carregar_tabela_parcelada(tabela):
     import re
