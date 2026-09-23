@@ -154,7 +154,7 @@
                 <i data-lucide="map-pin" style="width:26px;height:26px;"></i>
             </div>
             <h1>Escolher Município</h1>
-            <p>Municípios com <span style="color:#065f46;font-weight:700;">mapa interativo</span> abrem direto no mapa. Os demais abrem no Cadastro de Módulos, já filtrados.</p>
+            <p>Escolha o distrito que quer ver no mapa interativo.</p>
 
             <div class="busca-box">
                 <i data-lucide="search" style="width:16px;height:16px;color:#9ca3af;"></i>
@@ -162,14 +162,14 @@
             </div>
 
             <div class="lista-municipios" id="listaMunicipios">
-                {% for m in municipios %}
-                <div class="municipio-item" data-nome="{{ m|lower }}" onclick="irParaMunicipio('{{ m }}')">
-                    <span>{{ m }}</span>
-                    {% if m in slug_por_municipio %}<span class="map-tag"><i data-lucide="map" style="width:10px;height:10px;"></i> Mapa</span>{% endif %}
+                {% for d in distritos %}
+                <div class="municipio-item" data-nome="{{ d.nome|lower }}" onclick="window.location.href='{{ url_for('dashboard.distrito_detalhe', slug=d.slug) }}'">
+                    <span>{{ d.nome }}</span>
+                    <span class="map-tag"><i data-lucide="map" style="width:10px;height:10px;"></i> Mapa</span>
                 </div>
                 {% endfor %}
-                {% if not municipios %}
-                <div class="lista-vazia">Nenhum município cadastrado.</div>
+                {% if not distritos %}
+                <div class="lista-vazia">Nenhum distrito com mapa interativo ainda.</div>
                 {% endif %}
             </div>
         </div>
@@ -177,18 +177,6 @@
 
     <script>
         lucide.createIcons();
-
-        const slugPorMunicipio = {{ slug_por_municipio | tojson }};
-        const urlCadastroModulos = "{{ url_for('dashboard.cadastro_modulos') }}";
-
-        function normalizarMunicipio(nome) {
-            return nome.normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase();
-        }
-
-        function irParaMunicipio(nome) {
-            const slug = slugPorMunicipio[normalizarMunicipio(nome)];
-            window.location.href = slug ? ('/mapa-distritos/' + slug) : (urlCadastroModulos + '?municipio=' + encodeURIComponent(nome));
-        }
 
         function filtrarMunicipios(termo) {
             const t = termo.toLowerCase();

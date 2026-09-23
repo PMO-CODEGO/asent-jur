@@ -15,29 +15,20 @@ def controle_area():
     return render_template('controle_area.html')
 
 
-def _slug_por_municipio():
-    """Município (nome sem acento, como está na tabela municipio) -> slug do distrito com
-    mapa interativo, pra o seletor de município saber pra onde ir."""
-    import unicodedata
-    from app.routes.mapas_interativo import DISTRITOS_MAPA
-
-    def _sem_acentos(texto):
-        nfkd = unicodedata.normalize('NFKD', texto)
-        return ''.join(c for c in nfkd if not unicodedata.combining(c))
-
-    return {
-        _sem_acentos(DISTRITOS.get(slug, {}).get('municipio', '')).strip().upper(): slug
-        for slug in DISTRITOS_MAPA
-        if DISTRITOS.get(slug)
-    }
-
-
 @dashboard_bp.route('/assent/cadastro-modulos/escolher-municipio')
 @role_required('assent', 'admin', 'assent_gestor')
 def escolher_municipio_cadastro():
-    from app.services.municipio_service import listar_municipios
-    return render_template('escolher_municipio_cadastro.html', municipios=listar_municipios(),
-                           slug_por_municipio=_slug_por_municipio())
+    from app.routes.mapas_interativo import DISTRITOS_MAPA
+
+    distritos_com_mapa = sorted(
+        (
+            {'slug': slug, 'nome': DISTRITOS.get(slug, {}).get('municipio', slug),
+             'distrito_nome': DISTRITOS.get(slug, {}).get('nome', slug)}
+            for slug in DISTRITOS_MAPA if DISTRITOS.get(slug)
+        ),
+        key=lambda d: d['nome']
+    )
+    return render_template('escolher_municipio_cadastro.html', distritos=distritos_com_mapa)
 
 def _carregar_tabela_parcelada(tabela):
     import re
