@@ -208,17 +208,6 @@
         .sub-link-green { background-color: #d1fae5; color: #065f46; }
         .sub-link-green:hover { background-color: #a7f3d0; }
 
-        .sub-link-picker { position: relative; width: 100%; }
-        .sub-link-picker > button { width: 100%; border: none; cursor: pointer; font-family: inherit; }
-        .municipio-picker-panel { display: none; position: absolute; top: calc(100% + 6px); left: 0; right: 0; background: white; border: 1.5px solid #e5e7eb; border-radius: 10px; box-shadow: 0 12px 28px rgba(0,0,0,0.15); z-index: 50; text-align: left; overflow: hidden; }
-        .municipio-picker-panel.open { display: block; }
-        .municipio-picker-search { width: 100%; border: none; border-bottom: 1px solid #f3f4f6; padding: 10px 14px; font-size: 0.85rem; outline: none; font-family: inherit; }
-        .municipio-picker-list { max-height: 260px; overflow-y: auto; }
-        .municipio-picker-item { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 9px 14px; font-size: 0.83rem; color: #374151; cursor: pointer; }
-        .municipio-picker-item:hover { background: #f3f4f6; }
-        .municipio-picker-item .map-tag { display: inline-flex; align-items: center; gap: 4px; font-size: 0.68rem; font-weight: 700; color: #065f46; background: #d1fae5; padding: 2px 7px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.03em; }
-        .municipio-picker-empty { padding: 14px; text-align: center; color: #9ca3af; font-size: 0.82rem; }
-
         @media (max-width: 640px) {
             .cards { flex-direction: column; align-items: center; }
             .card { width: 100%; max-width: 320px; padding: 36px 28px; }
@@ -295,73 +284,17 @@
                         <span>Distritos em Regularização</span>
                         <i data-lucide="arrow-right" style="width:15px;height:15px;margin-left:auto;"></i>
                     </a>
-                    <div class="sub-link-picker">
-                        <button type="button" class="sub-link sub-link-amber" onclick="toggleMunicipioPicker(event)">
-                            <i data-lucide="package" style="width:15px;height:15px;flex-shrink:0;"></i>
-                            <span>Cadastro de Módulos</span>
-                            <i data-lucide="chevron-down" style="width:15px;height:15px;margin-left:auto;"></i>
-                        </button>
-                        <div class="municipio-picker-panel" id="municipioPickerPanel">
-                            <input type="text" class="municipio-picker-search" id="municipioPickerBusca"
-                                   placeholder="Buscar município..." oninput="filtrarMunicipioPicker(this.value)">
-                            <div class="municipio-picker-list" id="municipioPickerList">
-                                {% for m in municipios %}
-                                <div class="municipio-picker-item" data-nome="{{ m|lower }}" onclick="irParaMunicipio('{{ m }}')">
-                                    <span>{{ m }}</span>
-                                    {% if m in slug_por_municipio %}<span class="map-tag"><i data-lucide="map" style="width:10px;height:10px;"></i> Mapa</span>{% endif %}
-                                </div>
-                                {% endfor %}
-                                {% if not municipios %}
-                                <div class="municipio-picker-empty">Nenhum município cadastrado.</div>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
+                    <a href="{{ url_for('dashboard.escolher_municipio_cadastro') }}" class="sub-link sub-link-amber">
+                        <i data-lucide="package" style="width:15px;height:15px;flex-shrink:0;"></i>
+                        <span>Cadastro de Módulos</span>
+                        <i data-lucide="arrow-right" style="width:15px;height:15px;margin-left:auto;"></i>
+                    </a>
                 </div>
             </div>
         </div>
     </div>
 
-    <script>
-        lucide.createIcons();
-
-        const slugPorMunicipio = {{ slug_por_municipio | tojson }};
-        const urlCadastroModulos = "{{ url_for('dashboard.cadastro_modulos') }}";
-
-        function toggleMunicipioPicker(e) {
-            e.stopPropagation();
-            const painel = document.getElementById('municipioPickerPanel');
-            painel.classList.toggle('open');
-            if (painel.classList.contains('open')) {
-                document.getElementById('municipioPickerBusca').value = '';
-                filtrarMunicipioPicker('');
-                document.getElementById('municipioPickerBusca').focus();
-            }
-        }
-
-        function normalizarMunicipio(nome) {
-            return nome.normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase();
-        }
-
-        function irParaMunicipio(nome) {
-            const slug = slugPorMunicipio[normalizarMunicipio(nome)];
-            window.location.href = slug ? ('/mapa-distritos/' + slug) : (urlCadastroModulos + '?municipio=' + encodeURIComponent(nome));
-        }
-
-        function filtrarMunicipioPicker(termo) {
-            const t = termo.toLowerCase();
-            document.querySelectorAll('#municipioPickerList .municipio-picker-item').forEach(function(el) {
-                el.style.display = el.dataset.nome.indexOf(t) !== -1 ? '' : 'none';
-            });
-        }
-
-        document.addEventListener('click', function(e) {
-            const painel = document.getElementById('municipioPickerPanel');
-            if (painel && painel.classList.contains('open') && !e.target.closest('.sub-link-picker')) {
-                painel.classList.remove('open');
-            }
-        });
-    </script>
+    <script>lucide.createIcons();</script>
     {% set guia_pagina = 'controle_area' %}{% include 'partials/guia_mascote.html' %}
 </body>
 </html>

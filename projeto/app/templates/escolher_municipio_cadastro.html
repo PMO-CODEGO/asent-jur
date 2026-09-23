@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escolher Município - CODEGO</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='imagens_empresas/asentjur.png') }}" type="image/png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { height: 100%; font-family: 'Inter', sans-serif; background-color: #0f2a4a; overflow: hidden; }
+
+        .mapa-fundo {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            filter: blur(9px) brightness(0.85);
+            transform: scale(1.08);
+            pointer-events: none;
+        }
+        .mapa-fundo-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 42, 74, 0.55);
+            backdrop-filter: blur(1px);
+        }
+
+        .conteudo {
+            position: relative;
+            z-index: 10;
+            min-height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .voltar-flutuante {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 20;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            background: rgba(255,255,255,0.92);
+            color: #002b5c;
+            text-decoration: none;
+            padding: 9px 16px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 0.82rem;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+            transition: background-color 0.18s ease;
+        }
+        .voltar-flutuante:hover { background: #fff; }
+
+        .card-selecao {
+            width: 100%;
+            max-width: 440px;
+            background: rgba(255,255,255,0.98);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+            padding: 32px 28px;
+            text-align: center;
+        }
+        .card-selecao .icone {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: #eff6ff;
+            color: #002b5c;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+        }
+        .card-selecao h1 { font-size: 1.3rem; font-weight: 800; color: #002b5c; margin-bottom: 6px; }
+        .card-selecao p { font-size: 0.85rem; color: #6b7280; margin-bottom: 22px; }
+
+        .busca-box {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 11px 16px;
+            margin-bottom: 14px;
+            text-align: left;
+        }
+        .busca-box input {
+            border: none;
+            outline: none;
+            font-size: 0.92rem;
+            width: 100%;
+            font-family: inherit;
+        }
+
+        .lista-municipios {
+            max-height: 340px;
+            overflow-y: auto;
+            border-radius: 12px;
+            border: 1px solid #f3f4f6;
+            text-align: left;
+        }
+        .municipio-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 12px 16px;
+            font-size: 0.87rem;
+            font-weight: 600;
+            color: #1f2937;
+            cursor: pointer;
+            border-bottom: 1px solid #f3f4f6;
+            transition: background-color 0.12s ease;
+        }
+        .municipio-item:last-child { border-bottom: none; }
+        .municipio-item:hover { background: #f8faff; }
+        .municipio-item .map-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: #065f46;
+            background: #d1fae5;
+            padding: 3px 9px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            white-space: nowrap;
+        }
+        .lista-vazia { padding: 22px; text-align: center; color: #9ca3af; font-size: 0.85rem; }
+    </style>
+</head>
+<body>
+    <iframe class="mapa-fundo" src="{{ url_for('dashboard.distrito_detalhe', slug='inhumas') }}" tabindex="-1" aria-hidden="true"></iframe>
+    <div class="mapa-fundo-overlay"></div>
+
+    <a href="{{ url_for('dashboard.controle_area') }}" class="voltar-flutuante">
+        <i data-lucide="arrow-left" style="width:15px;height:15px;"></i>
+        Voltar
+    </a>
+
+    <div class="conteudo">
+        <div class="card-selecao">
+            <div class="icone">
+                <i data-lucide="map-pin" style="width:26px;height:26px;"></i>
+            </div>
+            <h1>Escolher Município</h1>
+            <p>Municípios com <span style="color:#065f46;font-weight:700;">mapa interativo</span> abrem direto no mapa. Os demais abrem no Cadastro de Módulos, já filtrados.</p>
+
+            <div class="busca-box">
+                <i data-lucide="search" style="width:16px;height:16px;color:#9ca3af;"></i>
+                <input type="text" id="buscaMunicipio" placeholder="Buscar município..." oninput="filtrarMunicipios(this.value)" autofocus>
+            </div>
+
+            <div class="lista-municipios" id="listaMunicipios">
+                {% for m in municipios %}
+                <div class="municipio-item" data-nome="{{ m|lower }}" onclick="irParaMunicipio('{{ m }}')">
+                    <span>{{ m }}</span>
+                    {% if m in slug_por_municipio %}<span class="map-tag"><i data-lucide="map" style="width:10px;height:10px;"></i> Mapa</span>{% endif %}
+                </div>
+                {% endfor %}
+                {% if not municipios %}
+                <div class="lista-vazia">Nenhum município cadastrado.</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        const slugPorMunicipio = {{ slug_por_municipio | tojson }};
+        const urlCadastroModulos = "{{ url_for('dashboard.cadastro_modulos') }}";
+
+        function normalizarMunicipio(nome) {
+            return nome.normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase();
+        }
+
+        function irParaMunicipio(nome) {
+            const slug = slugPorMunicipio[normalizarMunicipio(nome)];
+            window.location.href = slug ? ('/mapa-distritos/' + slug) : (urlCadastroModulos + '?municipio=' + encodeURIComponent(nome));
+        }
+
+        function filtrarMunicipios(termo) {
+            const t = termo.toLowerCase();
+            document.querySelectorAll('#listaMunicipios .municipio-item').forEach(function(el) {
+                el.style.display = el.dataset.nome.indexOf(t) !== -1 ? '' : 'none';
+            });
+        }
+    </script>
+</body>
+</html>
