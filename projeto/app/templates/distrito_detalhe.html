@@ -25,8 +25,6 @@
         .btn-topbar { text-decoration: none; padding: 9px 18px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; display: flex; align-items: center; gap: 7px; transition: background-color 0.18s ease, transform 0.18s ease; color: white; }
         .btn-back { background-color: #4b5563; }
         .btn-back:hover { background-color: #374151; transform: translateY(-1px); }
-        .btn-logs { background-color: #f59e0b; color: #1a202c; }
-        .btn-logs:hover { background-color: #d97706; transform: translateY(-1px); }
         .btn-logout { background-color: #ef4444; }
         .btn-logout:hover { background-color: #dc2626; transform: translateY(-1px); }
 
@@ -210,12 +208,6 @@
                 <i data-lucide="arrow-left" style="width:16px;height:16px;"></i>
                 Voltar ao Cadastro
             </a>
-            {% if session.get('role') == 'admin' %}
-            <a href="{{ url_for('logs.logs') }}" class="btn-topbar btn-logs">
-                <i data-lucide="database-zap" style="width:16px;height:16px;"></i>
-                Logs do Sistema
-            </a>
-            {% endif %}
             <a href="{{ url_for('auth_login.logout') }}" class="btn-topbar btn-logout">
                 <i data-lucide="log-out" style="width:16px;height:16px;"></i>
                 Sair
