@@ -577,6 +577,9 @@
                     }
                     window.camadasPorModulo = {};
                     let timerFecharPopup = null;
+                    let timerAbrirPopup = null;
+                    let ultimaPosicaoMouse = null;
+                    const ATRASO_ABRIR_POPUP_MS = 500;
                     // Se o pop-up ficaria cortado no topo do mapa (ou atrás do título), abre abaixo do ponto
                     function ajustarPosicaoPopup(popup) {
                         const el = popup.getElement();
@@ -609,10 +612,17 @@
                             layer.on('mouseover', function(e) {
                                 this.setStyle({ weight: 4, fillOpacity: 0.8 });
                                 clearTimeout(timerFecharPopup);
-                                if (!this.isPopupOpen()) this.openPopup(e.latlng);
+                                if (this.isPopupOpen()) return;
+                                // Espera o mouse parar um pouco em cima do lote antes de abrir
+                                const lote = this;
+                                ultimaPosicaoMouse = e.latlng;
+                                clearTimeout(timerAbrirPopup);
+                                timerAbrirPopup = setTimeout(function() { lote.openPopup(ultimaPosicaoMouse); }, ATRASO_ABRIR_POPUP_MS);
                             });
+                            layer.on('mousemove', function(e) { ultimaPosicaoMouse = e.latlng; });
                             layer.on('mouseout', function() {
                                 if (!this._destacado) camada.resetStyle(this);
+                                clearTimeout(timerAbrirPopup);
                                 agendarFecharPopup(this);
                             });
                             layer.on('popupopen', function(e) {
