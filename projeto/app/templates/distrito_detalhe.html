@@ -376,7 +376,6 @@
                             <th>Perímetro</th>
                             {% endif %}
                             <th>Área</th>
-                            <th>Coordenadas</th>
                             <th>Status</th>
                             {% if pode_editar_perimetros %}
                             <th>Ações</th>
@@ -390,7 +389,6 @@
                             <td>{{ p.perimetro or '-' }}</td>
                             {% endif %}
                             <td class="num">{{ p.area or '-' }}</td>
-                            <td>{{ p.coordenadas or '-' }}</td>
                             <td>
                                 {% if p.status == 'Livre' %}
                                 <span class="status-badge status-livre">Livre</span>
@@ -413,7 +411,7 @@
                         </tr>
                         {% endfor %}
                         {% if not perimetros %}
-                        {% set n_colunas = (3 if slug == 'inhumas' else 4) + (1 if pode_editar_perimetros else 0) %}
+                        {% set n_colunas = (2 if slug == 'inhumas' else 3) + (1 if pode_editar_perimetros else 0) %}
                         <tr>
                             <td colspan="{{ n_colunas }}" style="text-align:center;color:#9ca3af;padding:20px;">Nenhum perímetro cadastrado ainda.</td>
                         </tr>
@@ -572,10 +570,7 @@
                     <label for="campoArea">Área</label>
                     <input type="text" id="campoArea" name="area" maxlength="100">
                 </div>
-                <div class="form-group">
-                    <label for="campoCoordenadas">Coordenadas</label>
-                    <input type="text" id="campoCoordenadas" name="coordenadas" maxlength="100">
-                </div>
+                <input type="hidden" id="campoCoordenadas" name="coordenadas">
                 <div class="form-group">
                     <label for="campoStatus">Status</label>
                     <select id="campoStatus" name="status">
