@@ -370,7 +370,6 @@
                     <thead style="position:sticky; top:0; z-index:1;">
                         <tr>
                             <th></th>
-                            <th>Distrito</th>
                             <th>Quadra</th>
                             <th>Módulo</th>
                             <th>Matrícula</th>
@@ -387,7 +386,6 @@
                                     <i data-lucide="chevron-right" class="row-toggle-icon" style="width:14px;height:14px;"></i>
                                 </span>
                             </td>
-                            <td>{{ r.distrito or '-' }}</td>
                             <td>{{ r.quadra or '-' }}</td>
                             <td>{{ r.qtd_modulos or '-' }}</td>
                             <td>{{ r.matricula_modulo or '-' }}</td>
@@ -403,7 +401,7 @@
                             </td>
                         </tr>
                         <tr id="cm{{ r.id }}" class="detail-row" style="display:none;">
-                            <td colspan="8">
+                            <td colspan="7">
                                 <div class="detail-grid">
                                     <div class="detail-item detail-section-title">Cadastro do Imóvel</div>
                                     <div class="detail-item"><span class="detail-label">Código IBGE do Município</span><span class="detail-value">{{ r.codigo_ibge_municipio or '-' }}</span></div>
@@ -456,7 +454,7 @@
                         {% endfor %}
                         {% if not cadastro_modulos_inhumas %}
                         <tr>
-                            <td colspan="8" style="text-align:center;color:#9ca3af;padding:20px;">Nenhum registro encontrado.</td>
+                            <td colspan="7" style="text-align:center;color:#9ca3af;padding:20px;">Nenhum registro encontrado.</td>
                         </tr>
                         {% endif %}
                     </tbody>
