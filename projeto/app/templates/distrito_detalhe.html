@@ -641,6 +641,10 @@
                             const loteHtml = matriculas.length
                                 ? '<b>' + (matriculas.length === 1 ? 'Lote:' : 'Lotes (' + matriculas.length + '):') + '</b> ' + matriculas.join(', ') + '<br>'
                                 : '';
+                            // Desenhos que não são lote do cadastro (canal, mata...) mostram o nome escrito no DXF
+                            const identificacaoHtml = (!matriculas.length && props.rotulo)
+                                ? '<b>Identificação:</b> ' + props.rotulo + '<br>'
+                                : '';
                             const nomesSituacao = { 'LIVRE': 'Livre', 'ESCRITURADA': 'Escriturada', 'AREA COM ACAO JUDICIAL': 'Área com Ação Judicial' };
                             function nomeSituacao(st) { return st ? (nomesSituacao[st.toUpperCase()] || st) : 'Não informada'; }
                             const situacao = nomeSituacao(props.status_assentamento);
@@ -656,6 +660,7 @@
                             layer.bindPopup(
                                 '<div style="font-size:13px;line-height:1.5;">' +
                                 loteHtml +
+                                identificacaoHtml +
                                 (props.empresa ? '<b>Empresa:</b> ' + props.empresa + '<br>' : '') +
                                 '<b>Área:</b> ' + (props.area || 'Não informada') + '<br>' +
                                 '<b>Situação de Assentamento:</b> ' + situacao +

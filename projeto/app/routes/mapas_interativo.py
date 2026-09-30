@@ -43,10 +43,10 @@ def geojson(slug):
             cursor.execute(f"SELECT id, perimetro, area, coordenadas, status FROM {config['tabela']}")
             linhas = cursor.fetchall()
 
-            # Resolve id_modulo -> id/status do Cadastro de Módulos, pra virar link clicável e
-            # colorir o polígono pela situação de assentamento real (ver bloco "modulos" nas
-            # properties do .geojson, vindo da planilha de correspondência entre agrupamento do
-            # DXF e id_modulo real).
+            # Resolve id_modulo -> matrícula/empresa/situação do Cadastro de Módulos, pra montar o
+            # pop-up e colorir o polígono pela situação de assentamento real (ver "modulos" nas
+            # properties do .geojson, que vem do código do lote escrito no DXF — ver
+            # scripts/gerar_geojson_inhumas.py).
             dados_por_modulo = {}
             todos_modulos = {
                 m for feature in geojson_data.get('features', [])
@@ -55,7 +55,7 @@ def geojson(slug):
             if todos_modulos:
                 formato = ', '.join(['%s'] * len(todos_modulos))
                 cursor.execute(
-                    f"SELECT id, id_modulo, matricula_modulo, status_de_assentamento FROM municipal_lots WHERE id_modulo IN ({formato})",
+                    f"SELECT id, id_modulo, matricula_modulo, empresa, status_de_assentamento FROM municipal_lots WHERE id_modulo IN ({formato})",
                     tuple(todos_modulos)
                 )
                 dados_por_modulo = {row['id_modulo']: row for row in cursor.fetchall()}
@@ -87,12 +87,25 @@ def geojson(slug):
             else:
                 feature['properties']['status_assentamento'] = situacoes.pop() if len(situacoes) == 1 else None
 
+            empresas = []
+            for m in modulos:
+                empresa = (dados_por_modulo.get(m) or {}).get('empresa')
+                if empresa and empresa not in empresas:
+                    empresas.append(empresa)
+            feature['properties']['empresa'] = ' / '.join(empresas) or None
+
         poly_id = str(feature.get('id') or feature.get('properties', {}).get('id'))
         info = dados_por_id.get(poly_id)
         if info:
             feature['properties']['perimetro'] = info.get('perimetro')
             feature['properties']['area'] = info.get('area')
             feature['properties']['status'] = info.get('status')
+        # Polígono sem linha na tabela (ou sem área preenchida): usa a área medida no desenho
+        area_m2 = feature.get('properties', {}).get('area_m2')
+        if not feature['properties'].get('area') and area_m2 is not None:
+            feature['properties']['area'] = (
+                '{:,.2f}'.format(area_m2).replace(',', 'X').replace('.', ',').replace('X', '.') + ' m²'
+            )
 
     return jsonify({'sucesso': True, 'dados': geojson_data})
 

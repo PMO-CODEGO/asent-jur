@@ -10,11 +10,12 @@ Uso típico, para gerar/atualizar o mapa de um distrito a partir de um novo DXF:
 
     from app.services.dxf_geojson_service import converter_dxf_para_features
 
-    features = converter_dxf_para_features('MAPA X-R01.dxf', layer_poligonos='URB DES_MOD', layer_ids='ID_AR')
+    features = converter_dxf_para_features('MAPA X-R01.dxf', layer_poligonos='URB DES_MOD', layer_ids='URB ID_MOD')
     # features: lista de dicts {"id": <int sequencial>, "rotulo": <str ou None>, "area_m2": <float>,
     #            "geometry": <geometria GeoJSON (dict)>}
-    # a partir daqui: salvar geometry em app/static/geo/<slug>.geojson (ver gerar_mapa_distrito.py)
-    # e popular a tabela mapas_interativo_<slug> com id/rotulo/area_m2.
+    # a partir daqui: salvar geometry em app/static/geo/<slug>.geojson e popular a tabela
+    # mapas_interativo_<slug> com id/rotulo/area_m2 (exemplo completo, para Inhumas:
+    # scripts/gerar_geojson_inhumas.py).
 """
 import math
 
