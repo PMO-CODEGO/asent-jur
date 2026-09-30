@@ -115,6 +115,9 @@
         .filtro-group .search-box input { border: none; outline: none; font-size: 0.85rem; width: 100%; background: transparent; }
         .btn-limpar-filtro { display: inline-flex; align-items: center; gap: 6px; background: #f3f4f6; color: #4b5563; border: none; padding: 9px 14px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: background-color 0.15s ease; }
         .btn-limpar-filtro:hover { background: #e5e7eb; }
+        .btn-ver-mapa { display: inline-flex; align-items: center; gap: 5px; background: #eff6ff; color: #002b5c; border: none; padding: 5px 10px; border-radius: 7px; font-size: 0.74rem; font-weight: 600; font-family: 'Inter', sans-serif; cursor: pointer; white-space: nowrap; transition: background-color 0.15s ease; }
+        .btn-ver-mapa:hover { background: #dbeafe; }
+        .btn-ver-mapa:disabled { background: #f3f4f6; color: #9ca3af; cursor: not-allowed; }
         .split-row { display: flex; gap: 20px; align-items: stretch; margin-bottom: 20px; }
         .split-col { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; }
 
@@ -378,6 +381,7 @@
                             <th class="num">Tamanho (m²)</th>
                             <th class="col-center">Status Assent.</th>
                             <th>Regular/Irregular</th>
+                            <th class="col-center">Mapa</th>
                         </tr>
                     </thead>
                     <tbody id="tbody-cadastro-inhumas">
@@ -405,9 +409,16 @@
                                 <span class="status-badge status-ocupado">Irregular</span>
                                 {% else %}-{% endif %}
                             </td>
+                            <td class="col-center">
+                                {% if r.id_modulo %}
+                                <button type="button" class="btn-ver-mapa" data-id-modulo="{{ r.id_modulo }}" onclick="event.stopPropagation(); verLoteNoMapa(this.dataset.idModulo)">
+                                    <i data-lucide="map-pin" style="width:13px;height:13px;"></i> Ver no mapa
+                                </button>
+                                {% else %}-{% endif %}
+                            </td>
                         </tr>
                         <tr id="cm{{ r.id }}" class="detail-row" style="display:none;">
-                            <td colspan="7">
+                            <td colspan="8">
                                 <div class="detail-grid">
                                     <div class="detail-item detail-section-title">Cadastro do Imóvel</div>
                                     <div class="detail-item"><span class="detail-label">Código IBGE do Município</span><span class="detail-value">{{ r.codigo_ibge_municipio or '-' }}</span></div>
@@ -460,7 +471,7 @@
                         {% endfor %}
                         {% if not cadastro_modulos_inhumas %}
                         <tr>
-                            <td colspan="7" style="text-align:center;color:#9ca3af;padding:20px;">Nenhum registro encontrado.</td>
+                            <td colspan="8" style="text-align:center;color:#9ca3af;padding:20px;">Nenhum registro encontrado.</td>
                         </tr>
                         {% endif %}
                     </tbody>
@@ -562,6 +573,7 @@
                         console.error('Erro ao carregar geojson:', res.erro);
                         return;
                     }
+                    window.camadasPorModulo = {};
                     const camada = L.geoJSON(res.dados, {
                         style: function(feature) {
                             const cor = corPoligono(feature.properties || {});
@@ -570,7 +582,8 @@
                         onEachFeature: function(feature, layer) {
                             const props = feature.properties || {};
                             layer.on('mouseover', function() { this.setStyle({ weight: 4, fillOpacity: 0.8 }); });
-                            layer.on('mouseout', function() { camada.resetStyle(this); });
+                            layer.on('mouseout', function() { if (!this._destacado) camada.resetStyle(this); });
+                            (props.modulos || []).forEach(function(m) { window.camadasPorModulo[m] = layer; });
 
                             let modulosHtml = '';
                             if (props.modulos_detalhe && props.modulos_detalhe.length) {
@@ -606,11 +619,41 @@
                             {% endif %}
                         }
                     }).addTo(map);
+                    window.mapaCamada = camada;
                     window.mapaDaiaBounds = camada.getBounds();
                     map.fitBounds(window.mapaDaiaBounds);
+                    document.querySelectorAll('.btn-ver-mapa').forEach(function(btn) {
+                        if (!window.camadasPorModulo[btn.dataset.idModulo]) {
+                            btn.disabled = true;
+                            btn.title = 'Este lote não tem desenho no mapa';
+                        }
+                    });
                 })
                 .catch(function(err) { console.error('Erro ao carregar o mapa:', err); });
         })();
+
+        let loteDestacado = null;
+        function verLoteNoMapa(idModulo) {
+            const layer = window.camadasPorModulo && window.camadasPorModulo[idModulo];
+            if (!layer) return;
+            const map = window.mapaDaia;
+            if (loteDestacado && loteDestacado !== layer) {
+                loteDestacado._destacado = false;
+                window.mapaCamada.resetStyle(loteDestacado);
+            }
+            document.getElementById('mapaCanvasDaia').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            map.fitBounds(layer.getBounds(), { padding: [80, 80] });
+            layer._destacado = true;
+            layer.setStyle({ color: '#002b5c', weight: 5, fillOpacity: 0.85 });
+            layer.bringToFront();
+            loteDestacado = layer;
+            layer.openPopup();
+            layer.once('popupclose', function() {
+                layer._destacado = false;
+                window.mapaCamada.resetStyle(layer);
+                if (loteDestacado === layer) loteDestacado = null;
+            });
+        }
 
         function toggleFullscreenMapa() {
             const el = document.getElementById('mapaCanvasDaia');
