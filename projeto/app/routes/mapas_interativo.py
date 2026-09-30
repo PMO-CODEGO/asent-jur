@@ -55,7 +55,7 @@ def geojson(slug):
             if todos_modulos:
                 formato = ', '.join(['%s'] * len(todos_modulos))
                 cursor.execute(
-                    f"SELECT id, id_modulo, status_de_assentamento FROM municipal_lots WHERE id_modulo IN ({formato})",
+                    f"SELECT id, id_modulo, matricula_modulo, status_de_assentamento FROM municipal_lots WHERE id_modulo IN ({formato})",
                     tuple(todos_modulos)
                 )
                 dados_por_modulo = {row['id_modulo']: row for row in cursor.fetchall()}
@@ -69,6 +69,7 @@ def geojson(slug):
                 {
                     'id_modulo': m,
                     'registro_id': (dados_por_modulo.get(m) or {}).get('id'),
+                    'matricula': (dados_por_modulo.get(m) or {}).get('matricula_modulo'),
                     'status_assentamento': (dados_por_modulo.get(m) or {}).get('status_de_assentamento'),
                 }
                 for m in modulos

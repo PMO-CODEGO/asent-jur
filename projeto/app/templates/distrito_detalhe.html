@@ -93,6 +93,7 @@
 }
         .map-canvas-title { z-index: 1000; }
         .map-leaflet { width: 100%; height: 100%; background-color: #ffffff; border-radius: 12px; }
+        .popup-abaixo .leaflet-popup-tip-container { display: none; }
         .map-legend { position: absolute; bottom: 14px; right: 14px; background: rgba(255,255,255,0.95); padding: 10px 14px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); font-size: 0.78rem; z-index: 1000; }
         .map-legend-item { display: flex; align-items: center; gap: 8px; color: #374151; }
         .map-legend-item + .map-legend-item { margin-top: 5px; }
@@ -123,6 +124,7 @@
 
         @media (max-width: 900px) {
             .split-row { flex-direction: column; }
+            .split-col { flex: none; }
         }
         .map-area-icon { width: 60px; height: 60px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         .map-area p { font-size: 0.88rem; font-weight: 600; color: #64748b; }
@@ -574,6 +576,27 @@
                         return;
                     }
                     window.camadasPorModulo = {};
+                    let timerFecharPopup = null;
+                    // Se o pop-up ficaria cortado no topo do mapa (ou atrás do título), abre abaixo do ponto
+                    function ajustarPosicaoPopup(popup) {
+                        const el = popup.getElement();
+                        el.classList.remove('popup-abaixo');
+                        popup.options.offset = L.point(0, 7);
+                        popup.update();
+                        const topoMapa = map.getContainer().getBoundingClientRect().top;
+                        const caixa = el.getBoundingClientRect();
+                        if (caixa.top < topoMapa + 70) {
+                            popup.options.offset = L.point(0, caixa.height + 24);
+                            el.classList.add('popup-abaixo');
+                            popup.update();
+                        }
+                    }
+                    function agendarFecharPopup(layer) {
+                        clearTimeout(timerFecharPopup);
+                        timerFecharPopup = setTimeout(function() {
+                            if (!layer._destacado) layer.closePopup();
+                        }, 300);
+                    }
                     const camada = L.geoJSON(res.dados, {
                         style: function(feature) {
                             const cor = corPoligono(feature.properties || {});
@@ -581,8 +604,26 @@
                         },
                         onEachFeature: function(feature, layer) {
                             const props = feature.properties || {};
-                            layer.on('mouseover', function() { this.setStyle({ weight: 4, fillOpacity: 0.8 }); });
-                            layer.on('mouseout', function() { if (!this._destacado) camada.resetStyle(this); });
+                            // Pop-up abre ao passar o mouse e fecha ao sair (com uma folga para dar
+                            // tempo de levar o mouse até o pop-up e clicar nos links dos módulos)
+                            layer.on('mouseover', function(e) {
+                                this.setStyle({ weight: 4, fillOpacity: 0.8 });
+                                clearTimeout(timerFecharPopup);
+                                if (!this.isPopupOpen()) this.openPopup(e.latlng);
+                            });
+                            layer.on('mouseout', function() {
+                                if (!this._destacado) camada.resetStyle(this);
+                                agendarFecharPopup(this);
+                            });
+                            layer.on('popupopen', function(e) {
+                                const el = e.popup.getElement();
+                                if (!el._hoverConfigurado) {
+                                    el._hoverConfigurado = true;
+                                    el.addEventListener('mouseenter', function() { clearTimeout(timerFecharPopup); });
+                                    el.addEventListener('mouseleave', function() { agendarFecharPopup(layer); });
+                                }
+                                ajustarPosicaoPopup(e.popup);
+                            });
                             (props.modulos || []).forEach(function(m) { window.camadasPorModulo[m] = layer; });
 
                             let modulosHtml = '';
@@ -598,6 +639,10 @@
                             }
 
                             {% if slug == 'inhumas' %}
+                            const matriculas = (props.modulos_detalhe || []).map(function(m) { return m.matricula; }).filter(Boolean);
+                            const loteHtml = matriculas.length
+                                ? '<b>' + (matriculas.length === 1 ? 'Lote:' : 'Lotes (' + matriculas.length + '):') + '</b> ' + matriculas.join(', ') + '<br>'
+                                : '';
                             const nomesSituacao = { 'LIVRE': 'Livre', 'ESCRITURADA': 'Escriturada', 'AREA COM ACAO JUDICIAL': 'Área com Ação Judicial' };
                             function nomeSituacao(st) { return st ? (nomesSituacao[st.toUpperCase()] || st) : 'Não informada'; }
                             const situacao = nomeSituacao(props.status_assentamento);
@@ -606,18 +651,20 @@
                             const detalhes = props.modulos_detalhe || [];
                             const situacoesDistintas = new Set(detalhes.map(function(m) { return m.status_assentamento || ''; }));
                             if (situacoesDistintas.size > 1) {
-                                situacaoPorModuloHtml = '<div style="margin-top:4px;padding-top:4px;border-top:1px solid #e5e7eb;"><b>Situação por módulo:</b><br>' +
-                                    detalhes.map(function(m) { return m.id_modulo + ': ' + nomeSituacao(m.status_assentamento); }).join('<br>') +
+                                situacaoPorModuloHtml = '<div style="margin-top:4px;padding-top:4px;border-top:1px solid #e5e7eb;"><b>Situação por lote:</b><br>' +
+                                    detalhes.map(function(m) { return 'Lote ' + (m.matricula || m.id_modulo) + ': ' + nomeSituacao(m.status_assentamento); }).join('<br>') +
                                     '</div>';
                             }
                             layer.bindPopup(
                                 '<div style="font-size:13px;line-height:1.5;">' +
+                                loteHtml +
                                 (props.empresa ? '<b>Empresa:</b> ' + props.empresa + '<br>' : '') +
                                 modulosHtml +
                                 '<b>Área:</b> ' + (props.area || 'Não informada') + '<br>' +
                                 '<b>Situação de Assentamento:</b> ' + situacao +
                                 situacaoPorModuloHtml +
-                                '</div>'
+                                '</div>',
+                                { autoPan: false }
                             );
                             {% else %}
                             layer.bindPopup(
@@ -625,7 +672,8 @@
                                 '<b>Perímetro:</b> ' + (props.perimetro || 'Não informado') + '<br>' +
                                 '<b>Área:</b> ' + (props.area || 'Não informada') + '<br>' +
                                 '<b>Status:</b> ' + (props.status || 'Desconhecido') +
-                                '</div>'
+                                '</div>',
+                                { autoPan: false }
                             );
                             {% endif %}
                         }
