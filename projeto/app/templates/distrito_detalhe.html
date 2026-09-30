@@ -599,13 +599,24 @@
 
                             {% if slug == 'inhumas' %}
                             const nomesSituacao = { 'LIVRE': 'Livre', 'ESCRITURADA': 'Escriturada', 'AREA COM ACAO JUDICIAL': 'Área com Ação Judicial' };
-                            const situacao = props.status_assentamento ? (nomesSituacao[props.status_assentamento.toUpperCase()] || props.status_assentamento) : 'Não informada';
+                            function nomeSituacao(st) { return st ? (nomesSituacao[st.toUpperCase()] || st) : 'Não informada'; }
+                            const situacao = nomeSituacao(props.status_assentamento);
+                            // Quando os módulos do mesmo desenho têm situações diferentes, mostra cada uma
+                            let situacaoPorModuloHtml = '';
+                            const detalhes = props.modulos_detalhe || [];
+                            const situacoesDistintas = new Set(detalhes.map(function(m) { return m.status_assentamento || ''; }));
+                            if (situacoesDistintas.size > 1) {
+                                situacaoPorModuloHtml = '<div style="margin-top:4px;padding-top:4px;border-top:1px solid #e5e7eb;"><b>Situação por módulo:</b><br>' +
+                                    detalhes.map(function(m) { return m.id_modulo + ': ' + nomeSituacao(m.status_assentamento); }).join('<br>') +
+                                    '</div>';
+                            }
                             layer.bindPopup(
                                 '<div style="font-size:13px;line-height:1.5;">' +
                                 (props.empresa ? '<b>Empresa:</b> ' + props.empresa + '<br>' : '') +
                                 modulosHtml +
                                 '<b>Área:</b> ' + (props.area || 'Não informada') + '<br>' +
                                 '<b>Situação de Assentamento:</b> ' + situacao +
+                                situacaoPorModuloHtml +
                                 '</div>'
                             );
                             {% else %}

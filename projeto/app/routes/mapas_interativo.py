@@ -66,13 +66,25 @@ def geojson(slug):
         modulos = feature.get('properties', {}).get('modulos')
         if modulos:
             feature['properties']['modulos_detalhe'] = [
-                {'id_modulo': m, 'registro_id': (dados_por_modulo.get(m) or {}).get('id')} for m in modulos
+                {
+                    'id_modulo': m,
+                    'registro_id': (dados_por_modulo.get(m) or {}).get('id'),
+                    'status_assentamento': (dados_por_modulo.get(m) or {}).get('status_de_assentamento'),
+                }
+                for m in modulos
             ]
-            # Situação de assentamento do polígono: só atribui uma cor certa quando todos os
-            # módulos daquele grupo compartilham a mesma situação; se estiver misto (ou faltando
-            # dado), deixa null em vez de chutar uma das situações.
+            # Situação de assentamento do polígono: se algum módulo do grupo tem ação judicial,
+            # o polígono inteiro fica como ação judicial (é o que mais precisa aparecer no mapa).
+            # Fora isso, só atribui uma situação quando todos os módulos compartilham a mesma;
+            # se estiver misto (ou faltando dado), deixa null em vez de chutar uma delas.
             situacoes = {(dados_por_modulo.get(m) or {}).get('status_de_assentamento') for m in modulos}
-            feature['properties']['status_assentamento'] = situacoes.pop() if len(situacoes) == 1 else None
+            acao_judicial = next(
+                (s for s in situacoes if s and s.strip().upper() == 'AREA COM ACAO JUDICIAL'), None
+            )
+            if acao_judicial:
+                feature['properties']['status_assentamento'] = acao_judicial
+            else:
+                feature['properties']['status_assentamento'] = situacoes.pop() if len(situacoes) == 1 else None
 
         poly_id = str(feature.get('id') or feature.get('properties', {}).get('id'))
         info = dados_por_id.get(poly_id)
