@@ -61,6 +61,8 @@
         .badge-em-breve { background-color: #fef3c7; color: #92400e; font-size: 0.68rem; font-weight: 700; padding: 3px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.04em; }
         .badge-count { background-color: #d1fae5; color: #065f46; font-size: 0.68rem; font-weight: 700; padding: 3px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.04em; }
         .map-area { flex: 1 1 auto; min-height: 320px; padding: 18px; display: flex; }
+        .map-area-grande { height: 640px; }
+        @media (max-width: 900px) { .map-area-grande { height: 460px; } }
         .map-canvas { position: relative; width: 100%; flex: 1; background: linear-gradient(135deg, #e8edf5 0%, #d1daea 100%); border: 1px dashed #c2cde0; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; color: #94a3b8; overflow: hidden; }
         .map-canvas-title {
     position: absolute;
@@ -177,27 +179,7 @@
             .detail-grid { grid-template-columns: repeat(2, 1fr); }
         }
 
-        .btn-add-perimetro { display: inline-flex; align-items: center; gap: 6px; background-color: #002b5c; color: white; border: none; padding: 7px 14px; border-radius: 8px; font-size: 0.78rem; font-weight: 600; cursor: pointer; transition: background-color 0.18s ease; }
-        .btn-add-perimetro:hover { background-color: #001f42; }
-        .perimetros-table td.actions-cell { white-space: nowrap; }
-        .btn-action { border: none; background: none; cursor: pointer; padding: 5px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; transition: background-color 0.15s ease; }
-        .btn-action.btn-edit { color: #2563eb; }
-        .btn-action.btn-edit:hover { background-color: #dbeafe; }
-        .btn-action.btn-del { color: #dc2626; }
-        .btn-action.btn-del:hover { background-color: #fee2e2; }
 
-        .modal-backdrop { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:2000; align-items:center; justify-content:center; }
-        .modal-backdrop.open { display:flex; }
-        .modal { background:white; border-radius:16px; padding:28px; max-width:440px; width:90%; box-shadow:0 8px 40px rgba(0,0,0,0.2); }
-        .modal h3 { font-size:1.1rem; font-weight:700; color:#002b5c; margin-bottom:18px; }
-        .form-group { margin-bottom:14px; }
-        .form-group label { display:block; font-size:0.78rem; font-weight:700; color:#374151; margin-bottom:5px; }
-        .form-group input, .form-group select { width:100%; padding:9px 12px; border:1px solid #d1d5db; border-radius:8px; font-size:0.85rem; font-family:'Inter',sans-serif; color:#1f2937; }
-        .form-group input:focus, .form-group select:focus { outline:none; border-color:#002b5c; }
-        .modal-actions { display:flex; justify-content:flex-end; gap:12px; margin-top:20px; }
-        .modal-btn-cancel { padding:8px 20px; border-radius:8px; font-weight:600; color:#6b7280; background:#f3f4f6; border:none; cursor:pointer; }
-        .modal-btn-save { padding:8px 20px; border-radius:8px; font-weight:600; color:white; background:#002b5c; border:none; cursor:pointer; display:flex; align-items:center; gap:6px; }
-        .modal-btn-del { padding:8px 20px; border-radius:8px; font-weight:600; color:white; background:#dc2626; border:none; cursor:pointer; display:flex; align-items:center; gap:6px; }
 
         @media (max-width: 768px) {
             .page-body { padding: 16px; }
@@ -283,7 +265,6 @@
             </div>
         </div>
 
-        {% set pode_editar_perimetros = session.get('role') in ['assent', 'admin', 'assent_gestor'] %}
 
         <div class="split-row">
         <div class="map-placeholder split-col">
@@ -298,7 +279,7 @@
                 <span class="badge-em-breve">Em breve</span>
                 {% endif %}
             </div>
-            <div class="map-area">
+            <div class="map-area{% if slug in slugs_com_mapa %} map-area-grande{% endif %}">
                 <div class="map-canvas" id="mapaCanvasDaia">
                     {% if slug in slugs_com_mapa and slug != 'inhumas' %}
                     <button type="button" class="map-fullscreen-btn" id="btnFullscreenMapa" title="Tela cheia" onclick="toggleFullscreenMapa()">
@@ -351,76 +332,6 @@
             </div>
         </div>
 
-        {% if slug in slugs_com_mapa %}
-        <div class="map-placeholder split-col">
-            <div class="map-placeholder-header">
-                <h2>
-                    <i data-lucide="layout-grid" style="width:16px;height:16px;"></i>
-                    Perímetros e Áreas Mapeadas
-                </h2>
-                <div style="display:flex;align-items:center;gap:10px;">
-                    <span class="badge-count">{{ perimetros|length }} {{ 'área' if perimetros|length == 1 else 'áreas' }}</span>
-                    {% if pode_editar_perimetros %}
-                    <button type="button" class="btn-add-perimetro" onclick="abrirModalPerimetro()">
-                        <i data-lucide="plus" style="width:14px;height:14px;"></i>
-                        Novo Perímetro
-                    </button>
-                    {% endif %}
-                </div>
-            </div>
-            <div style="overflow-x:auto; overflow-y:auto; max-height:420px;">
-                <table class="perimetros-table">
-                    <thead style="position:sticky; top:0; z-index:1;">
-                        <tr>
-                            {% if slug != 'inhumas' %}
-                            <th>Perímetro</th>
-                            {% endif %}
-                            <th>Área</th>
-                            <th>Status</th>
-                            {% if pode_editar_perimetros %}
-                            <th>Ações</th>
-                            {% endif %}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for p in perimetros %}
-                        <tr>
-                            {% if slug != 'inhumas' %}
-                            <td>{{ p.perimetro or '-' }}</td>
-                            {% endif %}
-                            <td class="num">{{ p.area or '-' }}</td>
-                            <td>
-                                {% if p.status == 'Livre' %}
-                                <span class="status-badge status-livre">Livre</span>
-                                {% elif p.status == 'Ocupado' %}
-                                <span class="status-badge status-ocupado">Ocupado</span>
-                                {% else %}
-                                -
-                                {% endif %}
-                            </td>
-                            {% if pode_editar_perimetros %}
-                            <td class="actions-cell">
-                                <button type="button" class="btn-action btn-edit" title="Editar" onclick="abrirModalPerimetro({{ p.id }}, '{{ (p.perimetro or '') | replace("'", "") }}', '{{ (p.area or '') | replace("'", "") }}', '{{ (p.coordenadas or '') | replace("'", "") }}', '{{ p.status or '' }}')">
-                                    <i data-lucide="pencil" style="width:15px;height:15px;"></i>
-                                </button>
-                                <button type="button" class="btn-action btn-del" title="Excluir" onclick="abrirModalExcluirPerimetro({{ p.id }}, '{{ (p.perimetro or 'este registro') | replace("'", "") }}')">
-                                    <i data-lucide="trash-2" style="width:15px;height:15px;"></i>
-                                </button>
-                            </td>
-                            {% endif %}
-                        </tr>
-                        {% endfor %}
-                        {% if not perimetros %}
-                        {% set n_colunas = (2 if slug == 'inhumas' else 3) + (1 if pode_editar_perimetros else 0) %}
-                        <tr>
-                            <td colspan="{{ n_colunas }}" style="text-align:center;color:#9ca3af;padding:20px;">Nenhum perímetro cadastrado ainda.</td>
-                        </tr>
-                        {% endif %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        {% endif %}
         </div>
 
         {% if slug == 'inhumas' %}
@@ -555,67 +466,6 @@
         {% endif %}
     </div>
 
-    {% if slug in slugs_com_mapa and pode_editar_perimetros %}
-    <!-- Modal de novo/editar perímetro -->
-    <div id="modalPerimetro" class="modal-backdrop">
-        <div class="modal">
-            <h3 id="modalPerimetroTitulo">Novo Perímetro</h3>
-            <form id="formPerimetro" method="POST">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <div class="form-group">
-                    <label for="campoPerimetro">Perímetro</label>
-                    <input type="text" id="campoPerimetro" name="perimetro" maxlength="255">
-                </div>
-                <div class="form-group">
-                    <label for="campoArea">Área</label>
-                    <input type="text" id="campoArea" name="area" maxlength="100">
-                </div>
-                <input type="hidden" id="campoCoordenadas" name="coordenadas">
-                <div class="form-group">
-                    <label for="campoStatus">Status</label>
-                    <select id="campoStatus" name="status">
-                        <option value="">-</option>
-                        <option value="Livre">Livre</option>
-                        <option value="Ocupado">Ocupado</option>
-                    </select>
-                </div>
-                <div class="modal-actions">
-                    <button type="button" class="modal-btn-cancel" onclick="fecharModalPerimetro()">Cancelar</button>
-                    <button type="submit" class="modal-btn-save">
-                        <i data-lucide="check" style="width:14px;height:14px;"></i> Salvar
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Modal de exclusão de perímetro -->
-    <div id="modalExcluirPerimetro" class="modal-backdrop">
-        <div class="modal">
-            <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
-                <div style="background:#fee2e2;border-radius:50%;padding:8px;">
-                    <i data-lucide="trash-2" style="width:20px;height:20px;color:#991b1b;"></i>
-                </div>
-                <h3 style="margin-bottom:0;">Confirmar exclusão</h3>
-            </div>
-            <p style="color:#6b7280;font-size:0.9rem;margin-bottom:8px;">Você está prestes a excluir permanentemente:</p>
-            <p id="modalExcluirPerimetroDescricao" style="font-weight:700;color:#002b5c;margin-bottom:16px;font-size:0.95rem;"></p>
-            <p style="font-size:0.8rem;color:#991b1b;background:#fff1f1;border:1px solid #fecaca;border-radius:8px;padding:10px;margin-bottom:20px;">
-                Esta ação não pode ser desfeita.
-            </p>
-            <form id="formExcluirPerimetro" method="POST">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <div class="modal-actions">
-                    <button type="button" class="modal-btn-cancel" onclick="fecharModalExcluirPerimetro()">Cancelar</button>
-                    <button type="submit" class="modal-btn-del">
-                        <i data-lucide="trash-2" style="width:14px;height:14px;"></i> Excluir
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-    {% endif %}
-
     <script>
         lucide.createIcons();
 
@@ -698,7 +548,7 @@
                 return corStatus(props.status);
             }
 
-            window.mapaDaia = L.map('mapaLeaflet', { crs: L.CRS.Simple, minZoom: -5, maxZoom: 5, attributionControl: false });
+            window.mapaDaia = L.map('mapaLeaflet', { crs: L.CRS.Simple, minZoom: -5, maxZoom: 5, zoomSnap: 0.1, attributionControl: false });
             const map = window.mapaDaia;
 
             fetch("{{ url_for('mapas_interativo.geojson', slug=slug) }}")
@@ -796,49 +646,6 @@
         document.addEventListener('webkitfullscreenchange', atualizarIconeFullscreen);
         {% endif %}
 
-        {% if slug in slugs_com_mapa and pode_editar_perimetros %}
-        function abrirModalPerimetro(id, perimetro, area, coordenadas, status) {
-            const form = document.getElementById('formPerimetro');
-            const titulo = document.getElementById('modalPerimetroTitulo');
-            if (id === undefined) {
-                titulo.textContent = 'Novo Perímetro';
-                form.action = "{{ url_for('mapas_interativo.novo', slug=slug) }}";
-                form.reset();
-            } else {
-                titulo.textContent = 'Editar Perímetro';
-                form.action = '/mapa-distritos/{{ slug }}/perimetros/' + id + '/editar';
-                document.getElementById('campoPerimetro').value = perimetro || '';
-                document.getElementById('campoArea').value = area || '';
-                document.getElementById('campoCoordenadas').value = coordenadas || '';
-                document.getElementById('campoStatus').value = status || '';
-            }
-            document.getElementById('modalPerimetro').classList.add('open');
-        }
-
-        function fecharModalPerimetro() {
-            document.getElementById('modalPerimetro').classList.remove('open');
-        }
-
-        function abrirModalExcluirPerimetro(id, descricao) {
-            document.getElementById('modalExcluirPerimetroDescricao').textContent = descricao;
-            document.getElementById('formExcluirPerimetro').action = '/mapa-distritos/{{ slug }}/perimetros/' + id + '/excluir';
-            document.getElementById('modalExcluirPerimetro').classList.add('open');
-        }
-
-        function fecharModalExcluirPerimetro() {
-            document.getElementById('modalExcluirPerimetro').classList.remove('open');
-        }
-
-        document.getElementById('modalPerimetro').addEventListener('click', function(e) {
-            if (e.target === this) fecharModalPerimetro();
-        });
-        document.getElementById('modalExcluirPerimetro').addEventListener('click', function(e) {
-            if (e.target === this) fecharModalExcluirPerimetro();
-        });
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') { fecharModalPerimetro(); fecharModalExcluirPerimetro(); }
-        });
-        {% endif %}
     </script>
 
     {% set guia_pagina = 'distrito_detalhe' %}{% include 'partials/guia_mascote.html' %}
