@@ -701,7 +701,10 @@
                 window.mapaCamada.resetStyle(loteDestacado);
             }
             document.getElementById('mapaCanvasDaia').scrollIntoView({ behavior: 'smooth', block: 'center' });
-            map.fitBounds(layer.getBounds(), { padding: [80, 80] });
+            // Aproxima só um pouco além da visão geral, para o lote aparecer destacado sem perder o contexto
+            const zoomGeral = map.getBoundsZoom(window.mapaDaiaBounds);
+            const zoomLote = map.getBoundsZoom(layer.getBounds(), false, L.point(80, 80));
+            map.setView(layer.getBounds().getCenter(), Math.min(zoomLote, zoomGeral + 1.5));
             layer._destacado = true;
             layer.setStyle({ color: '#002b5c', weight: 5, fillOpacity: 0.85 });
             layer.bringToFront();
