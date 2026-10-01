@@ -633,6 +633,19 @@
                             const loteHtml = matriculas.length
                                 ? '<b>' + (matriculas.length === 1 ? 'Matrícula:' : 'Matrículas (' + matriculas.length + '):') + '</b> ' + matriculas.join(', ') + '<br>'
                                 : '';
+                            function valoresUnicos(campo) {
+                                const vistos = [];
+                                (props.modulos_detalhe || []).forEach(function(m) {
+                                    const v = m[campo];
+                                    if (v !== null && v !== undefined && v !== '' && vistos.indexOf(String(v)) === -1) vistos.push(String(v));
+                                });
+                                return vistos;
+                            }
+                            const quadras = valoresUnicos('quadra');
+                            const modulosNum = valoresUnicos('modulo');
+                            const quadraModuloHtml =
+                                (quadras.length ? '<b>Quadra:</b> ' + quadras.join(', ') + '<br>' : '') +
+                                (modulosNum.length ? '<b>' + (modulosNum.length === 1 ? 'Módulo:' : 'Módulos:') + '</b> ' + modulosNum.join(', ') + '<br>' : '');
                             // Desenhos que não são lote do cadastro (canal, mata...) mostram o nome escrito no DXF
                             const identificacaoHtml = (!matriculas.length && props.rotulo)
                                 ? '<b>Identificação:</b> ' + props.rotulo + '<br>'
@@ -652,6 +665,7 @@
                             layer.bindPopup(
                                 '<div style="font-size:13px;line-height:1.5;">' +
                                 loteHtml +
+                                quadraModuloHtml +
                                 identificacaoHtml +
                                 (props.empresa ? '<b>Empresa:</b> ' + props.empresa + '<br>' : '') +
                                 '<b>Área:</b> ' + (props.area || 'Não informada') + '<br>' +
