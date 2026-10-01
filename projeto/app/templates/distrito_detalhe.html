@@ -631,7 +631,7 @@
                             {% if slug == 'inhumas' %}
                             const matriculas = (props.modulos_detalhe || []).map(function(m) { return m.matricula; }).filter(Boolean);
                             const loteHtml = matriculas.length
-                                ? '<b>' + (matriculas.length === 1 ? 'Lote:' : 'Lotes (' + matriculas.length + '):') + '</b> ' + matriculas.join(', ') + '<br>'
+                                ? '<b>' + (matriculas.length === 1 ? 'Matrícula:' : 'Matrículas (' + matriculas.length + '):') + '</b> ' + matriculas.join(', ') + '<br>'
                                 : '';
                             // Desenhos que não são lote do cadastro (canal, mata...) mostram o nome escrito no DXF
                             const identificacaoHtml = (!matriculas.length && props.rotulo)
@@ -645,8 +645,8 @@
                             const detalhes = props.modulos_detalhe || [];
                             const situacoesDistintas = new Set(detalhes.map(function(m) { return m.status_assentamento || ''; }));
                             if (situacoesDistintas.size > 1) {
-                                situacaoPorModuloHtml = '<div style="margin-top:4px;padding-top:4px;border-top:1px solid #e5e7eb;"><b>Situação por lote:</b><br>' +
-                                    detalhes.map(function(m) { return 'Lote ' + (m.matricula || m.id_modulo) + ': ' + nomeSituacao(m.status_assentamento); }).join('<br>') +
+                                situacaoPorModuloHtml = '<div style="margin-top:4px;padding-top:4px;border-top:1px solid #e5e7eb;"><b>Situação por matrícula:</b><br>' +
+                                    detalhes.map(function(m) { return 'Matrícula ' + (m.matricula || m.id_modulo) + ': ' + nomeSituacao(m.status_assentamento); }).join('<br>') +
                                     '</div>';
                             }
                             layer.bindPopup(
